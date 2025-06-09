@@ -1,0 +1,9 @@
+{
+  "development": {
+    "username": "root",
+    "password": "0425",
+    "database": "clothing_inspection",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+} 
