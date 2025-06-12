@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
+  Box,
   Paper,
   Table,
   TableBody,
@@ -8,160 +8,193 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Typography,
+  Chip,
+  IconButton,
+  TextField,
+  InputAdornment,
+  FormControl,
+  InputLabel,
   Select,
   MenuItem,
-  FormControl,
-  InputLabel
+  Button,
+  TablePagination
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Visibility, Search } from '@mui/icons-material';
+import { fetchWithAuth } from '../utils/api';
+import { useSnackbar } from 'notistack';
 
-function InspectionList() {
+const InspectionList = () => {
+  const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [inspections, setInspections] = useState([]);
-  const [clothes, setClothes] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [newInspection, setNewInspection] = useState({
-    clothes_id: '',
-    result: '',
-    comment: ''
-  });
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [companyFilter, setCompanyFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // 검수 목록 조회
+  const fetchInspections = async () => {
+    try {
+      const data = await fetchWithAuth('/inspections');
+      setInspections(data);
+    } catch (error) {
+      console.error('검수 목록 조회 실패:', error);
+      enqueueSnackbar('검수 목록을 불러오는데 실패했습니다.', { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchInspections();
-    fetchClothes();
   }, []);
 
-  const fetchInspections = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/api/inspections');
-      const data = await response.json();
-      setInspections(data);
-    } catch (error) {
-      console.error('Error fetching inspections:', error);
+  // 최신 순 정렬 후 필터링
+  const sorted = [...inspections].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const filteredInspections = sorted.filter(inspection => {
+    const slipName = (inspection.inspectionName || inspection.inspectionSlipName || '').toLowerCase();
+    const company = (inspection.company || '').toLowerCase();
+    const matchesSearch = slipName.includes(searchTerm.toLowerCase()) || company.includes(searchTerm.toLowerCase());
+    const matchesCompany = !companyFilter || inspection.company === companyFilter;
+    const matchesStatus = !statusFilter || inspection.status === statusFilter;
+    return matchesSearch && matchesCompany && matchesStatus;
+  });
+
+  const paginatedInspections = filteredInspections.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // 상태별 칩 색상
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return 'warning';
+      case 'approved': return 'success';
+      case 'rejected': return 'error';
+      default: return 'default';
     }
   };
 
-  const fetchClothes = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/api/clothes');
-      const data = await response.json();
-      setClothes(data);
-    } catch (error) {
-      console.error('Error fetching clothes:', error);
-    }
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/api/inspections', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newInspection),
-      });
-
-      if (response.ok) {
-        setOpen(false);
-        setNewInspection({ clothes_id: '', result: '', comment: '' });
-        fetchInspections();
-      }
-    } catch (error) {
-      console.error('Error adding inspection:', error);
+  // 상태별 한글 표시
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'pending': return '대기중';
+      case 'approved': return '승인';
+      case 'rejected': return '반려';
+      default: return status;
     }
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        검수 내역
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => setOpen(true)}
-        sx={{ mb: 2 }}
-      >
-        새 검수 등록
-      </Button>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h5" sx={{ mb: 3 }}>검수 목록</Typography>
+      
+      {/* 필터 및 검색 */}
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <TextField
+          label="검색"
+          variant="outlined"
+          size="small"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ minWidth: 200 }}
+        />
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>업체</InputLabel>
+          <Select
+            value={companyFilter}
+            label="업체"
+            onChange={(e) => setCompanyFilter(e.target.value)}
+          >
+            <MenuItem value="">전체</MenuItem>
+            {[...new Set(inspections.map(i => i.company))].map(company => (
+              <MenuItem key={company} value={company}>{company}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>상태</InputLabel>
+          <Select
+            value={statusFilter}
+            label="상태"
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <MenuItem value="">전체</MenuItem>
+            <MenuItem value="pending">대기중</MenuItem>
+            <MenuItem value="approved">승인</MenuItem>
+            <MenuItem value="rejected">반려</MenuItem>
+          </Select>
+        </FormControl>
+        <Button
+          variant="contained"
+          onClick={() => navigate('/inspections/register')}
+          sx={{ ml: 'auto' }}
+        >
+          검수 등록
+        </Button>
+      </Box>
 
+      {/* 검수 목록 테이블 */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>의류</TableCell>
-              <TableCell>결과</TableCell>
-              <TableCell>코멘트</TableCell>
-              <TableCell>검수일</TableCell>
+              <TableCell>#</TableCell>
+              <TableCell>검수전표명</TableCell>
+              <TableCell>업체</TableCell>
+              <TableCell>검수일시</TableCell>
+              <TableCell>상태</TableCell>
+              <TableCell>작업</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {inspections.map((inspection) => (
+            {paginatedInspections.map((inspection, idx) => (
               <TableRow key={inspection.id}>
+                <TableCell>{page * rowsPerPage + idx + 1}</TableCell>
+                <TableCell>{inspection.inspectionName || inspection.inspectionSlipName}</TableCell>
+                <TableCell>{inspection.company}</TableCell>
                 <TableCell>
-                  {clothes.find(c => c.id === inspection.clothes_id)?.name}
+                  {new Date(inspection.createdAt).toLocaleString()}
                 </TableCell>
-                <TableCell>{inspection.result}</TableCell>
-                <TableCell>{inspection.comment}</TableCell>
                 <TableCell>
-                  {new Date(inspection.inspected_at).toLocaleDateString()}
+                  <Chip
+                    label={getStatusLabel(inspection.status)}
+                    color={getStatusColor(inspection.status)}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  <IconButton
+                    size="small"
+                    onClick={() => navigate(`/inspections/${inspection.id}`)}
+                  >
+                    <Visibility />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>새 검수 등록</DialogTitle>
-        <DialogContent>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>의류 선택</InputLabel>
-            <Select
-              value={newInspection.clothes_id}
-              onChange={(e) => setNewInspection({ ...newInspection, clothes_id: e.target.value })}
-            >
-              {clothes.map((item) => (
-                <MenuItem key={item.id} value={item.id}>
-                  {item.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>결과</InputLabel>
-            <Select
-              value={newInspection.result}
-              onChange={(e) => setNewInspection({ ...newInspection, result: e.target.value })}
-            >
-              <MenuItem value="pass">합격</MenuItem>
-              <MenuItem value="fail">불합격</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            fullWidth
-            label="코멘트"
-            margin="normal"
-            multiline
-            rows={4}
-            value={newInspection.comment}
-            onChange={(e) => setNewInspection({ ...newInspection, comment: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>취소</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
-            등록
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+    </Box>
   );
-}
+};
 
 export default InspectionList; 

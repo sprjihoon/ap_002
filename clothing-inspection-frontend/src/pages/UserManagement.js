@@ -26,6 +26,7 @@ import {
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon } from '@mui/icons-material';
 import { fetchWithAuth, API_URL } from '../utils/api';
+import _ from 'lodash';
 
 function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -51,6 +52,9 @@ function UserManagement() {
     company: '',
     role: ''
   });
+  const [companyFilter, setCompanyFilter] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [search, setSearch] = useState('');
 
   const fetchUsers = async () => {
     try {
@@ -178,6 +182,20 @@ function UserManagement() {
     });
   };
 
+  // 업체명, 역할 목록 추출
+  const companyList = _.uniq(users.map(u => u.company)).filter(Boolean);
+  const roleList = _.uniq(users.map(u => u.role)).filter(Boolean);
+
+  // 필터링된 사용자
+  const filteredUsers = users.filter(user => {
+    const matchesCompany = !companyFilter || user.company === companyFilter;
+    const matchesRole = !roleFilter || user.role === roleFilter;
+    if (!matchesCompany || !matchesRole) return false;
+    if (!search) return true;
+    const keyword = search.toLowerCase();
+    return [user.username, user.email, user.company, user.role].some(f => f && f.toLowerCase().includes(keyword));
+  });
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ mt: 4, mb: 4 }}>
@@ -185,14 +203,50 @@ function UserManagement() {
           <Typography variant="h4" component="h1">
             사용자 관리
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenRegisterDialog(true)}
-          >
-            사용자 등록
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <TextField
+              size="small"
+              label="검색"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              sx={{ minWidth: 180 }}
+              placeholder="이름, 이메일, 업체명 등"
+            />
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>업체명</InputLabel>
+              <Select
+                value={companyFilter}
+                label="업체명"
+                onChange={e => setCompanyFilter(e.target.value)}
+              >
+                <MenuItem value="">전체</MenuItem>
+                {companyList.map(c => (
+                  <MenuItem key={c} value={c}>{c}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>역할</InputLabel>
+              <Select
+                value={roleFilter}
+                label="역할"
+                onChange={e => setRoleFilter(e.target.value)}
+              >
+                <MenuItem value="">전체</MenuItem>
+                {roleList.map(r => (
+                  <MenuItem key={r} value={r}>{r === 'admin' ? '관리자' : r === 'inspector' ? '검수자' : r === 'operator' ? '운영자' : '작업자'}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenRegisterDialog(true)}
+            >
+              사용자 등록
+            </Button>
+          </Box>
         </Box>
         
         <TableContainer component={Paper}>
@@ -209,7 +263,7 @@ function UserManagement() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>{user.id}</TableCell>
                   <TableCell>{user.username}</TableCell>

@@ -13,9 +13,14 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",
+    "bootstrap": "^5.3.6",
     "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
+    "notistack": "^3.0.2",
     "react": "^19.1.0",
+    "react-bootstrap": "^2.10.10",
     "react-dom": "^19.1.0",
+    "react-dropzone": "^14.3.8",
     "react-router-dom": "^7.6.2",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
@@ -43,5 +48,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "proxy": "http://localhost:5000"
 }

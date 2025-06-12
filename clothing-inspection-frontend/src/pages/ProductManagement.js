@@ -26,8 +26,10 @@ import {
   Grid,
   Chip
 } from '@mui/material';
-import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon, Upload as UploadIcon } from '@mui/icons-material';
 import { fetchWithAuth, API_URL } from '../utils/api';
+import ExcelUpload from '../components/ExcelUpload';
+import _ from 'lodash';
 
 function ProductManagement() {
   const [products, setProducts] = useState([]);
@@ -46,6 +48,10 @@ function ProductManagement() {
     location: '',
     variants: []
   });
+  const [openExcelUpload, setOpenExcelUpload] = useState(false);
+  const [companyFilter, setCompanyFilter] = useState('');
+  const [wholesalerFilter, setWholesalerFilter] = useState('');
+  const [search, setSearch] = useState('');
 
   const fetchProducts = async () => {
     try {
@@ -239,6 +245,27 @@ function ProductManagement() {
     }
   };
 
+  // products를 그룹핑
+  const groupedProducts = _.values(_.groupBy(products, p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|')));
+
+  // 업체명, 도매처명 목록 추출
+  const companyList = _.uniq(products.map(p => p.company)).filter(Boolean);
+  const wholesalerList = _.uniq(products.map(p => p.wholesaler)).filter(Boolean);
+
+  // 필터링된 그룹 (검색어까지 적용)
+  const filteredGroupedProducts = groupedProducts.filter(group => {
+    const first = group[0];
+    const matchesFilter =
+      (!companyFilter || first.company === companyFilter) &&
+      (!wholesalerFilter || first.wholesaler === wholesalerFilter);
+    if (!matchesFilter) return false;
+    if (!search) return true;
+    // 검색어가 주요 필드에 포함되어 있는지 확인
+    const keyword = search.toLowerCase();
+    const fields = [first.company, first.productName, first.wholesaler, first.wholesalerProductName, first.location, ...group.flatMap(p => (p.ProductVariants ? p.ProductVariants.map(v => v.barcode) : (p.barcode ? p.barcode.split(/[,;\n]+/).map(b => b.trim()) : [])))];
+    return fields.some(f => f && f.toLowerCase().includes(keyword));
+  });
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ mt: 4, mb: 4 }}>
@@ -246,6 +273,51 @@ function ProductManagement() {
           <Typography variant="h4" component="h1">
             제품 관리
           </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+          <TextField
+            size="small"
+            label="검색"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            sx={{ minWidth: 180 }}
+            placeholder="업체명, 제품명, 바코드 등"
+          />
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>업체명</InputLabel>
+            <Select
+              value={companyFilter}
+              label="업체명"
+              onChange={e => setCompanyFilter(e.target.value)}
+            >
+              <MenuItem value="">전체</MenuItem>
+              {companyList.map(c => (
+                <MenuItem key={c} value={c}>{c}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>도매처명</InputLabel>
+            <Select
+              value={wholesalerFilter}
+              label="도매처명"
+              onChange={e => setWholesalerFilter(e.target.value)}
+            >
+              <MenuItem value="">전체</MenuItem>
+              {wholesalerList.map(w => (
+                <MenuItem key={w} value={w}>{w}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<UploadIcon />}
+            onClick={() => setOpenExcelUpload(true)}
+            sx={{ mr: 2 }}
+          >
+            엑셀 업로드
+          </Button>
           <Button
             variant="contained"
             color="primary"
@@ -256,61 +328,64 @@ function ProductManagement() {
           </Button>
         </Box>
         
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>업체명</TableCell>
-                <TableCell>제품명</TableCell>
-                <TableCell>사이즈</TableCell>
-                <TableCell>컬러</TableCell>
-                <TableCell>바코드</TableCell>
-                <TableCell>도매처명</TableCell>
-                <TableCell>도매처제품명</TableCell>
-                <TableCell>로케이션</TableCell>
-                <TableCell>등록일</TableCell>
-                <TableCell>작업</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>ID</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>업체명</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>제품명</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>사이즈</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>컬러</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 180 }}>바코드</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>도매처명</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>도매처제품명</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>로케이션</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>등록일</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>작업</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>{product.id}</TableCell>
-                  <TableCell>{product.company}</TableCell>
-                  <TableCell>{product.productName}</TableCell>
-                  <TableCell>{product.size.join(', ')}</TableCell>
-                  <TableCell>{product.color.join(', ')}</TableCell>
-                  <TableCell>
-                    {product.ProductVariants.map((variant, index) => (
-                      <Chip
-                        key={index}
-                        label={`${variant.size}/${variant.color}: ${variant.barcode}`}
-                        size="small"
-                        style={{ margin: '2px' }}
-                      />
-                    ))}
-                  </TableCell>
-                  <TableCell>{product.wholesaler}</TableCell>
-                  <TableCell>{product.wholesalerProductName}</TableCell>
-                  <TableCell>{product.location}</TableCell>
-                  <TableCell>{formatDate(product.createdAt)}</TableCell>
-                  <TableCell>
-                    <IconButton
-                      onClick={() => handleOpen(product)}
-                      color="primary"
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => handleDelete(product.id)}
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {filteredGroupedProducts.map((group, idx) => {
+                const first = group[0];
+                let barcodes = [];
+                group.forEach(product => {
+                  if (product.ProductVariants && product.ProductVariants.length > 0) {
+                    barcodes.push(...product.ProductVariants.map(v => `${v.size}/${v.color}: ${v.barcode}`));
+                  } else if (product.barcode) {
+                    barcodes.push(...product.barcode.split(/[,;\n]+/).map(b => b.trim()).filter(Boolean));
+                  }
+                });
+                return (
+                  <TableRow key={idx}>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>{first.id}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{first.company}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{first.productName}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{Array.isArray(first.size) ? first.size.join(', ') : first.size}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{Array.isArray(first.color) ? first.color.join(', ') : first.color}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 180 }}>
+                      {barcodes
+                        .flatMap(b => b.split(/[,;\n]+/))
+                        .map((b, i) => (
+                          <Chip key={i} label={b} size="small" style={{ margin: '2px' }} />
+                        ))
+                      }
+                    </TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{first.wholesaler}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{first.wholesalerProductName}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>{first.location}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{formatDate(first.createdAt)}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>
+                      <IconButton onClick={() => handleOpen(first)} color="primary">
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton onClick={() => handleDelete(first.id)} color="error">
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>
@@ -457,10 +532,25 @@ function ProductManagement() {
           </Alert>
         </Snackbar>
 
-        <Button variant="outlined" component="label" sx={{ ml: 2 }}>
-          엑셀 업로드
-          <input hidden type="file" accept=".xlsx" onChange={handleFile} />
-        </Button>
+        <Dialog
+          open={openExcelUpload}
+          onClose={() => setOpenExcelUpload(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>엑셀 파일 업로드</DialogTitle>
+          <DialogContent>
+            <ExcelUpload onSuccess={() => {
+              setOpenExcelUpload(false);
+              fetchProducts();
+            }} />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenExcelUpload(false)}>
+              닫기
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Container>
   );

@@ -26,8 +26,9 @@ import {
   Grid,
   Chip
 } from '@mui/material';
-import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon, PhotoCamera } from '@mui/icons-material';
 import { fetchWithAuth, API_URL } from '../utils/api';
+import ExcelUpload from '../components/ExcelUpload';
 
 function ClothesList() {
   const [products, setProducts] = useState([]);
@@ -46,6 +47,10 @@ function ClothesList() {
     location: '',
     variants: []
   });
+  const [openExcelUpload, setOpenExcelUpload] = useState(false);
+  const [search, setSearch] = useState('');
+  const [companyFilter, setCompanyFilter] = useState('');
+  const [wholesalerFilter, setWholesalerFilter] = useState('');
 
   const fetchProducts = async () => {
     try {
@@ -190,6 +195,18 @@ function ClothesList() {
     setFormData(prev=>({...prev,variants:copy}));
   };
 
+  // products 배열을 그룹핑
+  const grouped = {};
+  products.forEach(product => {
+    const key = [product.company, product.productName, product.wholesaler, product.wholesalerProductName].join('|');
+    if (!grouped[key]) grouped[key] = [];
+    if (product.ProductVariants && product.ProductVariants.length > 0) {
+      grouped[key].push(...product.ProductVariants.map(v => `${v.size}/${v.color}: ${v.barcode}`));
+    } else if (product.barcode) {
+      grouped[key].push(...product.barcode.split(/[,;\n]+/).map(b => b.trim()).filter(Boolean));
+    }
+  });
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ mt: 4, mb: 4 }}>
@@ -197,14 +214,61 @@ function ClothesList() {
           <Typography variant="h4" component="h1">
             새의류 등록
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={()=>handleOpen()}
-          >
-            새의류 등록
-          </Button>
+          <Box>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => setOpenExcelUpload(true)}
+              sx={{ mr: 2 }}
+            >
+              엑셀 업로드
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpen()}
+            >
+              새의류 등록
+            </Button>
+          </Box>
+        </Box>
+        
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+          <TextField
+            size="small"
+            label="검색"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            sx={{ minWidth: 180 }}
+            placeholder="업체명, 제품명, 바코드 등"
+          />
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>업체명</InputLabel>
+            <Select
+              value={companyFilter}
+              label="업체명"
+              onChange={e => setCompanyFilter(e.target.value)}
+            >
+              <MenuItem value="">전체</MenuItem>
+              {companies.map(c => (
+                <MenuItem key={c} value={c}>{c}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>도매처명</InputLabel>
+            <Select
+              value={wholesalerFilter}
+              label="도매처명"
+              onChange={e => setWholesalerFilter(e.target.value)}
+            >
+              <MenuItem value="">전체</MenuItem>
+              {companies.map(w => (
+                <MenuItem key={w} value={w}>{w}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
         
         <TableContainer component={Paper}>
@@ -225,31 +289,35 @@ function ClothesList() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>{product.id}</TableCell>
-                  <TableCell>{product.company}</TableCell>
-                  <TableCell>{product.productName}</TableCell>
-                  <TableCell>{Array.isArray(product.size)?product.size.join(', '):product.size}</TableCell>
-                  <TableCell>{Array.isArray(product.color)?product.color.join(', '):product.color}</TableCell>
+              {Object.entries(grouped).map(([key, barcodes], idx) => (
+                <TableRow key={idx}>
+                  <TableCell>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id}</TableCell>
+                  <TableCell>{key.split('|')[0]}</TableCell>
+                  <TableCell>{key.split('|')[1]}</TableCell>
+                  <TableCell>{key.split('|')[2]}</TableCell>
+                  <TableCell>{key.split('|')[3]}</TableCell>
                   <TableCell>
-                    {product.ProductVariants ? product.ProductVariants.map((v,i)=>(<Chip key={i} label={`${v.size}/${v.color}: ${v.barcode}`} size="small" style={{margin:'2px'}} />)) : null}
+                    {barcodes
+                      .flatMap(b => b.split(/[,;\n]+/))
+                      .map((b, i) => (
+                        <Chip key={i} label={b} size="small" style={{ margin: '2px' }} clickable={false} />
+                      ))}
                   </TableCell>
-                  <TableCell>{product.wholesaler}</TableCell>
-                  <TableCell>{product.wholesalerProductName}</TableCell>
-                  <TableCell>{product.location}</TableCell>
-                  <TableCell>{formatDate(product.createdAt)}</TableCell>
+                  <TableCell>{key.split('|')[2]}</TableCell>
+                  <TableCell>{key.split('|')[3]}</TableCell>
+                  <TableCell>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.location}</TableCell>
+                  <TableCell>{formatDate(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.createdAt)}</TableCell>
                   <TableCell>
                     <IconButton
                       onClick={() => {
-                        handleOpen(product);
+                        handleOpen(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key));
                       }}
                       color="primary"
                     >
                       <EditIcon />
                     </IconButton>
                     <IconButton
-                      onClick={() => handleDelete(product.id)}
+                      onClick={() => handleDelete(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id)}
                       color="error"
                     >
                       <DeleteIcon />
@@ -385,6 +453,26 @@ function ClothesList() {
             </Button>
             <Button onClick={handleSubmit} variant="contained" color="primary">
               {editingProduct ? '수정' : '등록'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={openExcelUpload}
+          onClose={() => setOpenExcelUpload(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>엑셀 파일 업로드</DialogTitle>
+          <DialogContent>
+            <ExcelUpload onSuccess={() => {
+              setOpenExcelUpload(false);
+              fetchProducts();
+            }} />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenExcelUpload(false)}>
+              닫기
             </Button>
           </DialogActions>
         </Dialog>
