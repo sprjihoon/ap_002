@@ -50,7 +50,9 @@ function UserManagement() {
     username: '',
     email: '',
     company: '',
-    role: ''
+    role: '',
+    password: '',
+    confirmPassword: ''
   });
   const [companyFilter, setCompanyFilter] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
@@ -58,8 +60,8 @@ function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const data = await fetchWithAuth('/users/all');
-      setUsers(data);
+      const users = await fetchWithAuth('/users/all');
+      setUsers(users);
     } catch (error) {
       setError('사용자 목록을 불러오는데 실패했습니다.');
     }
@@ -71,11 +73,11 @@ function UserManagement() {
 
   const handleRoleChange = async () => {
     try {
-      await fetchWithAuth(`/users/${selectedUser.id}/role`, {
+      const data = await fetchWithAuth(`/users/${selectedUser.id}/role`, {
         method: 'PUT',
         body: JSON.stringify({ role: newRole })
       });
-      setSuccess('사용자 역할이 변경되었습니다.');
+      setSuccess(data.message || '사용자 역할이 변경되었습니다.');
       setOpenRoleDialog(false);
       fetchUsers();
     } catch (error) {
@@ -89,10 +91,10 @@ function UserManagement() {
     }
 
     try {
-      await fetchWithAuth(`/users/${userId}`, {
+      const data = await fetchWithAuth(`/users/${userId}`, {
         method: 'DELETE'
       });
-      setSuccess('사용자가 삭제되었습니다.');
+      setSuccess(data.message || '사용자가 삭제되었습니다.');
       fetchUsers();
     } catch (error) {
       setError('사용자 삭제에 실패했습니다.');
@@ -106,12 +108,8 @@ function UserManagement() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/users/register`, {
+      const data = await fetchWithAuth('/users/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
         body: JSON.stringify({
           username: newUser.username,
           email: newUser.email,
@@ -120,13 +118,6 @@ function UserManagement() {
           role: newUser.role
         })
       });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || '사용자 등록에 실패했습니다.');
-      }
-      
       setSuccess(data.message);
       setOpenRegisterDialog(false);
       setNewUser({
@@ -137,8 +128,6 @@ function UserManagement() {
         confirmPassword: '',
         role: 'inspector'
       });
-      
-      // 사용자 목록 갱신
       await fetchUsers();
     } catch (error) {
       console.error('Registration error:', error);
@@ -147,23 +136,26 @@ function UserManagement() {
   };
 
   const handleEdit = async () => {
-    try {
-      const response = await fetchWithAuth(`/users/${editingUser.id}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          username: editingUser.username,
-          email: editingUser.email,
-          company: editingUser.company,
-          role: editingUser.role
-        })
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || '사용자 정보 수정에 실패했습니다.');
+    if (editingUser.password || editingUser.confirmPassword) {
+      if (editingUser.password !== editingUser.confirmPassword) {
+        setError('비밀번호가 일치하지 않습니다.');
+        return;
       }
+    }
 
-      const data = await response.json();
+    try {
+      const body = {
+        username: editingUser.username,
+        email: editingUser.email,
+        company: editingUser.company,
+        role: editingUser.role
+      };
+      if (editingUser.password) body.password = editingUser.password;
+
+      const data = await fetchWithAuth(`/users/${editingUser.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(body)
+      });
       setSuccess(data.message);
       setOpenEditDialog(false);
       fetchUsers();
@@ -281,7 +273,9 @@ function UserManagement() {
                           username: user.username,
                           email: user.email || '',
                           company: user.company || '',
-                          role: user.role
+                          role: user.role,
+                          password: '',
+                          confirmPassword: ''
                         });
                         setOpenEditDialog(true);
                       }}
@@ -423,8 +417,8 @@ function UserManagement() {
               <InputLabel>역할</InputLabel>
               <Select
                 value={editingUser.role}
-                onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
                 label="역할"
+                onChange={e => setEditingUser({ ...editingUser, role: e.target.value })}
               >
                 <MenuItem value="admin">관리자</MenuItem>
                 <MenuItem value="inspector">검수자</MenuItem>
@@ -432,6 +426,24 @@ function UserManagement() {
                 <MenuItem value="worker">작업자</MenuItem>
               </Select>
             </FormControl>
+
+            {/* 비밀번호 변경 (선택) */}
+            <TextField
+              label="새 비밀번호 (선택)"
+              type="password"
+              fullWidth
+              margin="normal"
+              value={editingUser.password}
+              onChange={e => setEditingUser({ ...editingUser, password: e.target.value })}
+            />
+            <TextField
+              label="비밀번호 확인"
+              type="password"
+              fullWidth
+              margin="normal"
+              value={editingUser.confirmPassword}
+              onChange={e => setEditingUser({ ...editingUser, confirmPassword: e.target.value })}
+            />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenEditDialog(false)}>취소</Button>

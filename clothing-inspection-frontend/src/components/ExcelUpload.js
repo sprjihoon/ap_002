@@ -10,7 +10,6 @@ import {
   DialogActions, TextField, FormControl,
   InputLabel, Select, MenuItem
 } from '@mui/material';
-import { useInspectionForm } from '../hooks/useInspectionForm';
 
 const ExcelUpload = ({ onSuccess }) => {
   const [uploading, setUploading] = useState(false);
@@ -37,9 +36,9 @@ const ExcelUpload = ({ onSuccess }) => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    const API_BASE = process.env.REACT_APP_API_URL || '';
     try {
-      const response = await axios.post(`${API_BASE}/api/upload`, formData, {
+      const response = await axios.post(`${API_BASE}/api/products/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -71,7 +70,7 @@ const ExcelUpload = ({ onSuccess }) => {
 
   const handleSampleDownload = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/products/sample', {
+      const response = await axios.get('/api/products/sample', {
         responseType: 'blob',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -107,8 +106,6 @@ const ExcelUpload = ({ onSuccess }) => {
   };
 
   const user = JSON.parse(localStorage.getItem('user')||'{}');
-
-  const { inputs, setInputs, selectedVariants, ... } = useInspectionForm(initialData);
 
   return (
     <div className="p-4">
@@ -180,7 +177,7 @@ const ExcelUpload = ({ onSuccess }) => {
         </ul>
       </div>
 
-      { uploadResponse && (user.role==='admin' || user.id===uploadResponse.data.data.inspector_id) && (
+      { uploadResponse && uploadResponse.data?.data?.inspector_id && (user.role==='admin' || user.id===uploadResponse.data.data.inspector_id) && (
         <BsButton
           startIcon={<EditIcon />}
           onClick={() => setEditOpen(true)}

@@ -53,30 +53,26 @@ const upload = multer({ storage });
 router.post('/upload', upload.single('photo'), async (req, res) => {
   try {
     const barcodes = req.body['barcodes[]'] || req.body.barcodes;
-    if (!req.file || !barcodes) {
-      return res.status(400).json({ error: 'No file or barcodes provided' });
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' });
     }
 
-    // 바코드가 문자열로 전달된 경우 배열로 변환
-    const barcodeArray = Array.isArray(barcodes) ? barcodes : [barcodes];
-    
-    // 각 바코드별로 파일 복사 및 정리
     const uploadedUrls = [];
-    for (const barcode of barcodeArray) {
-      const barcodeDir = ensureBarcodeDir(barcode);
-      const newFilePath = path.join(barcodeDir, req.file.filename);
-      
-      // 원본 파일을 바코드 폴더로 복사
-      fs.copyFileSync(req.file.path, newFilePath);
-      
-      // 파일 정리 (30개 초과 시 오래된 파일 삭제)
-      cleanupOldFiles(barcodeDir);
-      
-      uploadedUrls.push(`/uploads/images/${barcode}/${req.file.filename}`);
-    }
 
-    // 원본 파일 삭제
-    fs.unlinkSync(req.file.path);
+    if (barcodes) {
+      // 기존 로직: 각 바코드별 폴더에 복사
+      const barcodeArray = Array.isArray(barcodes) ? barcodes : [barcodes];
+      for (const barcode of barcodeArray) {
+        const barcodeDir = ensureBarcodeDir(barcode);
+        const newFilePath = path.join(barcodeDir, req.file.filename);
+        fs.copyFileSync(req.file.path, newFilePath);
+        cleanupOldFiles(barcodeDir);
+        uploadedUrls.push(`/uploads/images/${barcode}/${req.file.filename}`);
+      }
+    } else {
+      // 바코드 미지정: 원본 위치(/uploads/images)에 그대로 활용
+      uploadedUrls.push(`/uploads/images/${req.file.filename}`);
+    }
 
     res.json({
       message: 'Files uploaded successfully',

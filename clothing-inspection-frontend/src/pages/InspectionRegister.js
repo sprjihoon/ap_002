@@ -117,7 +117,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
   };
 
   // 백엔드 서버 주소 (개발용 기본값)
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3002';
 
   // 사진 업로드
   const uploadPhoto = async (file, barcode) => {
@@ -154,7 +154,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
       if (!validateInputs()) return;
       const updatedOptions = { ...optionInputs };
       for (const variant of selectedVariants) {
-        const input = updatedOptions[variant.barcode];
+        const input = updatedOptions[variant.barcode] || {};
         if (input?.photo) {
           try {
             const photoUrl = await uploadPhoto(input.photo, variant.barcode);
@@ -167,8 +167,8 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
             return;
           }
         }
-        // 결과 자동 판정
-        updatedOptions[variant.barcode].result = Number(input.defect || 0) > 0 ? '불량' : '정상';
+        // 결과 자동 판정 (영문 pass/fail)
+        updatedOptions[variant.barcode].result = Number(input.defect || 0) > 0 ? 'fail' : 'pass';
       }
       // 영수증 사진 업로드 (필수 아님)
       const uploadedReceiptPhotos = [];
@@ -186,22 +186,32 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
         }
       }
       // 검사 전표명 및 전체 결과 생성
-      const isFail = Object.values(updatedOptions).some(opt => opt.result === '불량');
+      const isFail = Object.values(updatedOptions).some(opt => opt.result === 'fail');
       const overallResult = isFail ? 'fail' : 'pass';
 
-      // 검수 전표 이름: 업체명_YYYYMMDD_HHmmss
+      // 검수 전표 이름: 업체명_YYYYMMDD (시간 제거)
       const now = new Date();
       const y = now.getFullYear();
       const m = String(now.getMonth() + 1).padStart(2, '0');
       const d = String(now.getDate()).padStart(2, '0');
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      const ss = String(now.getSeconds()).padStart(2, '0');
-      const ms = String(now.getMilliseconds()).padStart(3, '0');
-      const inspectionName = `${selectedCompany}_${y}${m}${d}_${hh}${mm}${ss}${ms}`;
+      const inspectionName = `${selectedCompany}_${y}${m}${d}`;
 
       // 현재 선택된 옵션으로부터 제품 ID를 유도(중복 제거)
       const productIds = [...new Set(selectedVariants.map(v => v.productId))];
+
+      // details 배열 생성
+      const details = selectedVariants.map(v => {
+        const input = updatedOptions[v.barcode];
+        return {
+          barcode: v.barcode,
+          totalQuantity: Number(input.total),
+          normalQuantity: Number(input.normal),
+          defectQuantity: Number(input.defect || 0),
+          result: input.result, // pass / fail
+          comment: input.comment || '',
+          photoUrl: input.photoUrl || null
+        };
+      });
 
       const response = await axios.post(
         `${API_BASE}/api/inspections`,
@@ -210,7 +220,8 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
           company: selectedCompany,
           result: overallResult,
           comment: '',
-          // 프론트에서 상세 옵션/사진은 추후 별도 엔드포인트로 전송 예정
+          details,
+          receiptPhotos: uploadedReceiptPhotos
         },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -341,7 +352,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
             <Autocomplete
               multiple
               options={allVariants}
-              getOptionLabel={option => `${option.productName} / ${option.size} / ${option.color} / ${option.barcode}`}
+              getOptionLabel={option => `${option.wholesaler} / ${option.wholesalerProductName} / ${option.productName} / ${option.size} / ${option.color} / ${option.barcode}`}
               filterSelectedOptions
               value={allVariants.filter(v => selectedBarcodes.includes(v.barcode))}
               onChange={(e, newValue) => {
@@ -387,38 +398,40 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </Box>
-                  <TextField
-                    label="전체수량"
-                    type="number"
-                    value={input.total || ''}
-                    onChange={e => handleOptionInput(variant.barcode, 'total', e.target.value)}
-                    sx={{ width: 120 }}
-                    inputProps={{ min: 0 }}
-                  />
-                  <TextField
-                    label="정상수량"
-                    type="number"
-                    value={input.normal || ''}
-                    onChange={e => handleOptionInput(variant.barcode, 'normal', e.target.value)}
-                    sx={{ width: 120 }}
-                    inputProps={{ min: 0 }}
-                    error={error}
-                  />
-                  <TextField
-                    label="불량수량"
-                    type="number"
-                    value={input.defect || ''}
-                    onChange={e => handleOptionInput(variant.barcode, 'defect', e.target.value)}
-                    sx={{ width: 120 }}
-                    inputProps={{ min: 0 }}
-                    error={error}
-                  />
-                  <TextField
-                    label="코멘트"
-                    value={input.comment || ''}
-                    onChange={e => handleOptionInput(variant.barcode, 'comment', e.target.value)}
-                    sx={{ minWidth: 200 }}
-                  />
+                  <Box sx={{ display:'flex', gap:1, flexWrap:'wrap' }}>
+                    <TextField
+                      label="전체수량"
+                      type="number"
+                      value={input.total || ''}
+                      onChange={e => handleOptionInput(variant.barcode, 'total', e.target.value)}
+                      sx={{ width: 90 }}
+                      inputProps={{ min: 0 }}
+                    />
+                    <TextField
+                      label="정상수량"
+                      type="number"
+                      value={input.normal || ''}
+                      onChange={e => handleOptionInput(variant.barcode, 'normal', e.target.value)}
+                      sx={{ width: 90 }}
+                      inputProps={{ min: 0 }}
+                      error={error}
+                    />
+                    <TextField
+                      label="불량수량"
+                      type="number"
+                      value={input.defect || ''}
+                      onChange={e => handleOptionInput(variant.barcode, 'defect', e.target.value)}
+                      sx={{ width: 90 }}
+                      inputProps={{ min: 0 }}
+                      error={error}
+                    />
+                    <TextField
+                      label="코멘트"
+                      value={input.comment || ''}
+                      onChange={e => handleOptionInput(variant.barcode, 'comment', e.target.value)}
+                      sx={{ width: 90 }}
+                    />
+                  </Box>
                   {/* 옵션별 사진 업로드 */}
                   <Box sx={{ mt: 2 }}>
                     <Button

@@ -47,6 +47,30 @@ async function syncDatabase() {
       role: 'operator'
     });
 
+    await User.create({
+      username: 'op4',
+      email: 'op4@naver.com',
+      password: operatorPassword,
+      company: '테스트업체4',
+      role: 'operator'
+    });
+
+    await User.create({
+      username: 'op5',
+      email: 'op5@naver.com',
+      password: operatorPassword,
+      company: '테스트업체5',
+      role: 'operator'
+    });
+
+    await User.create({
+      username: 'op6',
+      email: 'op6@naver.com',
+      password: operatorPassword,
+      company: '테스트업체6',
+      role: 'operator'
+    });
+
     console.log('운영자 계정이 생성되었습니다.');
     console.log('데이터베이스 동기화가 완료되었습니다.');
     process.exit(0);
@@ -57,3 +81,9 @@ async function syncDatabase() {
 }
 
 syncDatabase(); 
+
+const handleSaveReply = async (content) => {
+  await api.post(`/comments/${activeInput.parentId}/reply`, { content });
+  // 새 댓글·답글을 state에 추가
+  fetchComments();   // 또는 setComments([...])
+}; 

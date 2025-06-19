@@ -21,7 +21,7 @@ import {
   TablePagination
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Visibility, Search } from '@mui/icons-material';
+import { Visibility, Search, Delete, Edit, SpeakerNotes } from '@mui/icons-material';
 import { fetchWithAuth } from '../utils/api';
 import { useSnackbar } from 'notistack';
 
@@ -33,8 +33,11 @@ const InspectionList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   // 검수 목록 조회
   const fetchInspections = async () => {
@@ -59,9 +62,12 @@ const InspectionList = () => {
     const slipName = (inspection.inspectionName || inspection.inspectionSlipName || '').toLowerCase();
     const company = (inspection.company || '').toLowerCase();
     const matchesSearch = slipName.includes(searchTerm.toLowerCase()) || company.includes(searchTerm.toLowerCase());
-    const matchesCompany = !companyFilter || inspection.company === companyFilter;
+    const matchesCompany = (user.role === 'operator') ? true : (!companyFilter || inspection.company === companyFilter);
     const matchesStatus = !statusFilter || inspection.status === statusFilter;
-    return matchesSearch && matchesCompany && matchesStatus;
+    const created = new Date(inspection.createdAt);
+    const matchesStart = !startDate || created >= new Date(startDate);
+    const matchesEnd = !endDate || created <= new Date(endDate+'T23:59:59');
+    return matchesSearch && matchesCompany && matchesStatus && matchesStart && matchesEnd;
   });
 
   const paginatedInspections = filteredInspections.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -89,9 +95,20 @@ const InspectionList = () => {
   const getStatusLabel = (status) => {
     switch (status) {
       case 'pending': return '대기중';
-      case 'approved': return '승인';
+      case 'approved': return '확정';
       case 'rejected': return '반려';
       default: return status;
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('해당 검수 전표를 삭제하시겠습니까?')) return;
+    try {
+      await fetchWithAuth(`/inspections/${id}`, { method: 'DELETE' });
+      enqueueSnackbar('검수 전표가 삭제되었습니다.', { variant: 'success' });
+      fetchInspections();
+    } catch (error) {
+      enqueueSnackbar(error.message || '삭제 중 오류가 발생했습니다.', { variant: 'error' });
     }
   };
 
@@ -116,6 +133,7 @@ const InspectionList = () => {
           }}
           sx={{ minWidth: 200 }}
         />
+        {user.role !== 'operator' && (
         <FormControl size="small" sx={{ minWidth: 150 }}>
           <InputLabel>업체</InputLabel>
           <Select
@@ -129,6 +147,7 @@ const InspectionList = () => {
             ))}
           </Select>
         </FormControl>
+        )}
         <FormControl size="small" sx={{ minWidth: 150 }}>
           <InputLabel>상태</InputLabel>
           <Select
@@ -142,6 +161,9 @@ const InspectionList = () => {
             <MenuItem value="rejected">반려</MenuItem>
           </Select>
         </FormControl>
+        <TextField type="date" size="small" label="시작일" InputLabelProps={{shrink:true}} value={startDate} onChange={e=>setStartDate(e.target.value)} />
+        <TextField type="date" size="small" label="종료일" InputLabelProps={{shrink:true}} value={endDate} onChange={e=>setEndDate(e.target.value)} />
+        {user.role !== 'operator' && (
         <Button
           variant="contained"
           onClick={() => navigate('/inspections/register')}
@@ -149,6 +171,7 @@ const InspectionList = () => {
         >
           검수 등록
         </Button>
+        )}
       </Box>
 
       {/* 검수 목록 테이블 */}
@@ -159,6 +182,7 @@ const InspectionList = () => {
               <TableCell>#</TableCell>
               <TableCell>검수전표명</TableCell>
               <TableCell>업체</TableCell>
+              <TableCell>검수자</TableCell>
               <TableCell>검수일시</TableCell>
               <TableCell>상태</TableCell>
               <TableCell>작업</TableCell>
@@ -167,32 +191,75 @@ const InspectionList = () => {
           <TableBody>
             {paginatedInspections.map((inspection, idx) => (
               <TableRow key={inspection.id}>
-                <TableCell>{page * rowsPerPage + idx + 1}</TableCell>
-                <TableCell>{inspection.inspectionName || inspection.inspectionSlipName}</TableCell>
-                <TableCell>{inspection.company}</TableCell>
+                <TableCell>{filteredInspections.length - (page * rowsPerPage + idx)}</TableCell>
                 <TableCell>
-                  {new Date(inspection.createdAt).toLocaleString()}
+                  {inspection.inspectionName || inspection.inspectionSlipName}
+                  {inspection.hasNew && (
+                    <Chip
+                      size="small"
+                      color="error"
+                      icon={<SpeakerNotes fontSize="small" />}
+                      label="새 댓글"
+                      sx={{ ml:0.5 }}
+                      onClick={() => {}}
+                    />
+                  )}
+                  {inspection.hasNewComment && (
+                    <Chip
+                      size="small"
+                      color="warning"
+                      icon={<SpeakerNotes fontSize="small" />}
+                      label="새 코멘트"
+                      sx={{ ml:0.5 }}
+                      onClick={() => {}}
+                    />
+                  )}
                 </TableCell>
+                <TableCell>{inspection.company}</TableCell>
+                <TableCell>{inspection.inspector?.name || inspection.inspector?.username || '-'}</TableCell>
+                <TableCell>{new Date(inspection.createdAt).toLocaleString()}</TableCell>
                 <TableCell>
                   <Chip
                     label={getStatusLabel(inspection.status)}
                     color={getStatusColor(inspection.status)}
                     size="small"
+                    onClick={() => {}}
                   />
                 </TableCell>
                 <TableCell>
-                  <IconButton
-                    size="small"
-                    onClick={() => navigate(`/inspections/${inspection.id}`)}
-                  >
+                  <IconButton size="small" onClick={() => navigate(`/inspections/${inspection.id}`)}>
                     <Visibility />
                   </IconButton>
+                  {user.role !== 'operator' && (
+                    <>
+                      <IconButton size="small" onClick={() => navigate(`/inspections/${inspection.id}?edit=1`)}>
+                        <Edit />
+                      </IconButton>
+                      <IconButton size="small" color="error" onClick={() => handleDelete(inspection.id)}>
+                        <Delete />
+                      </IconButton>
+                    </>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* 페이징 */}
+      <Box sx={{ display:'flex', justifyContent:'center', mt:2 }}>
+        <TablePagination
+          component="div"
+          rowsPerPageOptions={[10, 30, 50, 100]}
+          count={filteredInspections.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{ '& .MuiTablePagination-toolbar': { flexWrap:'nowrap' } }}
+        />
+      </Box>
     </Box>
   );
 };

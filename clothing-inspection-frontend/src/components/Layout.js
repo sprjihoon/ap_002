@@ -20,20 +20,30 @@ import {
   Checkroom as ClothesIcon,
   Assignment as InspectionIcon,
   People as PeopleIcon,
+  ListAlt as ListAltIcon,
+  QrCodeScanner as QrCodeScannerIcon,
   Lock as LockIcon,
-  Logout as LogoutIcon
+  Logout as LogoutIcon,
+  Assessment as AssessmentIcon
 } from '@mui/icons-material';
 import { logout } from '../utils/api';
 
 const drawerWidth = 240;
+const appBarHeight = 64; // px
 
 function Layout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const handleDrawerToggle = () => {
+    // 모바일용 토글
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleSidebarToggle = () => {
+    setSidebarOpen(!sidebarOpen);
   };
 
   const handleLogout = () => {
@@ -48,8 +58,17 @@ function Layout({ children }) {
     { text: '비밀번호 변경', icon: <LockIcon />, path: '/change-password' }
   ];
 
+  // 작업자 및 관리자용 메뉴
+  if (user.role === 'worker' || user.role === 'admin') {
+    menuItems.push({ text: '작업 대시보드', icon: <ListAltIcon />, path: '/worker/dashboard' });
+    menuItems.push({ text: '바코드 스캔', icon: <QrCodeScannerIcon />, path: '/worker/scan' });
+    menuItems.push({ text: '작업 내역', icon: <ListAltIcon />, path: '/worker/history' });
+    menuItems.push({ text: '내 통계', icon: <AssessmentIcon />, path: '/worker/stats' });
+  }
+
   // 관리자인 경우에만 사용자 관리 메뉴 표시
   if (user.role === 'admin') {
+    menuItems.push({ text: '작업자 통계', icon: <AssessmentIcon />, path: '/workers/stats' });
     menuItems.push({ text: '사용자 관리', icon: <PeopleIcon />, path: '/users' });
   }
 
@@ -91,10 +110,7 @@ function Layout({ children }) {
       <CssBaseline />
       <AppBar
         position="fixed"
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` }
-        }}
+        sx={{ zIndex: theme => theme.zIndex.drawer + 1 }}
       >
         <Toolbar>
           <IconButton
@@ -102,15 +118,25 @@ function Layout({ children }) {
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+            sx={{ mr: 2, display: { xs: 'block', sm: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <IconButton
+            color="inherit"
+            aria-label="toggle sidebar"
+            edge="start"
+            onClick={handleSidebarToggle}
+            sx={{ mr: 2, display: { xs: 'none', sm: 'block' } }}
           >
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            {user.username} ({user.role === 'admin' ? '관리자' : '검수자'})
+            {user.username} ({user.role === 'admin' ? '관리자' : user.role === 'operator' ? '운영자' : user.role === 'worker' ? '작업자' : '검수자'})
           </Typography>
         </Toolbar>
       </AppBar>
+      {sidebarOpen && (
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
@@ -126,7 +152,9 @@ function Layout({ children }) {
             display: { xs: 'block', sm: 'none' },
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
-              width: drawerWidth
+              width: drawerWidth,
+              top: `${appBarHeight}px`,
+              height: `calc(100% - ${appBarHeight}px)`
             }
           }}
         >
@@ -138,20 +166,23 @@ function Layout({ children }) {
             display: { xs: 'none', sm: 'block' },
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
-              width: drawerWidth
+              width: drawerWidth,
+              top: `${appBarHeight}px`,
+              height: `calc(100% - ${appBarHeight}px)`
             }
           }}
           open
         >
           {drawer}
         </Drawer>
-      </Box>
+      </Box> )}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` }
+          width: { sm: sidebarOpen ? `calc(100% - ${drawerWidth}px)` : '100%' },
+          mt: `${appBarHeight}px`
         }}
       >
         <Toolbar />

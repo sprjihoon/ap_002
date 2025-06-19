@@ -15,97 +15,190 @@ import Layout from './components/Layout';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { SnackbarProvider } from 'notistack';
 import InspectionRegisterPage from './pages/InspectionRegisterPage';
+import WorkerInspectionList from './pages/WorkerInspectionList';
+import BarcodeScanPage from './pages/BarcodeScanPage';
+import WorkerDashboard from './pages/WorkerDashboard';
+import WorkerBarcodeScan from './pages/WorkerBarcodeScan';
+import WorkerWorkHistory from './pages/WorkerWorkHistory';
+import WorkerStats from './pages/WorkerStats';
+import WorkersStats from './pages/WorkersStats';
+import { ListAlt, QrCodeScanner, RestartAlt } from '@mui/icons-material';
+import { IconButton } from '@mui/material';
+import axios from 'axios';
 
 // 관리자 권한 확인 컴포넌트
 const AdminRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  return user.role === 'admin' ? children : <Navigate to="/dashboard" />;
+  const role = (user.role || '').toLowerCase();
+  return role === 'admin' ? children : <Navigate to="/dashboard" />;
+};
+
+// Protected route for workers & inspectors (access: 'worker', 'inspector', 'admin')
+const WorkerRoute = ({ children }) => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const role = (user.role || '').toLowerCase();
+  return user && (['worker','inspector','admin'].includes(role)) ? children : <Navigate to="/login" />;
+};
+
+// Route accessible to admin or inspector
+const AdminOrInspectorRoute = ({ children }) => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const role = (user.role || '').toLowerCase();
+  return user && (role==='admin' || role==='inspector') ? children : <Navigate to="/dashboard" />;
 };
 
 function App() {
+  const token = localStorage.getItem('token');
+  const api = axios.create({
+    baseURL: '/api',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
   return (
-    <SnackbarProvider maxSnack={3}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/dashboard"
-            element={
-              <Layout>
-                <Dashboard />
-              </Layout>
-            }
-          />
-          <Route
-            path="/clothes"
-            element={
-              <Layout>
-                <ClothesList />
-              </Layout>
-            }
-          />
-          <Route
-            path="/inspections"
-            element={
-              <Layout>
-                <InspectionList />
-              </Layout>
-            }
-          />
-          <Route
-            path="/inspections/:id"
-            element={
-              <Layout>
-                <InspectionDetail />
-              </Layout>
-            }
-          />
-          <Route
-            path="/change-password"
-            element={
-              <Layout>
-                <ChangePassword />
-              </Layout>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <Layout>
-                <AdminRoute>
-                  <UserManagement />
-                </AdminRoute>
-              </Layout>
-            }
-          />
-          <Route
-            path="/products"
-            element={
-              <Layout>
-                <ProductManagement />
-              </Layout>
-            }
-          />
-          <Route
-            path="/company"
-            element={
-              <Layout>
-                <CompanyManagement />
-              </Layout>
-            }
-          />
-          <Route
-            path="/inspections/register"
-            element={
-              <Layout>
-                <InspectionRegisterPage />
-              </Layout>
-            }
-          />
-        </Routes>
-      </Router>
-    </SnackbarProvider>
+    <AuthProvider>
+      <SnackbarProvider maxSnack={3}>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route
+              path="/dashboard"
+              element={
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              }
+            />
+            <Route
+              path="/clothes"
+              element={
+                <Layout>
+                  <ClothesList />
+                </Layout>
+              }
+            />
+            <Route
+              path="/inspections"
+              element={
+                <Layout>
+                  <InspectionList />
+                </Layout>
+              }
+            />
+            <Route
+              path="/inspections/:id"
+              element={
+                <Layout>
+                  <InspectionDetail />
+                </Layout>
+              }
+            />
+            <Route
+              path="/change-password"
+              element={
+                <Layout>
+                  <ChangePassword />
+                </Layout>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <Layout>
+                  <AdminRoute>
+                    <UserManagement />
+                  </AdminRoute>
+                </Layout>
+              }
+            />
+            <Route
+              path="/products"
+              element={
+                <Layout>
+                  <ProductManagement />
+                </Layout>
+              }
+            />
+            <Route
+              path="/company"
+              element={
+                <Layout>
+                  <CompanyManagement />
+                </Layout>
+              }
+            />
+            <Route
+              path="/inspections/register"
+              element={
+                <Layout>
+                  <InspectionRegisterPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/worker/inspections"
+              element={
+                <WorkerRoute>
+                  <Layout>
+                    <WorkerInspectionList />
+                  </Layout>
+                </WorkerRoute>
+              }
+            />
+            <Route
+              path="/worker/scan"
+              element={
+                <WorkerRoute>
+                  <Layout>
+                    <WorkerBarcodeScan />
+                  </Layout>
+                </WorkerRoute>
+              }
+            />
+            <Route
+              path="/worker/dashboard"
+              element={
+                <WorkerRoute>
+                  <Layout>
+                    <WorkerDashboard />
+                  </Layout>
+                </WorkerRoute>
+              }
+            />
+            <Route
+              path="/worker/history"
+              element={
+                <WorkerRoute>
+                  <Layout>
+                    <WorkerWorkHistory />
+                  </Layout>
+                </WorkerRoute>
+              }
+            />
+            <Route
+              path="/worker/stats"
+              element={
+                <WorkerRoute>
+                  <Layout>
+                    <WorkerStats />
+                  </Layout>
+                </WorkerRoute>
+              }
+            />
+            <Route
+              path="/workers/stats"
+              element={
+                <Layout>
+                  <AdminOrInspectorRoute>
+                    <WorkersStats />
+                  </AdminOrInspectorRoute>
+                </Layout>
+              }
+            />
+          </Routes>
+        </Router>
+      </SnackbarProvider>
+    </AuthProvider>
   );
 }
 

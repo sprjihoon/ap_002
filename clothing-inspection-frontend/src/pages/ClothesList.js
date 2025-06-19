@@ -24,7 +24,8 @@ import {
   Snackbar,
   Alert,
   Grid,
-  Chip
+  Chip,
+  TablePagination
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon, PhotoCamera } from '@mui/icons-material';
 import { fetchWithAuth, API_URL } from '../utils/api';
@@ -51,6 +52,11 @@ function ClothesList() {
   const [search, setSearch] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
   const [wholesalerFilter, setWholesalerFilter] = useState('');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  // pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const fetchProducts = async () => {
     try {
@@ -150,8 +156,8 @@ function ClothesList() {
       setFormData({
         company: product.company,
         productName: product.productName,
-        size: product.size.join(','),
-        color: product.color.join(','),
+        size: Array.isArray(product.size) ? product.size.join(',') : (product.size || ''),
+        color: Array.isArray(product.color) ? product.color.join(',') : (product.color || ''),
         wholesaler: product.wholesaler,
         wholesalerProductName: product.wholesalerProductName,
         location: product.location,
@@ -195,9 +201,26 @@ function ClothesList() {
     setFormData(prev=>({...prev,variants:copy}));
   };
 
+  // 필터링된 products 계산
+  const filteredProducts = products.filter(p => {
+    const searchLower = search.toLowerCase();
+    const matchSearch = !searchLower ||
+      p.company.toLowerCase().includes(searchLower) ||
+      p.productName.toLowerCase().includes(searchLower) ||
+      p.wholesaler.toLowerCase().includes(searchLower) ||
+      p.wholesalerProductName.toLowerCase().includes(searchLower) ||
+      (p.ProductVariants && p.ProductVariants.some(v => v.barcode && v.barcode.toLowerCase().includes(searchLower)));
+    const matchCompany = (user.role === 'operator') ? true : (!companyFilter || p.company === companyFilter);
+    const matchWholesaler = !wholesalerFilter || p.wholesaler === wholesalerFilter;
+    return matchSearch && matchCompany && matchWholesaler;
+  });
+
+  // 휘발성 dropdown 목록
+  const wholesalers = [...new Set(products.map(p => p.wholesaler).filter(Boolean))];
+
   // products 배열을 그룹핑
   const grouped = {};
-  products.forEach(product => {
+  filteredProducts.forEach(product => {
     const key = [product.company, product.productName, product.wholesaler, product.wholesalerProductName].join('|');
     if (!grouped[key]) grouped[key] = [];
     if (product.ProductVariants && product.ProductVariants.length > 0) {
@@ -207,6 +230,18 @@ function ClothesList() {
     }
   });
 
+  const groupedEntries = Object.entries(grouped);
+  const paginatedEntries = groupedEntries.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ mt: 4, mb: 4 }}>
@@ -214,24 +249,26 @@ function ClothesList() {
           <Typography variant="h4" component="h1">
             새의류 등록
           </Typography>
-          <Box>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => setOpenExcelUpload(true)}
-              sx={{ mr: 2 }}
-            >
-              엑셀 업로드
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={() => handleOpen()}
-            >
-              새의류 등록
-            </Button>
-          </Box>
+          {user.role !== 'operator' && (
+            <Box>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => setOpenExcelUpload(true)}
+                sx={{ mr: 2 }}
+              >
+                엑셀 업로드
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={() => handleOpen()}
+              >
+                새의류 등록
+              </Button>
+            </Box>
+          )}
         </Box>
         
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
@@ -243,19 +280,21 @@ function ClothesList() {
             sx={{ minWidth: 180 }}
             placeholder="업체명, 제품명, 바코드 등"
           />
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>업체명</InputLabel>
-            <Select
-              value={companyFilter}
-              label="업체명"
-              onChange={e => setCompanyFilter(e.target.value)}
-            >
-              <MenuItem value="">전체</MenuItem>
-              {companies.map(c => (
-                <MenuItem key={c} value={c}>{c}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          {user.role !== 'operator' && (
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>업체명</InputLabel>
+              <Select
+                value={companyFilter}
+                label="업체명"
+                onChange={e => setCompanyFilter(e.target.value)}
+              >
+                <MenuItem value="">전체</MenuItem>
+                {companies.map(c => (
+                  <MenuItem key={c} value={c}>{c}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>도매처명</InputLabel>
             <Select
@@ -264,7 +303,7 @@ function ClothesList() {
               onChange={e => setWholesalerFilter(e.target.value)}
             >
               <MenuItem value="">전체</MenuItem>
-              {companies.map(w => (
+              {wholesalers.map(w => (
                 <MenuItem key={w} value={w}>{w}</MenuItem>
               ))}
             </Select>
@@ -289,7 +328,7 @@ function ClothesList() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {Object.entries(grouped).map(([key, barcodes], idx) => (
+              {paginatedEntries.map(([key, barcodes], idx) => (
                 <TableRow key={idx}>
                   <TableCell>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id}</TableCell>
                   <TableCell>{key.split('|')[0]}</TableCell>
@@ -300,7 +339,7 @@ function ClothesList() {
                     {barcodes
                       .flatMap(b => b.split(/[,;\n]+/))
                       .map((b, i) => (
-                        <Chip key={i} label={b} size="small" style={{ margin: '2px' }} clickable={false} />
+                        <Chip key={i} label={b} size="small" style={{ margin: '2px' }} clickable onClick={()=>{}} />
                       ))}
                   </TableCell>
                   <TableCell>{key.split('|')[2]}</TableCell>
@@ -308,26 +347,44 @@ function ClothesList() {
                   <TableCell>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.location}</TableCell>
                   <TableCell>{formatDate(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.createdAt)}</TableCell>
                   <TableCell>
-                    <IconButton
-                      onClick={() => {
-                        handleOpen(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key));
-                      }}
-                      color="primary"
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => handleDelete(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id)}
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
+                    {user.role !== 'operator' && (
+                      <>
+                        <IconButton
+                          onClick={() => {
+                            handleOpen(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key));
+                          }}
+                          color="primary"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => handleDelete(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id)}
+                          color="error"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Pagination */}
+        <Box sx={{ display:'flex', justifyContent:'center', mt:2 }}>
+          <TablePagination
+            component="div"
+            rowsPerPageOptions={[10, 30, 50, 100]}
+            count={groupedEntries.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            sx={{ '& .MuiTablePagination-toolbar': { flexWrap:'nowrap' } }}
+          />
+        </Box>
 
         <Dialog 
           open={openDialog}

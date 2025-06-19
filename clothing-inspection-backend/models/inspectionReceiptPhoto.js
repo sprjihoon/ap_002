@@ -11,7 +11,7 @@ const InspectionReceiptPhoto = sequelize.define('InspectionReceiptPhoto', {
       key: 'id'
     }
   },
-  filePath: {
+  photoUrl: {
     type: DataTypes.STRING,
     allowNull: false
   },
@@ -24,5 +24,9 @@ const InspectionReceiptPhoto = sequelize.define('InspectionReceiptPhoto', {
   timestamps: false,
   tableName: 'inspection_receipt_photos'
 });
+
+// 관계 설정
+Inspection.hasMany(InspectionReceiptPhoto, { foreignKey: 'inspectionId' });
+InspectionReceiptPhoto.belongsTo(Inspection, { foreignKey: 'inspectionId' });
 
 module.exports = InspectionReceiptPhoto; 

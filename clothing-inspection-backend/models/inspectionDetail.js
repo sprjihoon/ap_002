@@ -33,12 +33,31 @@ const InspectionDetail = sequelize.define('InspectionDetail', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
+  handledNormal: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  handledDefect: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  handledHold: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
   result: {
     type: DataTypes.ENUM('pass', 'fail'),
     allowNull: false
   },
   comment: {
     type: DataTypes.TEXT,
+    allowNull: true
+  },
+  qualityGrade: {
+    type: DataTypes.ENUM('A', 'B', 'C', 'D', 'E'),
     allowNull: true
   },
   photoUrl: {

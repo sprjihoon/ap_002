@@ -4,59 +4,44 @@ const sequelize = require('../config/database');
 const Product = sequelize.define('Product', {
   company: {
     type: DataTypes.STRING,
-    allowNull: false,
-    comment: '업체명'
+    allowNull: true
   },
   productName: {
     type: DataTypes.STRING,
-    allowNull: false,
-    comment: '제품명'
+    allowNull: false
   },
   size: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    comment: '사이즈 (쉼표로 구분된 여러 값)',
-    get() {
-      const rawValue = this.getDataValue('size');
-      return rawValue ? rawValue.split(',') : [];
-    },
-    set(value) {
-      this.setDataValue('size', Array.isArray(value) ? value.join(',') : value);
-    }
+    // 여러 사이즈를 배열(JSON)로 저장
+    type: DataTypes.JSON,
+    allowNull: true
   },
   color: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    comment: '컬러 (쉼표로 구분된 여러 값)',
-    get() {
-      const rawValue = this.getDataValue('color');
-      return rawValue ? rawValue.split(',') : [];
-    },
-    set(value) {
-      this.setDataValue('color', Array.isArray(value) ? value.join(',') : value);
-    }
+    // 여러 컬러를 배열(JSON)로 저장
+    type: DataTypes.JSON,
+    allowNull: true
   },
   wholesaler: {
     type: DataTypes.STRING,
-    allowNull: false,
-    comment: '도매처명'
+    allowNull: true
   },
   wholesalerProductName: {
     type: DataTypes.STRING,
-    allowNull: false,
-    comment: '도매처제품명'
+    allowNull: true
   },
   location: {
     type: DataTypes.STRING,
-    allowNull: true,
-    comment: '로케이션정보 (선택)'
+    allowNull: true
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   }
 }, {
-  timestamps: true,
+  timestamps: false,
   tableName: 'products'
 });
 
-// 제품의 실제 조합을 저장하는 모델
 const ProductVariant = sequelize.define('ProductVariant', {
   productId: {
     type: DataTypes.INTEGER,
@@ -64,31 +49,28 @@ const ProductVariant = sequelize.define('ProductVariant', {
     references: {
       model: Product,
       key: 'id'
-    }
+    },
+    onDelete: 'CASCADE'
   },
   size: {
     type: DataTypes.STRING,
-    allowNull: true,
-    comment: '단일 사이즈 (선택)'
+    allowNull: true
   },
   color: {
     type: DataTypes.STRING,
-    allowNull: true,
-    comment: '단일 컬러 (선택)'
+    allowNull: true
   },
   barcode: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
-    comment: '바코드번호 (전체 제품에서 유니크)'
+    unique: true
   }
 }, {
-  timestamps: true,
+  timestamps: false,
   tableName: 'product_variants'
 });
 
-// 관계 설정
-Product.hasMany(ProductVariant, { foreignKey: 'productId' });
-ProductVariant.belongsTo(Product, { foreignKey: 'productId' });
+Product.hasMany(ProductVariant, { foreignKey: 'productId', as: 'ProductVariants' });
+ProductVariant.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
 
 module.exports = { Product, ProductVariant }; 

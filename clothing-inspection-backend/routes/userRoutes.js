@@ -150,7 +150,7 @@ router.put('/:id', auth, async (req, res) => {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
-    const { username, email, company, role } = req.body;
+    const { username, email, company, role, password } = req.body;
     
     // 중복 체크
     if (username !== user.username) {
@@ -167,14 +167,17 @@ router.put('/:id', auth, async (req, res) => {
       }
     }
 
-    await user.update({
-      username,
-      email,
-      company,
-      role
-    });
+    const updateData = { username, email, company, role };
+    // 관리자만 다른 사용자의 role / password 변경 허용
+    if (password && req.user.role === 'admin') {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = hashedPassword;
+    }
+
+    await user.update(updateData);
 
     res.json({
+      success: true,
       message: '사용자 정보가 수정되었습니다.',
       user: {
         id: user.id,
