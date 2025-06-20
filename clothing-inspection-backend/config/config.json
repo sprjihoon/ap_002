@@ -1,9 +1,10 @@
 {
   "development": {
-    "username": "root",
-    "password": "0425",
-    "database": "clothing_inspection",
-    "host": "127.0.0.1",
+    "username": "${DB_USER}",
+    "password": "${DB_PASS}",
+    "database": "${DB_NAME}",
+    "host": "${DB_HOST}",
+    "port": "${DB_PORT}",
     "dialect": "mysql"
   }
 } 

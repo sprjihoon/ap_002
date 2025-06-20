@@ -12,6 +12,12 @@ const {
   SMTP_FROM
 } = process.env;
 
+// Option to disable all outgoing emails (set EMAIL_DISABLED=true in env)
+if (process.env.EMAIL_DISABLED === 'true') {
+  module.exports = { async sendEmail() { console.log('Email sending disabled (EMAIL_DISABLED=true)'); } };
+  return;
+}
+
 /**
  * 간단한 텍스트 이메일 발송
  * @param {string|string[]} to 수신자 이메일 (단일 또는 배열)

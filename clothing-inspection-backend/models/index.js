@@ -46,7 +46,7 @@ User.belongsToMany(Inspection, { through: InspectionRead, foreignKey:'userId', o
 
 // Inspector 관계
 User.hasMany(Inspection, { foreignKey:'inspector_id', as:'inspections' });
-Inspection.belongsTo(User, { foreignKey:'inspector_id', as:'inspector' });
+Inspection.belongsTo(User, { foreignKey:'inspector_id', as:'inspector' }); 
 
 // ===== ActivityLog 관계 =====
 ActivityLog.belongsTo(Inspection, { foreignKey:'inspectionId' });
