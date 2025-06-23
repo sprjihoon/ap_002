@@ -14,3 +14,9 @@ coverage
 *.log
 uploads/*
 !uploads/inspection_receipts 
+
+clothing-inspection-backend/node_modules
+clothing-inspection-frontend/node_modules
+uploads
+clothing-inspection-backend/.env
+clothing-inspection-frontend/.env
