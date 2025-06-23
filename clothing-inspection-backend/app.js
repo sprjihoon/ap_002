@@ -46,7 +46,12 @@ app.use('/api/labels', labelRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/defects', defectRoutes);
 
+// 기본 루트 경로에 간단한 응답을 제공합니다.
+app.get('/', (req, res) => {
+  res.send('Clothing Inspection API');
+});
+
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
-}); 
+});
