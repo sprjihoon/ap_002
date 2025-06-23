@@ -8,6 +8,10 @@ COPY package*.json ./
 
 # 의존성 설치
 RUN npm ci --only=production
+# When installing native modules, build tools are required
+RUN apk add --no-cache --virtual .build-deps python3 make g++ \
+    && npm rebuild bcrypt --build-from-source \
+    && apk del .build-deps
 
 # 소스 코드 복사
 COPY . .
