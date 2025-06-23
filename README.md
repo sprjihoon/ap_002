@@ -145,4 +145,4 @@ docker-compose exec mysql mysqldump -u root -p clothing_inspection > backup.sql
 * Production deployments should use proper SSL certificates and secure database passwords.
 
 ## License
-MIT 
+MIT
