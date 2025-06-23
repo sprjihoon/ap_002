@@ -13,4 +13,4 @@ coverage
 .DS_Store
 *.log
 uploads/*
-!uploads/inspection_receipts 
+!uploads/inspection_receipts

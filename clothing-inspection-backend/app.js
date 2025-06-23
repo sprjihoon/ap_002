@@ -46,6 +46,16 @@ app.use('/api/labels', labelRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/defects', defectRoutes);
 
+// Simple root route for uptime checks
+app.get('/', (req, res) => {
+  res.send('Clothing Inspection API');
+});
+
+// Health check endpoint for Render
+app.get('/api/healthz', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);

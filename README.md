@@ -139,10 +139,23 @@ docker-compose exec backend sh
 docker-compose exec mysql mysqldump -u root -p clothing_inspection > backup.sql
 ```
 
+### Deploying to Render
+This project is configured for Render's **Docker** services via `render.yaml`.
+When creating the backend service, make sure the environment type is set to
+**Docker** so the provided `Dockerfile` is used. Do **not** define a custom
+`PORT` variable; Render supplies one automatically and the app listens on it.
+Otherwise you may see errors mentioning port `10000` during deploys.
+
+## API Health & Root Endpoints
+The backend exposes lightweight routes for uptime checks:
+
+- `GET /` – returns `Clothing Inspection API`
+- `GET /api/healthz` – returns `{ "status": "ok" }`
+
 ## Security Notes
 * **Secrets** (DB, JWT, SMTP) are sourced from environment variables – never commit them.
 * `.gitignore` excludes uploads, node_modules, build artefacts, and any *.env files.
 * Production deployments should use proper SSL certificates and secure database passwords.
 
 ## License
-MIT 
+MIT
