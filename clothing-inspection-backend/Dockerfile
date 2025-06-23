@@ -6,10 +6,11 @@ WORKDIR /app
 # package.json과 package-lock.json 복사
 COPY package*.json ./
 
-# 의존성 설치
-RUN apk add --no-cache python3 make g++ \
+# Install production dependencies and rebuild native modules
+RUN apk add --no-cache --virtual .build-deps python3 make g++ \
     && npm ci --only=production \
-    && apk del python3 make g++
+    && npm rebuild bcrypt --build-from-source \
+    && apk del .build-deps
 
 # 소스 코드 복사
 COPY . .
