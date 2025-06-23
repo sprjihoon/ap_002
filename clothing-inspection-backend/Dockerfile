@@ -1,6 +1,7 @@
 # Use the Debian-based image to avoid musl related issues when building
 # native modules like bcrypt
-FROM node:18-slim
+# Build specifically for amd64 to avoid issues when Render uses arm builders
+FROM --platform=linux/amd64 node:18-slim
 
 # 작업 디렉토리 설정
 WORKDIR /app
