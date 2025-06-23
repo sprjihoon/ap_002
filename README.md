@@ -5,7 +5,7 @@ Monorepo containing a React front-end and Node/Express/Sequelize back-end.
 ## Structure
 
 ```
-ai_001/
+ap_002/
  ├ clothing-inspection-backend/   # Express + Sequelize API
  ├ clothing-inspection-frontend/  # React (CRA) web app
  ├ uploads/                       # runtime file uploads (ignored)
@@ -25,7 +25,7 @@ ai_001/
 1. **Clone & install**
    ```bash
    git clone https://github.com/sprjihoon/ap_002.git
-   cd ai_002
+   cd ap_002
    npm install           # root dev-tools (optional)
    ```
 
