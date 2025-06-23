@@ -33,4 +33,4 @@ services:
 
 # Note: 1) create an Environment Group named 'production-env' in Render
 #       2) populate all variables (DB_PASSWORD, JWT_SECRET, SMTP_*, etc.)
-#       3) frontend REACT_APP_API_URL should match backend service URL 
+#       3) frontend REACT_APP_API_URL should match backend service URL
