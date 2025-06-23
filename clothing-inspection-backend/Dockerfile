@@ -1,4 +1,6 @@
-FROM node:18-alpine
+# Use the Debian-based image to avoid musl related issues when building
+# native modules like bcrypt
+FROM node:18-slim
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -7,8 +9,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # 의존성 설치
-RUN npm ci --only=production \
-    && npm rebuild bcrypt --build-from-source
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 make g++ \
+    && npm ci --omit=dev \
+    && npm rebuild bcrypt --build-from-source \
+    && apt-get remove -y python3 make g++ \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
 
 # 소스 코드 복사
 COPY . .
