@@ -10,7 +10,9 @@
 FROM node:18-alpine AS deps
 WORKDIR /app
 COPY clothing-inspection-backend/package*.json ./
-RUN npm ci --omit=dev
+RUN apk add --no-cache python3 make g++ \
+    && npm ci --omit=dev \
+    && apk del python3 make g++
 
 FROM node:18-alpine AS src
 WORKDIR /app

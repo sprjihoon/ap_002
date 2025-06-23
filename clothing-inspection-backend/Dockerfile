@@ -7,7 +7,9 @@ WORKDIR /app
 COPY package*.json ./
 
 # 의존성 설치
-RUN npm ci --only=production
+RUN apk add --no-cache python3 make g++ \
+    && npm ci --only=production \
+    && apk del python3 make g++
 
 # 소스 코드 복사
 COPY . .
