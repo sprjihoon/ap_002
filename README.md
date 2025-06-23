@@ -25,7 +25,7 @@ ai_001/
 1. **Clone & install**
    ```bash
    git clone https://github.com/sprjihoon/ap_002.git
-   cd ai_001
+   cd ai_002
    npm install           # root dev-tools (optional)
    ```
 
