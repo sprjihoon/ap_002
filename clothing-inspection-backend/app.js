@@ -16,8 +16,17 @@ const mongoose = require('mongoose');
 const app = express();
 
 // Middleware
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(o=>o.trim());
+
 app.use(cors({
-  origin: 'http://localhost:3000', // React 개발 서버의 포트
+  origin: function (origin, callback) {
+    // allow REST tools or server-to-server requests with no origin
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 app.use(express.json());

@@ -64,6 +64,30 @@ services:
     networks:
       - clothing-network
 
+  # MySQL Backup Service (daily dump + optional S3 upload)
+  backup:
+    image: alpine:3.19
+    container_name: mysql-backup
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_USER: ${DB_USER:-clothing_user}
+      DB_PASSWORD: ${DB_PASSWORD:-clothing_password}
+      DB_NAME: ${DB_NAME:-clothing_inspection}
+      TZ: ${TZ:-Asia/Seoul}
+      # S3 optional
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      S3_BUCKET: ${S3_BUCKET}
+    volumes:
+      - mysql_data:/var/lib/mysql:ro      # read-only access to data volume
+      - ./backup:/backup                  # host backup directory
+    entrypoint: ["/bin/sh", "-c", "/backup/backup.sh" ]
+    networks:
+      - clothing-network
+
 volumes:
   mysql_data:
 
