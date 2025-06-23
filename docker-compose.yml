@@ -93,4 +93,4 @@ volumes:
 
 networks:
   clothing-network:
-    driver: bridge 
+    driver: bridge
