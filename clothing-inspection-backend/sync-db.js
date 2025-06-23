@@ -1,4 +1,6 @@
 const sequelize = require('./config/database');
+// Register **all** models and associations in one go
+require('./models');
 const User = require('./models/user');
 const Clothes = require('./models/clothes');
 const Inspection = require('./models/inspection');
@@ -7,7 +9,7 @@ const bcrypt = require('bcrypt');
 
 async function syncDatabase() {
   try {
-    // 데이터베이스 동기화 (force: true로 테이블 재생성)
+    // 데이터베이스 동기화 (테이블을 재생성합니다)
     await sequelize.sync({ force: true });
     console.log('데이터베이스 동기화 완료');
 
@@ -81,9 +83,3 @@ async function syncDatabase() {
 }
 
 syncDatabase(); 
-
-const handleSaveReply = async (content) => {
-  await api.post(`/comments/${activeInput.parentId}/reply`, { content });
-  // 새 댓글·답글을 state에 추가
-  fetchComments();   // 또는 setComments([...])
-}; 

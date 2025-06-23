@@ -8,6 +8,7 @@ const InspectionRead = require('./inspectionRead');
 const LabelTemplate = require('./labelTemplate');
 const ActivityLog = require('./ActivityLog');
 const Setting = require('./Setting');
+const InspectionDetail = require('./inspectionDetail');
 const sequelize = require('../config/database');
 
 module.exports = {
@@ -21,7 +22,8 @@ module.exports = {
   InspectionRead,
   LabelTemplate,
   ActivityLog,
-  Setting
+  Setting,
+  InspectionDetail
 }; 
 
 // 자동 alter 동기화는 운영 중 인덱스가 과다 생성되는 문제를 유발할 수 있어 비활성화

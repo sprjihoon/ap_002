@@ -544,73 +544,9 @@ router.put('/:id/comment', auth, async (req, res) => {
   }
 });
 
-// ====== PDF 다운로드 =====
-router.get('/:id/pdf', auth, async (req, res) => {
-  try {
-    const inspection = await Inspection.findByPk(req.params.id, {
-      include: [
-        {
-          model: InspectionDetail,
-          include: [{
-            model: ProductVariant,
-            include: [{ model: Product, as: 'product' }]
-          }]
-        },
-        InspectionReceiptPhoto
-      ]
-    });
-
-    if (!inspection) {
-      return res.status(404).json({ message: '검수 전표를 찾을 수 없습니다.' });
-    }
-
-    // 권한 체크
-    const user = await User.findByPk(req.user.id);
-    const isOwner = user.id === inspection.inspector_id;
-    if (req.user.role === 'operator' && user.company !== inspection.company) {
-      return res.status(403).json({ message: '열람 권한이 없습니다.' });
-    }
-    if (req.user.role !== 'admin' && req.user.role !== 'operator' && !isOwner) {
-      return res.status(403).json({ message: '열람 권한이 없습니다.' });
-    }
-
-    // PDF 생성
-    const doc = new PDFDocument({ size: 'A4', margin: 50 });
-    res.setHeader('Content-Type', 'application/pdf');
-    const filename = encodeURIComponent(inspection.inspectionName || `inspection-${inspection.id}`) + '.pdf';
-    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${filename}`);
-    doc.pipe(res);
-
-    doc.fontSize(20).text('검수 전표', { align: 'center' });
-    doc.moveDown();
-
-    const addField = (label, value) => {
-      doc.fontSize(12).text(`${label}: ${value}`);
-    };
-
-    addField('검수전표명', inspection.inspectionName);
-    addField('업체', inspection.company);
-    addField('검수일시', new Date(inspection.createdAt).toLocaleString());
-    addField('상태', inspection.status);
-    addField('결과', inspection.result);
-    if (inspection.comment) addField('코멘트', inspection.comment);
-
-    doc.moveDown();
-    doc.fontSize(14).text('상세 항목', { underline: true });
-    doc.moveDown(0.5);
-
-    inspection.InspectionDetails.forEach((d, idx) => {
-      doc.fontSize(12).text(`${idx + 1}. ${d.ProductVariant?.product?.productName} / ${d.ProductVariant?.size || ''} / ${d.ProductVariant?.color || ''} / ${d.ProductVariant?.barcode}`);
-      doc.text(`   전체: ${d.totalQuantity}, 정상: ${d.normalQuantity}, 불량: ${d.defectQuantity}, 결과: ${d.result}`);
-      if (d.comment) doc.text(`   코멘트: ${d.comment}`);
-      doc.moveDown(0.35);
-    });
-
-    doc.end();
-  } catch (err) {
-    console.error('PDF 생성 오류:', err);
-    res.status(500).json({ message: err.message });
-  }
+// ====== PDF 다운로드 (비활성화) =====
+router.get('/:id/pdf', auth, (req, res) => {
+  return res.status(404).json({ message: 'PDF 다운로드 기능이 비활성화되었습니다.' });
 });
 
 // EZ-Admin 엑셀 양식 다운로드

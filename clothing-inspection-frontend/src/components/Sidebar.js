@@ -30,6 +30,7 @@ const Sidebar = () => {
     { key:'workersStats', label:'작업자 통계', icon:<AssessmentIcon />, to:'/workers/stats', roles:['admin','inspector'] },
     { key:'clothes', label:'의류목록', icon:<LocalShippingIcon />, to:'/clothes', roles:['inspector','operator','admin'] },
     { key:'inspections', label:'검수내역', icon:<AssessmentIcon />, to:'/inspections', roles:['inspector','operator','admin'] },
+    { key:'defects', label:'불량 내역', icon:<AssessmentIcon />, to:'/defects', roles:['operator','inspector','admin'] },
     { key:'scan', label:'바코드스캔', icon:<QrCodeScannerIcon />, to:'/worker/scan', roles:['worker','inspector','admin'] },
     { key:'history', label:'작업내역', icon:<ListAltIcon />, to:'/worker/history', roles:['worker','inspector','admin'] },
     { key:'myStats', label:'내통계', icon:<AssessmentIcon />, to:'/worker/stats', roles:['worker'] },

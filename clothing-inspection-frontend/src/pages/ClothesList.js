@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
   Paper,
   Table,
   TableBody,
@@ -28,6 +27,8 @@ import {
   TablePagination
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon, PhotoCamera } from '@mui/icons-material';
+import DownloadIcon from '@mui/icons-material/Download';
+import axios from 'axios';
 import { fetchWithAuth, API_URL } from '../utils/api';
 import ExcelUpload from '../components/ExcelUpload';
 
@@ -85,7 +86,7 @@ function ClothesList() {
 
   const handleSubmit = async () => {
     try {
-      const url = editingProduct 
+      const url = (editingProduct && editingProduct.id)
         ? `${API_URL}/products/${editingProduct.id}`
         : `${API_URL}/products`;
       
@@ -152,16 +153,18 @@ function ClothesList() {
 
   const handleOpen = (product=null)=>{
     if(product){
-      setEditingProduct(product);
+      // ensure full product object with id is stored
+      const fullProd = product?.id ? products.find(p=>p.id===product.id) || product : product;
+      setEditingProduct(fullProd);
       setFormData({
-        company: product.company,
-        productName: product.productName,
-        size: Array.isArray(product.size) ? product.size.join(',') : (product.size || ''),
-        color: Array.isArray(product.color) ? product.color.join(',') : (product.color || ''),
-        wholesaler: product.wholesaler,
-        wholesalerProductName: product.wholesalerProductName,
-        location: product.location,
-        variants: product.ProductVariants?product.ProductVariants.map(v=>({size:v.size,color:v.color,barcode:v.barcode})):[]
+        company: fullProd.company,
+        productName: fullProd.productName,
+        size: Array.isArray(fullProd.size) ? fullProd.size.join(',') : (fullProd.size || ''),
+        color: Array.isArray(fullProd.color) ? fullProd.color.join(',') : (fullProd.color || ''),
+        wholesaler: fullProd.wholesaler,
+        wholesalerProductName: fullProd.wholesalerProductName,
+        location: fullProd.location,
+        variants: fullProd.ProductVariants?fullProd.ProductVariants.map(v=>({size:v.size,color:v.color,barcode:v.barcode})):[]
       });
     }else{
       setEditingProduct(null);
@@ -242,319 +245,342 @@ function ClothesList() {
     setPage(0);
   };
 
+  const handleDownload = async ()=>{
+    try{
+      const params = new URLSearchParams();
+      if(search) params.append('search', search);
+      if(user.role!=='operator' && companyFilter) params.append('company', companyFilter);
+      if(wholesalerFilter) params.append('wholesaler', wholesalerFilter);
+      const response = await axios.get(`/api/products/export?${params.toString()}`, {
+        responseType:'blob',
+        headers:{ Authorization:`Bearer ${localStorage.getItem('token')}` }
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `clothes_${new Date().toISOString().substring(0,10)}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }catch(err){
+      alert(err.response?.data?.message || err.message);
+    }
+  };
+
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h4" component="h1">
-            새의류 등록
-          </Typography>
+    <Box sx={{ p:3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4" component="h1">
+          새의류 등록
+        </Typography>
+        <Box>
           {user.role !== 'operator' && (
-            <Box>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => setOpenExcelUpload(true)}
-                sx={{ mr: 2 }}
-              >
-                엑셀 업로드
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={() => handleOpen()}
-              >
-                새의류 등록
-              </Button>
-            </Box>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => setOpenExcelUpload(true)}
+              sx={{ mr: 2 }}
+            >
+              엑셀 업로드
+            </Button>
+          )}
+          <Button variant="outlined" startIcon={<DownloadIcon />} sx={{ mr: user.role!=='operator'?2:0 }} onClick={handleDownload}>다운로드</Button>
+          {user.role !== 'operator' && (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpen()}
+            >
+              새의류 등록
+            </Button>
           )}
         </Box>
-        
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-          <TextField
-            size="small"
-            label="검색"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            sx={{ minWidth: 180 }}
-            placeholder="업체명, 제품명, 바코드 등"
-          />
-          {user.role !== 'operator' && (
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>업체명</InputLabel>
-              <Select
-                value={companyFilter}
-                label="업체명"
-                onChange={e => setCompanyFilter(e.target.value)}
-              >
-                <MenuItem value="">전체</MenuItem>
-                {companies.map(c => (
-                  <MenuItem key={c} value={c}>{c}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
+      </Box>
+      
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+        <TextField
+          size="small"
+          label="검색"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          sx={{ minWidth: 180 }}
+          placeholder="업체명, 제품명, 바코드 등"
+        />
+        {user.role !== 'operator' && (
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>도매처명</InputLabel>
+            <InputLabel>업체명</InputLabel>
             <Select
-              value={wholesalerFilter}
-              label="도매처명"
-              onChange={e => setWholesalerFilter(e.target.value)}
+              value={companyFilter}
+              label="업체명"
+              onChange={e => setCompanyFilter(e.target.value)}
             >
               <MenuItem value="">전체</MenuItem>
-              {wholesalers.map(w => (
-                <MenuItem key={w} value={w}>{w}</MenuItem>
+              {companies.map(c => (
+                <MenuItem key={c} value={c}>{c}</MenuItem>
               ))}
             </Select>
           </FormControl>
-        </Box>
-        
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>업체명</TableCell>
-                <TableCell>제품명</TableCell>
-                <TableCell>사이즈</TableCell>
-                <TableCell>컬러</TableCell>
-                <TableCell>바코드</TableCell>
-                <TableCell>도매처명</TableCell>
-                <TableCell>도매처제품명</TableCell>
-                <TableCell>로케이션</TableCell>
-                <TableCell>등록일</TableCell>
-                <TableCell>작업</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedEntries.map(([key, barcodes], idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id}</TableCell>
-                  <TableCell>{key.split('|')[0]}</TableCell>
-                  <TableCell>{key.split('|')[1]}</TableCell>
-                  <TableCell>{key.split('|')[2]}</TableCell>
-                  <TableCell>{key.split('|')[3]}</TableCell>
-                  <TableCell>
-                    {barcodes
-                      .flatMap(b => b.split(/[,;\n]+/))
-                      .map((b, i) => (
-                        <Chip key={i} label={b} size="small" style={{ margin: '2px' }} clickable onClick={()=>{}} />
-                      ))}
-                  </TableCell>
-                  <TableCell>{key.split('|')[2]}</TableCell>
-                  <TableCell>{key.split('|')[3]}</TableCell>
-                  <TableCell>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.location}</TableCell>
-                  <TableCell>{formatDate(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.createdAt)}</TableCell>
-                  <TableCell>
-                    {user.role !== 'operator' && (
-                      <>
-                        <IconButton
-                          onClick={() => {
-                            handleOpen(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key));
-                          }}
-                          color="primary"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          onClick={() => handleDelete(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id)}
-                          color="error"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        {/* Pagination */}
-        <Box sx={{ display:'flex', justifyContent:'center', mt:2 }}>
-          <TablePagination
-            component="div"
-            rowsPerPageOptions={[10, 30, 50, 100]}
-            count={groupedEntries.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            sx={{ '& .MuiTablePagination-toolbar': { flexWrap:'nowrap' } }}
-          />
-        </Box>
-
-        <Dialog 
-          open={openDialog}
-          onClose={handleClose}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            {editingProduct ? '의류 정보 수정' : '새의류 등록'}
-          </DialogTitle>
-          <DialogContent>
-            <FormControl fullWidth margin="normal">
-              <InputLabel>업체명</InputLabel>
-              <Select
-                value={editingProduct?.company || formData.company}
-                onChange={(e) => {
-                  if (editingProduct) {
-                    setEditingProduct({ ...editingProduct, company: e.target.value });
-                  } else {
-                    setFormData({ ...formData, company: e.target.value });
-                  }
-                }}
-                label="업체명"
-                required
-              >
-                {companies.map((company) => (
-                  <MenuItem key={company} value={company}>
-                    {company}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              fullWidth
-              label="제품명"
-              margin="normal"
-              value={editingProduct?.productName || formData.productName}
-              onChange={(e) => {
-                if (editingProduct) {
-                  setEditingProduct({ ...editingProduct, productName: e.target.value });
-                } else {
-                  setFormData({ ...formData, productName: e.target.value });
-                }
-              }}
-              required
-            />
-            <TextField
-              fullWidth
-              label="사이즈 (쉼표로 구분)"
-              name="size"
-              margin="normal"
-              value={formData.size}
-              onChange={handleInputChange}
-              helperText="예: 1,2,3"
-              required
-            />
-            <TextField
-              fullWidth
-              label="컬러 (쉼표로 구분)"
-              name="color"
-              margin="normal"
-              value={formData.color}
-              onChange={handleInputChange}
-              helperText="예: 블랙,화이트"
-              required
-            />
-            <Typography variant="h6" gutterBottom>바코드 입력</Typography>
-            <Grid container spacing={2}>
-              {formData.variants.map((variant,index)=>(
-                <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Typography variant="subtitle2" gutterBottom>{`${formData.productName || ''} ${variant.size} / ${variant.color}`}</Typography>
-                  <TextField fullWidth label="바코드" value={variant.barcode} onChange={e=>handleVariantBarcodeChange(index,e.target.value)} required/>
-                </Grid>
-              ))}
-            </Grid>
-            <TextField
-              fullWidth
-              label="도매처명"
-              margin="normal"
-              value={editingProduct?.wholesaler || formData.wholesaler}
-              onChange={(e) => {
-                if (editingProduct) {
-                  setEditingProduct({ ...editingProduct, wholesaler: e.target.value });
-                } else {
-                  setFormData({ ...formData, wholesaler: e.target.value });
-                }
-              }}
-              required
-            />
-            <TextField
-              fullWidth
-              label="도매처제품명"
-              margin="normal"
-              value={editingProduct?.wholesalerProductName || formData.wholesalerProductName}
-              onChange={(e) => {
-                if (editingProduct) {
-                  setEditingProduct({ ...editingProduct, wholesalerProductName: e.target.value });
-                } else {
-                  setFormData({ ...formData, wholesalerProductName: e.target.value });
-                }
-              }}
-              required
-            />
-            <TextField
-              fullWidth
-              label="로케이션정보 (선택)"
-              margin="normal"
-              value={editingProduct?.location || formData.location}
-              onChange={(e) => {
-                if (editingProduct) {
-                  setEditingProduct({ ...editingProduct, location: e.target.value });
-                } else {
-                  setFormData({ ...formData, location: e.target.value });
-                }
-              }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button 
-              onClick={handleClose}
-            >
-              취소
-            </Button>
-            <Button onClick={handleSubmit} variant="contained" color="primary">
-              {editingProduct ? '수정' : '등록'}
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        <Dialog
-          open={openExcelUpload}
-          onClose={() => setOpenExcelUpload(false)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>엑셀 파일 업로드</DialogTitle>
-          <DialogContent>
-            <ExcelUpload onSuccess={() => {
-              setOpenExcelUpload(false);
-              fetchProducts();
-            }} />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenExcelUpload(false)}>
-              닫기
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        <Snackbar
-          open={!!error}
-          autoHideDuration={6000}
-          onClose={() => setError('')}
-        >
-          <Alert severity="error" onClose={() => setError('')}>
-            {error}
-          </Alert>
-        </Snackbar>
-
-        <Snackbar
-          open={!!success}
-          autoHideDuration={6000}
-          onClose={() => setSuccess('')}
-        >
-          <Alert severity="success" onClose={() => setSuccess('')}>
-            {success}
-          </Alert>
-        </Snackbar>
+        )}
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel>도매처명</InputLabel>
+          <Select
+            value={wholesalerFilter}
+            label="도매처명"
+            onChange={e => setWholesalerFilter(e.target.value)}
+          >
+            <MenuItem value="">전체</MenuItem>
+            {wholesalers.map(w => (
+              <MenuItem key={w} value={w}>{w}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
-    </Container>
+      
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>업체명</TableCell>
+              <TableCell>제품명</TableCell>
+              <TableCell>사이즈</TableCell>
+              <TableCell>컬러</TableCell>
+              <TableCell>바코드</TableCell>
+              <TableCell>도매처명</TableCell>
+              <TableCell>도매처제품명</TableCell>
+              <TableCell>로케이션</TableCell>
+              <TableCell>등록일</TableCell>
+              <TableCell>작업</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginatedEntries.map(([key, barcodes], idx) => (
+              <TableRow key={idx}>
+                <TableCell>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id}</TableCell>
+                <TableCell>{key.split('|')[0]}</TableCell>
+                <TableCell>{key.split('|')[1]}</TableCell>
+                <TableCell>{key.split('|')[2]}</TableCell>
+                <TableCell>{key.split('|')[3]}</TableCell>
+                <TableCell>
+                  {barcodes
+                    .flatMap(b => b.split(/[,;\n]+/))
+                    .map((b, i) => (
+                      <Chip key={i} label={b} size="small" style={{ margin: '2px' }} clickable onClick={()=>{}} />
+                    ))}
+                </TableCell>
+                <TableCell>{key.split('|')[2]}</TableCell>
+                <TableCell>{key.split('|')[3]}</TableCell>
+                <TableCell>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.location}</TableCell>
+                <TableCell>{formatDate(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.createdAt)}</TableCell>
+                <TableCell>
+                  {user.role !== 'operator' && (
+                    <>
+                      <IconButton
+                        onClick={() => {
+                          handleOpen(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key));
+                        }}
+                        color="primary"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDelete(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id)}
+                        color="error"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Pagination */}
+      <Box sx={{ display:'flex', justifyContent:'center', mt:2 }}>
+        <TablePagination
+          component="div"
+          rowsPerPageOptions={[10, 30, 50, 100]}
+          count={groupedEntries.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{ '& .MuiTablePagination-toolbar': { flexWrap:'nowrap' } }}
+        />
+      </Box>
+
+      <Dialog 
+        open={openDialog}
+        onClose={handleClose}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          {editingProduct ? '의류 정보 수정' : '새의류 등록'}
+        </DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>업체명</InputLabel>
+            <Select
+              value={editingProduct?.company || formData.company}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (editingProduct) {
+                  setEditingProduct({ ...editingProduct, company: val });
+                }
+                setFormData(prev => ({ ...prev, company: val }));
+              }}
+              label="업체명"
+              required
+            >
+              {companies.map((company) => (
+                <MenuItem key={company} value={company}>
+                  {company}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            label="제품명"
+            margin="normal"
+            value={editingProduct?.productName || formData.productName}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (editingProduct) {
+                setEditingProduct({ ...editingProduct, productName: val });
+              }
+              setFormData(prev => ({ ...prev, productName: val }));
+            }}
+            required
+          />
+          <TextField
+            fullWidth
+            label="사이즈 (쉼표로 구분)"
+            name="size"
+            margin="normal"
+            value={formData.size}
+            onChange={handleInputChange}
+            helperText="예: 1,2,3"
+            required
+          />
+          <TextField
+            fullWidth
+            label="컬러 (쉼표로 구분)"
+            name="color"
+            margin="normal"
+            value={formData.color}
+            onChange={handleInputChange}
+            helperText="예: 블랙,화이트"
+            required
+          />
+          <Typography variant="h6" gutterBottom>바코드 입력</Typography>
+          <Grid container spacing={2}>
+            {formData.variants.map((variant,index)=>(
+              <Grid item xs={12} sm={6} md={4} key={index}>
+                <Typography variant="subtitle2" gutterBottom>{`${formData.productName || ''} ${variant.size} / ${variant.color}`}</Typography>
+                <TextField fullWidth label="바코드" value={variant.barcode} onChange={e=>handleVariantBarcodeChange(index,e.target.value)} required/>
+              </Grid>
+            ))}
+          </Grid>
+          <TextField
+            fullWidth
+            label="도매처명"
+            margin="normal"
+            value={editingProduct?.wholesaler || formData.wholesaler}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (editingProduct) {
+                setEditingProduct({ ...editingProduct, wholesaler: val });
+              }
+              setFormData(prev => ({ ...prev, wholesaler: val }));
+            }}
+            required
+          />
+          <TextField
+            fullWidth
+            label="도매처제품명"
+            margin="normal"
+            value={editingProduct?.wholesalerProductName || formData.wholesalerProductName}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (editingProduct) {
+                setEditingProduct({ ...editingProduct, wholesalerProductName: val });
+              }
+              setFormData(prev => ({ ...prev, wholesalerProductName: val }));
+            }}
+            required
+          />
+          <TextField
+            fullWidth
+            label="로케이션정보 (선택)"
+            margin="normal"
+            value={editingProduct?.location || formData.location}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (editingProduct) {
+                setEditingProduct({ ...editingProduct, location: val });
+              }
+              setFormData(prev => ({ ...prev, location: val }));
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={handleClose}
+          >
+            취소
+          </Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">
+            {editingProduct ? '수정' : '등록'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openExcelUpload}
+        onClose={() => setOpenExcelUpload(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>엑셀 파일 업로드</DialogTitle>
+        <DialogContent>
+          <ExcelUpload onSuccess={() => {
+            setOpenExcelUpload(false);
+            fetchProducts();
+          }} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenExcelUpload(false)}>
+            닫기
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError('')}
+      >
+        <Alert severity="error" onClose={() => setError('')}>
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess('')}
+      >
+        <Alert severity="success" onClose={() => setSuccess('')}>
+          {success}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }
 

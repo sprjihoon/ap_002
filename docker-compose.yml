@@ -1,0 +1,72 @@
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: clothing-inspection-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-clothing_inspection}
+      MYSQL_USER: ${DB_USER:-clothing_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-clothing_password}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - clothing-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./clothing-inspection-backend
+      dockerfile: Dockerfile
+    container_name: clothing-inspection-backend
+    restart: unless-stopped
+    command: sh -c "node sync-db.js && npm start"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=${DB_USER:-clothing_user}
+      - DB_PASSWORD=${DB_PASSWORD:-clothing_password}
+      - DB_NAME=${DB_NAME:-clothing_inspection}
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - EMAIL_DISABLED=${EMAIL_DISABLED:-true}
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - mysql
+    networks:
+      - clothing-network
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./clothing-inspection-frontend
+      dockerfile: Dockerfile
+    container_name: clothing-inspection-frontend
+    restart: unless-stopped
+    environment:
+      - REACT_APP_API_URL=http://localhost:3002
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - clothing-network
+
+volumes:
+  mysql_data:
+
+networks:
+  clothing-network:
+    driver: bridge 

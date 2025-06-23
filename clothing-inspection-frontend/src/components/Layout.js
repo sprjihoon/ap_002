@@ -1,32 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Box,
   CssBaseline,
   Drawer,
   IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Toolbar,
   Typography,
   Divider
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  Checkroom as ClothesIcon,
-  Assignment as InspectionIcon,
-  People as PeopleIcon,
-  ListAlt as ListAltIcon,
-  QrCodeScanner as QrCodeScannerIcon,
-  Lock as LockIcon,
-  Logout as LogoutIcon,
-  Assessment as AssessmentIcon
+  Menu as MenuIcon
 } from '@mui/icons-material';
-import { logout } from '../utils/api';
+import Sidebar from './Sidebar';
 
 const drawerWidth = 240;
 const appBarHeight = 64; // px
@@ -34,7 +20,6 @@ const appBarHeight = 64; // px
 function Layout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const handleDrawerToggle = () => {
@@ -46,32 +31,6 @@ function Layout({ children }) {
     setSidebarOpen(!sidebarOpen);
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
-  const menuItems = [
-    { text: '대시보드', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: '의류 목록', icon: <ClothesIcon />, path: '/clothes' },
-    { text: '검수 내역', icon: <InspectionIcon />, path: '/inspections' },
-    { text: '비밀번호 변경', icon: <LockIcon />, path: '/change-password' }
-  ];
-
-  // 작업자 및 관리자용 메뉴
-  if (user.role === 'worker' || user.role === 'admin') {
-    menuItems.push({ text: '작업 대시보드', icon: <ListAltIcon />, path: '/worker/dashboard' });
-    menuItems.push({ text: '바코드 스캔', icon: <QrCodeScannerIcon />, path: '/worker/scan' });
-    menuItems.push({ text: '작업 내역', icon: <ListAltIcon />, path: '/worker/history' });
-    menuItems.push({ text: '내 통계', icon: <AssessmentIcon />, path: '/worker/stats' });
-  }
-
-  // 관리자인 경우에만 사용자 관리 메뉴 표시
-  if (user.role === 'admin') {
-    menuItems.push({ text: '작업자 통계', icon: <AssessmentIcon />, path: '/workers/stats' });
-    menuItems.push({ text: '사용자 관리', icon: <PeopleIcon />, path: '/users' });
-  }
-
   const drawer = (
     <div>
       <Toolbar>
@@ -80,28 +39,7 @@ function Layout({ children }) {
         </Typography>
       </Toolbar>
       <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            onClick={() => {
-              navigate(item.path);
-              setMobileOpen(false);
-            }}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
-        ))}
-        <Divider />
-        <ListItem button onClick={handleLogout}>
-          <ListItemIcon>
-            <LogoutIcon />
-          </ListItemIcon>
-          <ListItemText primary="로그아웃" />
-        </ListItem>
-      </List>
+      <Sidebar />
     </div>
   );
 

@@ -230,8 +230,10 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
       enqueueSnackbar('검수가 성공적으로 등록되었습니다.', { variant: 'success' });
       navigate(`/inspections/${response.data.id || response.data.data?.inspectionId || ''}`);
     } catch (error) {
-      console.error('검수 등록 실패:', error);
-      enqueueSnackbar('검수 등록 중 오류가 발생했습니다.', { variant: 'error' });
+      // 서버에서 전달된 구체적 오류 메시지가 있으면 함께 출력/표시
+      const serverMsg = error.response?.data?.message;
+      console.error('검수 등록 실패:', serverMsg || error.message, error);
+      enqueueSnackbar(serverMsg || '검수 등록 중 오류가 발생했습니다.', { variant: 'error' });
     }
   };
 

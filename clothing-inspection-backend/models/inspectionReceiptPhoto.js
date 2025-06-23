@@ -7,7 +7,7 @@ const InspectionReceiptPhoto = sequelize.define('InspectionReceiptPhoto', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Inspections',
+      model: Inspection,
       key: 'id'
     }
   },

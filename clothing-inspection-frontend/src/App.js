@@ -25,6 +25,7 @@ import WorkersStats from './pages/WorkersStats';
 import { ListAlt, QrCodeScanner, RestartAlt } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
 import axios from 'axios';
+import DefectList from './pages/DefectList';
 
 // 관리자 권한 확인 컴포넌트
 const AdminRoute = ({ children }) => {
@@ -192,6 +193,14 @@ function App() {
                   <AdminOrInspectorRoute>
                     <WorkersStats />
                   </AdminOrInspectorRoute>
+                </Layout>
+              }
+            />
+            <Route
+              path="/defects"
+              element={
+                <Layout>
+                  <DefectList />
                 </Layout>
               }
             />

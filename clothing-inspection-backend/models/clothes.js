@@ -14,6 +14,10 @@ const Clothes = sequelize.define('Clothes', {
     type: DataTypes.STRING,
     allowNull: true
   },
+  company: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   status: {
     type: DataTypes.ENUM('pending', 'inspected', 'rejected'),
     defaultValue: 'pending'

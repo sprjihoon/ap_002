@@ -10,6 +10,7 @@ const uploadImageRoutes = require('./routes/uploadImage');
 const workerRoutes = require('./routes/workerRoutes');
 const labelRoutes = require('./routes/labelRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const defectRoutes = require('./routes/defectRoutes');
 const mongoose = require('mongoose');
 
 const app = express();
@@ -34,6 +35,7 @@ app.use('/api', uploadImageRoutes);
 app.use('/api/worker', workerRoutes);
 app.use('/api/labels', labelRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/defects', defectRoutes);
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, '0.0.0.0', () => {

@@ -22,17 +22,32 @@ const upload = multer({
   }
 });
 
-// 샘플 엑셀 다운로드 (로그인 필요)
+// 샘플 엑셀 다운로드 : 동적으로 생성
 router.get('/sample', auth, async (req, res) => {
   try {
-    const samplePath = path.join(__dirname, '..', 'public', 'sample_products.xlsx');
-    if (!fs.existsSync(samplePath)) {
-      return res.status(404).json({ message:'샘플 파일이 존재하지 않습니다.'});
-    }
-    res.download(samplePath, 'sample_products.xlsx');
-  } catch(err){
+    const header = [
+      'company',
+      'productName',
+      'size',
+      'color',
+      'barcode',
+      'wholesaler',
+      'wholesalerProductName',
+      'location'
+    ];
+
+    const ws = xlsx.utils.aoa_to_sheet([header]);
+    const wb = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(wb, ws, 'sample');
+
+    const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+    res.setHeader('Content-Disposition', 'attachment; filename=sample_products.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    return res.status(200).send(buffer);
+  } catch (err) {
     console.error('Sample download error:', err);
-    res.status(500).json({ message:err.message });
+    return res.status(500).json({ message: err.message });
   }
 });
 
@@ -158,6 +173,89 @@ router.get('/companies', auth, async (req, res) => {
   } catch (error) {
     console.error('Error in /companies route:', error);
     res.status(500).json({ message: error.message });
+  }
+});
+
+// ===== 의류 목록 엑셀 다운로드 =====
+router.get('/export', auth, async (req,res)=>{
+  try{
+    const { company, wholesaler, search } = req.query;
+    const where = {};
+
+    // role-based restriction
+    if(req.user.role==='operator'){
+      const u = await User.findByPk(req.user.id);
+      where.company = u.company;
+    }else{
+      if(company) where.company = company;
+    }
+    if(wholesaler) where.wholesaler = wholesaler;
+
+    const include = [{
+      model: ProductVariant,
+      as: 'ProductVariants',
+      attributes: ['id','size','color','barcode']
+    }];
+
+    if(search){
+      const q = `%${search}%`;
+      where[Op.or] = [
+        { company:{ [Op.like]: q } },
+        { productName:{ [Op.like]: q } },
+        { wholesaler:{ [Op.like]: q } },
+        { wholesalerProductName:{ [Op.like]: q } },
+        { '$ProductVariants.barcode$': { [Op.like]: q } }
+      ];
+    }
+
+    const products = await Product.findAll({ where, include, order:[['createdAt','DESC']] });
+
+    // build rows
+    const header = ['ID','업체','제품명','사이즈','컬러','바코드','도매처','도매처제품명','로케이션','등록일'];
+    const rows = [];
+    for(const p of products){
+      if(p.ProductVariants && p.ProductVariants.length){
+        for(const v of p.ProductVariants){
+          rows.push([
+            p.id,
+            p.company,
+            p.productName,
+            v.size || (Array.isArray(p.size) ? p.size.join(',') : p.size),
+            v.color || (Array.isArray(p.color) ? p.color.join(',') : p.color),
+            v.barcode,
+            p.wholesaler,
+            p.wholesalerProductName,
+            p.location,
+            p.createdAt ? p.createdAt.toISOString().substring(0,10) : ''
+          ]);
+        }
+      }else{
+        rows.push([
+          p.id,
+          p.company,
+          p.productName,
+          Array.isArray(p.size)?p.size.join(','):p.size,
+          Array.isArray(p.color)?p.color.join(','):p.color,
+          '',
+          p.wholesaler,
+          p.wholesalerProductName,
+          p.location,
+          p.createdAt ? p.createdAt.toISOString().substring(0,10) : ''
+        ]);
+      }
+    }
+
+    const ws = xlsx.utils.aoa_to_sheet([header, ...rows]);
+    const wb = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(wb, ws, 'products');
+    const buffer = xlsx.write(wb, { type:'buffer', bookType:'xlsx' });
+
+    res.setHeader('Content-Disposition', 'attachment; filename=products.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    return res.status(200).send(buffer);
+  }catch(err){
+    console.error('product export error', err);
+    return res.status(500).json({ message: err.message });
   }
 });
 

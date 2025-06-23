@@ -9,29 +9,21 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      axios.get('http://localhost:5000/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
+    if (!token) { setLoading(false); return; }
+
+    axios.get('/api/users/me', { headers:{ Authorization:`Bearer ${token}` } })
+      .then(res=>{ setUser(res.data); })
+      .catch(err=>{
+        // 401 등의 경우에만 토큰 제거
+        if (err.response && err.response.status === 401) {
+          localStorage.removeItem('token');
+        }
       })
-      .then(response => {
-        setUser(response.data);
-      })
-      .catch(() => {
-        localStorage.removeItem('token');
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-    } else {
-      setLoading(false);
-    }
+      .finally(()=> setLoading(false));
   }, []);
 
-  const login = async (email, password) => {
-    const response = await axios.post('http://localhost:5000/api/auth/login', {
-      email,
-      password
-    });
+  const login = async (username, password) => {
+    const response = await axios.post('/api/users/login', { username, password });
     const { token, user } = response.data;
     localStorage.setItem('token', token);
     setUser(user);
@@ -39,7 +31,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (userData) => {
-    const response = await axios.post('http://localhost:5000/api/auth/register', userData);
+    const response = await axios.post('/api/users/register', userData);
     const { token, user } = response.data;
     localStorage.setItem('token', token);
     setUser(user);
