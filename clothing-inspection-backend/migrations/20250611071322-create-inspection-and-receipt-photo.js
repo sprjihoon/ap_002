@@ -19,7 +19,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
-      createdAt: {
+            createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
@@ -34,12 +34,8 @@ module.exports = {
       },
       inspectionId: {
         type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'inspections',
-          key: 'id'
-        },
-        onDelete: 'CASCADE'
+        allowNull: false
+        // PlanetScale 호환을 위해 FK 제거
       },
       filePath: {
         type: Sequelize.STRING,
