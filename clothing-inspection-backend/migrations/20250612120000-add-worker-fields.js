@@ -37,4 +37,4 @@ module.exports = {
     await queryInterface.removeColumn('inspection_details','handledDefect');
     await queryInterface.removeColumn('inspection_details','handledHold');
   }
-};
+}; 
