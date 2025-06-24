@@ -1,6 +1,6 @@
-// sync-db.js (기존 85줄 구조를 유지하며 안전하게 수정)
+// sync-db.js
 const sequelize = require('./config/database');
-require('./models');
+require('./models'); // 관계설정 models/index.js 에서 하셨으면 이거면 충분
 const User = require('./models/user');
 const Clothes = require('./models/clothes');
 const Inspection = require('./models/inspection');
@@ -15,7 +15,11 @@ async function syncDatabase() {
     await sequelize.authenticate();
     console.log('✅ DB 연결 성공');
 
-    // 데이터베이스 동기화 (주의: force: true는 개발용)
+    // FK 생성을 원천 차단하고자 한다면, 
+    // 모델 내부 모든 관계 선언에 constraints: false 붙어야 함
+
+    // DB 동기화 (force: true는 개발/초기화용)
+    console.log('👉 sequelize.sync({ force: true }) 실행 준비');
     await sequelize.sync({ force: true });
     console.log('✅ DB 동기화 완료');
 
@@ -28,7 +32,7 @@ async function syncDatabase() {
     });
     console.log('✅ 관리자 계정 생성 완료');
 
-    // 운영자 계정 생성
+    // 운영자 계정 정보
     const operatorPassword = await bcrypt.hash('op123', 10);
     const operators = [
       { username: 'op1', email: 'op1@naver.com', company: '테스트업체1' },
@@ -47,16 +51,17 @@ async function syncDatabase() {
         company: op.company,
         role: 'operator'
       });
+      console.log(`✅ 운영자 계정 생성: ${op.username}`);
     }
 
-    console.log('✅ 운영자 계정 6개 생성 완료');
     console.log('🎉 DB 초기화 및 계정 생성 완료');
   } catch (error) {
     console.error('❌ DB 동기화 중 오류 발생:', error.message);
-    // Render 앱이 SIGTERM 강제종료되지 않도록 종료 방지
+    // 앱 강제종료 방지 (Render 등 클라우드 환경 대응)
   }
 }
 
+// 바로 실행
 syncDatabase().then(() => {
   console.log('✅ sync-db.js 완료 (앱 계속 실행 중)');
 }).catch(err => {
