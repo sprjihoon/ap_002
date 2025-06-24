@@ -22,8 +22,10 @@ const defectRoutes     = require('./routes/defectRoutes');
 const app = express();
 
 /*──────────────── CORS ────────────────*/
-const allowed = (process.env.CORS\_ORIGIN || '[http://localhost:3000](http://localhost:3000)')
-.split(',').map(o => o.trim());
+const allowed = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map(o => o.trim());
+
 
 app.use(cors({
 origin(origin, cb) {
