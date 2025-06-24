@@ -57,6 +57,17 @@ app.get('/api/healthz', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3002;
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
-}); 
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled promise rejection:', err);
+});
+
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM, shutting down gracefully');
+  server.close(() => {
+    process.exit(0);
+  });
+});
