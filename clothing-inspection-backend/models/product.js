@@ -1,5 +1,3 @@
-// ✅ 수정된 파일: PlanetScale 호환을 위해 외래키 제약조건 제거 완료
-
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -47,9 +45,6 @@ const ProductVariant = sequelize.define('ProductVariant', {
 
     type: DataTypes.INTEGER,
     allowNull: false
-    // 🔥 FK 제거: PlanetScale 호환
-    // references: { model: Product, key: 'id' },
-    // onDelete: 'CASCADE'
   },
   size: {
     type: DataTypes.STRING,
@@ -69,7 +64,6 @@ const ProductVariant = sequelize.define('ProductVariant', {
   tableName: 'product_variants'
 });
 
-// ✅ Sequelize 관계는 유지 가능 (PlanetScale 호환)
 Product.hasMany(ProductVariant, {
   foreignKey: 'productId',
   as: 'ProductVariants',
