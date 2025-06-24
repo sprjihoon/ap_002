@@ -6,20 +6,16 @@ const { ProductVariant } = require('./product');
 const InspectionDetail = sequelize.define('InspectionDetail', {
   inspectionId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: Inspection,
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
+    allowNull: false
+    // 🔥 FK 제거: PlanetScale 호환
+    // references: { model: Inspection, key: 'id' },
+    // onDelete: 'CASCADE'
   },
   productVariantId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: ProductVariant,
-      key: 'id'
-    }
+    allowNull: false
+    // 🔥 FK 제거
+    // references: { model: ProductVariant, key: 'id' }
   },
   totalQuantity: {
     type: DataTypes.INTEGER,
@@ -69,10 +65,11 @@ const InspectionDetail = sequelize.define('InspectionDetail', {
   tableName: 'inspection_details'
 });
 
+// ✅ Sequelize 관계는 유지 가능 (PlanetScale 호환)
 Inspection.hasMany(InspectionDetail, { foreignKey: 'inspectionId' });
 InspectionDetail.belongsTo(Inspection, { foreignKey: 'inspectionId' });
 
 ProductVariant.hasMany(InspectionDetail, { foreignKey: 'productVariantId' });
 InspectionDetail.belongsTo(ProductVariant, { foreignKey: 'productVariantId' });
 
-module.exports = InspectionDetail; 
+module.exports = InspectionDetail;
