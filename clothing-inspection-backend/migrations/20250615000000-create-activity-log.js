@@ -13,12 +13,10 @@ module.exports = {
       inspectionId: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        // PlanetScale does not support foreign keys
       },
       userId: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        // PlanetScale does not support foreign keys
       },
       type: {
         type: Sequelize.STRING,
