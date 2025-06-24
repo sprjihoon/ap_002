@@ -6,7 +6,6 @@ module.exports = {
     await queryInterface.addColumn('inspections', 'inspector_id', {
       type: Sequelize.INTEGER,
       allowNull: true,
-      // PlanetScale does not support foreign keys
     });
   },
 
