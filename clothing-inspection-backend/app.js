@@ -1,7 +1,7 @@
 // ────────────────────────────────────
 //  app.js ― Clothing-Inspection API
 // ────────────────────────────────────
-if (process.env.RUN\_SYNC\_DB === 'true') {
+if (process.env.RUN_SYNC_DB === 'true') {
 require('./sync-db');
 }
 
