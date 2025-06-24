@@ -1,72 +1,76 @@
+// ────────────────────────────────────
+//  app.js ― Clothing-Inspection API
+// ────────────────────────────────────
 require('dotenv').config();
+
 const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const userRoutes = require('./routes/userRoutes');
-const clothesRoutes = require('./routes/clothesRoutes');
+const cors    = require('cors');
+const path    = require('path');
+
+const userRoutes       = require('./routes/userRoutes');
+const clothesRoutes    = require('./routes/clothesRoutes');
 const inspectionRoutes = require('./routes/inspectionRoutes');
-const productRoutes = require('./routes/productRoutes');
-const uploadImageRoutes = require('./routes/uploadImage');
-const workerRoutes = require('./routes/workerRoutes');
-const labelRoutes = require('./routes/labelRoutes');
-const adminRoutes = require('./routes/adminRoutes');
-const defectRoutes = require('./routes/defectRoutes');
+const productRoutes    = require('./routes/productRoutes');
+const uploadImageRoutes= require('./routes/uploadImage');
+const workerRoutes     = require('./routes/workerRoutes');
+const labelRoutes      = require('./routes/labelRoutes');
+const adminRoutes      = require('./routes/adminRoutes');
+const defectRoutes     = require('./routes/defectRoutes');
 
 const app = express();
 
-// Middleware
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(o=>o.trim());
+/*──────────────── CORS ────────────────*/
+const allowed = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+                .split(',').map(o => o.trim());
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // allow REST tools or server-to-server requests with no origin
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
-      return callback(null, true);
+  origin(origin, cb) {
+    if (!origin || allowed.includes('*') || allowed.includes(origin)) {
+      return cb(null, true);
     }
-    return callback(new Error('Not allowed by CORS'));
+    return cb(new Error('Not allowed by CORS'));
   },
-  credentials: true
+  credentials: true,
 }));
+
+/*────────────── 기본 미들웨어 ─────────────*/
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 정적 파일 서빙
+/*────────────── 정적 파일 ────────────────*/
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Routes
-app.use('/api/users', userRoutes);
-app.use('/api/clothes', clothesRoutes);
+/*────────────── API 라우트 ───────────────*/
+app.use('/api/users',       userRoutes);
+app.use('/api/clothes',     clothesRoutes);
 app.use('/api/inspections', inspectionRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api', uploadImageRoutes);
-app.use('/api/worker', workerRoutes);
-app.use('/api/labels', labelRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/defects', defectRoutes);
+app.use('/api/products',    productRoutes);
+app.use('/api',             uploadImageRoutes);
+app.use('/api/worker',      workerRoutes);
+app.use('/api/labels',      labelRoutes);
+app.use('/api/admin',       adminRoutes);
+app.use('/api/defects',     defectRoutes);
 
-// Simple root route for uptime checks
-app.get('/', (req, res) => {
-  res.send('Clothing Inspection API');
-});
+/*────────────── 헬스-체크 ────────────────*/
+// Render 기본 health-check (루트)
+app.get('/', (_, res) => res.send('OK'));           // 200 OK
+// 커스텀 health-check (설정에서 경로를 /api/healthz 로 바꿨다면)
+app.get('/api/healthz', (_, res) => res.json({ status: 'ok' }));
 
-// Health check endpoint for Render
-app.get('/api/healthz', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-const PORT = process.env.PORT || 3002;
+/*──────────────── 서버 기동 ───────────────*/
+const PORT   = process.env.PORT || 3002;
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log('Server is running on port', PORT);
 });
 
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled promise rejection:', err);
-});
+/*──────────── 글로벌 예외 로거 ────────────*/
+process.on('unhandledRejection', err =>
+  console.error('💥 UnhandledRejection:', err));
+process.on('uncaughtException',  err =>
+  console.error('💥 UncaughtException:', err));
 
+/*───────────── SIGTERM 그레이스풀 종료 ───*/
 process.on('SIGTERM', () => {
-  console.log('Received SIGTERM, shutting down gracefully');
-  server.close(() => {
-    process.exit(0);
-  });
+  console.log('Received SIGTERM → graceful shutdown');
+  server.close(() => process.exit(0));
 });
