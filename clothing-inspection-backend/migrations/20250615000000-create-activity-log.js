@@ -12,13 +12,13 @@ module.exports = {
       },
       inspectionId: {
         type: Sequelize.INTEGER,
-        allowNull: true
-        // PlanetScale 호환을 위해 FK 제거
+        allowNull: true,
+        // PlanetScale does not support foreign keys
       },
       userId: {
         type: Sequelize.INTEGER,
-        allowNull: true
-        // PlanetScale 호환을 위해 FK 제거
+        allowNull: true,
+        // PlanetScale does not support foreign keys
       },
       type: {
         type: Sequelize.STRING,
