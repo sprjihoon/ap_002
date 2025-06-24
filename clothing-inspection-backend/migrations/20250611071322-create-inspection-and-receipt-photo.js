@@ -9,7 +9,7 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
         allowNull: false
-           },
+ },
       inspectionName: {
         type: Sequelize.STRING,
         allowNull: false,
