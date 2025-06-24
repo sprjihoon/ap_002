@@ -18,11 +18,11 @@ services:
     staticPublishPath: clothing-inspection-frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://backend.onrender.com     # 배포 후 backend URL 로 교체
+        value: https://ap-002.onrender.com
     routes:
       - type: rewrite
         source: "/api/*"
-        destination: "https://backend.onrender.com/api/:splat"
+        destination: "https://ap-002.onrender.com/api/:splat"
 
   - type: mysql
     name: db
