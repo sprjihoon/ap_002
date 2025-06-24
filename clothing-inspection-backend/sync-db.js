@@ -49,8 +49,11 @@ async function syncDatabase() {
     console.log('🎉 DB 초기화 및 계정 생성 완료');
   } catch (error) {
     console.error('❌ DB 동기화 중 오류 발생:', error);
-    // 앱 종료는 하지 않음 (안정성 유지)
   }
 }
 
-syncDatabase();
+syncDatabase().then(() => {
+  console.log('✅ sync-db.js 완료 (앱 계속 실행 중)');
+}).catch(err => {
+  console.error('❌ sync-db.js 오류:', err);
+});
