@@ -40,13 +40,19 @@ export const login = async (username, password) => {
     },
     body: JSON.stringify({ username, password })
   });
-  
+
+  const data = await response.json().catch(() => null); // JSON 파싱 실패 방지
+
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || '로그인에 실패했습니다.');
+    // data 가 비어 있거나 message 없으면 기본 메시지 사용
+    throw new Error(data?.message || '로그인에 실패했습니다.');
   }
-  
-  const data = await response.json();
+
+  // 정상 응답이어도 data 가 없으면 에러 처리
+  if (!data) {
+    throw new Error('서버 응답이 올바르지 않습니다.');
+  }
+
   localStorage.setItem('token', data.token);
   localStorage.setItem('user', JSON.stringify(data.user));
   return data;

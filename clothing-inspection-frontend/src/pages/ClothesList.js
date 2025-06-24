@@ -337,43 +337,43 @@ function ClothesList() {
         </FormControl>
       </Box>
       
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>업체명</TableCell>
-              <TableCell>제품명</TableCell>
-              <TableCell>사이즈</TableCell>
-              <TableCell>컬러</TableCell>
-              <TableCell>바코드</TableCell>
-              <TableCell>도매처명</TableCell>
-              <TableCell>도매처제품명</TableCell>
-              <TableCell>로케이션</TableCell>
-              <TableCell>등록일</TableCell>
-              <TableCell>작업</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>ID</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>업체명</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>제품명</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>사이즈</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>컬러</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 180 }}>바코드</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>도매처명</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>도매처제품명</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>로케이션</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>등록일</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>작업</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paginatedEntries.map(([key, barcodes], idx) => (
               <TableRow key={idx}>
-                <TableCell>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id}</TableCell>
-                <TableCell>{key.split('|')[0]}</TableCell>
-                <TableCell>{key.split('|')[1]}</TableCell>
-                <TableCell>{key.split('|')[2]}</TableCell>
-                <TableCell>{key.split('|')[3]}</TableCell>
-                <TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{key.split('|')[0]}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{key.split('|')[1]}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{key.split('|')[2]}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{key.split('|')[3]}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 180 }}>
                   {barcodes
                     .flatMap(b => b.split(/[,;\n]+/))
                     .map((b, i) => (
                       <Chip key={i} label={b} size="small" style={{ margin: '2px' }} clickable onClick={()=>{}} />
                     ))}
                 </TableCell>
-                <TableCell>{key.split('|')[2]}</TableCell>
-                <TableCell>{key.split('|')[3]}</TableCell>
-                <TableCell>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.location}</TableCell>
-                <TableCell>{formatDate(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.createdAt)}</TableCell>
-                <TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{key.split('|')[2]}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{key.split('|')[3]}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.location}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{formatDate(products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.createdAt)}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>
                   {user.role !== 'operator' && (
                     <>
                       <IconButton
