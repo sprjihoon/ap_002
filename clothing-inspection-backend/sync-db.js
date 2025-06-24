@@ -52,12 +52,13 @@ async function syncDatabase() {
     console.log('✅ 운영자 계정 6개 생성 완료');
     console.log('🎉 DB 초기화 및 계정 생성 완료');
   } catch (error) {
-    console.error('❌ DB 동기화 중 오류 발생:', error);
+    console.error('❌ DB 동기화 중 오류 발생:', error.message);
+    // Render 앱이 SIGTERM 강제종료되지 않도록 종료 방지
   }
 }
 
 syncDatabase().then(() => {
   console.log('✅ sync-db.js 완료 (앱 계속 실행 중)');
 }).catch(err => {
-  console.error('❌ sync-db.js 오류:', err);
+  console.error('❌ sync-db.js 오류:', err.message);
 });
