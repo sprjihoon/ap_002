@@ -1,6 +1,7 @@
 // ✅ 수정된 파일: PlanetScale 호환을 위해 외래키 제약조건 제거 완료
 
 const { DataTypes } = require('sequelize');
+
 const sequelize = require('../config/database');
 const Inspection = require('./inspection');
 
@@ -26,7 +27,13 @@ const InspectionReceiptPhoto = sequelize.define('InspectionReceiptPhoto', {
 });
 
 // 관계 설정 (Sequelize 레벨에서만 유지 → PlanetScale 호환)
-Inspection.hasMany(InspectionReceiptPhoto, { foreignKey: 'inspectionId' });
-InspectionReceiptPhoto.belongsTo(Inspection, { foreignKey: 'inspectionId' });
+Inspection.hasMany(InspectionReceiptPhoto, {
+  foreignKey: 'inspectionId',
+  constraints: false
+});
+InspectionReceiptPhoto.belongsTo(Inspection, {
+  foreignKey: 'inspectionId',
+  constraints: false
+});
 
 module.exports = InspectionReceiptPhoto;
