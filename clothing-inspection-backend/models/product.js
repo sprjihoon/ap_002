@@ -44,6 +44,7 @@ const Product = sequelize.define('Product', {
 
 const ProductVariant = sequelize.define('ProductVariant', {
   productId: {
+
     type: DataTypes.INTEGER,
     allowNull: false
     // 🔥 FK 제거: PlanetScale 호환
