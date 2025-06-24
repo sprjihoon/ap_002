@@ -17,8 +17,20 @@ async function syncDatabase() {
     // 모델 내부 모든 관계 선언에 constraints: false 붙어야 함
 
     // DB 동기화 (force: true는 개발/초기화용)
-    console.log('👉 sequelize.sync({ force: true }) 실행 준비');
-    await sequelize.sync({ force: true });
+    console.log('👉 sequelize.sync({ force: true, logging: console.log }) 실행 준비');
+    const fkQueries = [];
+    await sequelize.sync({
+      force: true,
+      logging: (sql) => {
+        console.log(sql);
+        if (sql.includes('FOREIGN KEY')) {
+          fkQueries.push(sql);
+        }
+      }
+    });
+    if (fkQueries.length) {
+      console.warn('⚠️ FOREIGN KEY 쿼리가 감지되었습니다:', fkQueries);
+    }
     console.log('✅ DB 동기화 완료');
 
     // 기본 관리자 계정 생성
