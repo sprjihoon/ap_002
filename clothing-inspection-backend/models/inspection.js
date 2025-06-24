@@ -24,13 +24,15 @@ const Inspection = sequelize.define('Inspection', {
   },
   inspector_id: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    references:{ model:'users', key:'id' }
+    allowNull: true
+    // 🔥 PlanetScale 호환을 위해 FK 제거
+    // references: { model: 'users', key: 'id' }
   },
   assignedWorkerId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    references:{ model:'users', key:'id' }
+    allowNull: true
+    // 🔥 FK 제거
+    // references: { model: 'users', key: 'id' }
   },
   rejectReason:{
     type: DataTypes.STRING,
@@ -59,4 +61,4 @@ const Inspection = sequelize.define('Inspection', {
   tableName: 'inspections'
 });
 
-module.exports = Inspection; 
+module.exports = Inspection;
