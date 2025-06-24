@@ -33,26 +33,80 @@ module.exports = {
 // })();
 
 // ===== Associations =====
-Inspection.hasMany(InspectionComment, { foreignKey:'inspectionId', as:'comments', onDelete:'CASCADE' });
-InspectionComment.belongsTo(Inspection, { foreignKey:'inspectionId' });
+Inspection.hasMany(InspectionComment, {
+  foreignKey: 'inspectionId',
+  as: 'comments',
+  onDelete: 'CASCADE',
+  constraints: false
+});
+InspectionComment.belongsTo(Inspection, {
+  foreignKey: 'inspectionId',
+  constraints: false
+});
 
-User.hasMany(InspectionComment, { foreignKey:'userId' });
-InspectionComment.belongsTo(User, { foreignKey:'userId' });
+User.hasMany(InspectionComment, {
+  foreignKey: 'userId',
+  constraints: false
+});
+InspectionComment.belongsTo(User, {
+  foreignKey: 'userId',
+  constraints: false
+});
 
 // self association for nested replies
-InspectionComment.hasMany(InspectionComment, { as:'replies', foreignKey:'parentCommentId', onDelete:'CASCADE' });
-InspectionComment.belongsTo(InspectionComment, { as:'parent', foreignKey:'parentCommentId' });
+InspectionComment.hasMany(InspectionComment, {
+  as: 'replies',
+  foreignKey: 'parentCommentId',
+  onDelete: 'CASCADE',
+  constraints: false
+});
+InspectionComment.belongsTo(InspectionComment, {
+  as: 'parent',
+  foreignKey: 'parentCommentId',
+  constraints: false
+});
 
-Inspection.belongsToMany(User, { through: InspectionRead, foreignKey:'inspectionId', otherKey:'userId', as:'readers' });
-User.belongsToMany(Inspection, { through: InspectionRead, foreignKey:'userId', otherKey:'inspectionId' });
+Inspection.belongsToMany(User, {
+  through: InspectionRead,
+  foreignKey: 'inspectionId',
+  otherKey: 'userId',
+  as: 'readers',
+  constraints: false
+});
+User.belongsToMany(Inspection, {
+  through: InspectionRead,
+  foreignKey: 'userId',
+  otherKey: 'inspectionId',
+  constraints: false
+});
 
 // Inspector 관계
-User.hasMany(Inspection, { foreignKey:'inspector_id', as:'inspections' });
-Inspection.belongsTo(User, { foreignKey:'inspector_id', as:'inspector' }); 
+User.hasMany(Inspection, {
+  foreignKey: 'inspector_id',
+  as: 'inspections',
+  constraints: false
+});
+Inspection.belongsTo(User, {
+  foreignKey: 'inspector_id',
+  as: 'inspector',
+  constraints: false
+});
 
 // ===== ActivityLog 관계 =====
-ActivityLog.belongsTo(Inspection, { foreignKey:'inspectionId' });
-Inspection.hasMany(ActivityLog, { foreignKey:'inspectionId' });
+ActivityLog.belongsTo(Inspection, {
+  foreignKey: 'inspectionId',
+  constraints: false
+});
+Inspection.hasMany(ActivityLog, {
+  foreignKey: 'inspectionId',
+  constraints: false
+});
 
-ActivityLog.belongsTo(User, { foreignKey:'userId' });
-User.hasMany(ActivityLog, { foreignKey:'userId' }); 
+ActivityLog.belongsTo(User, {
+  foreignKey: 'userId',
+  constraints: false
+});
+User.hasMany(ActivityLog, {
+  foreignKey: 'userId',
+  constraints: false
+});
