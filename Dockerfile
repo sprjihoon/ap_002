@@ -1,4 +1,5 @@
-FROM node:18-alpine
+# Use Debian-based image to avoid musl issues when compiling native modules
+FROM --platform=linux/amd64 node:18-slim
 
 # Set working directory
 WORKDIR /app
@@ -6,11 +7,14 @@ WORKDIR /app
 # Copy backend package files and install dependencies
 COPY clothing-inspection-backend/package*.json ./clothing-inspection-backend/
 # Install build tools to compile native modules such as bcrypt
-RUN apk add --no-cache --virtual .build-deps python3 make g++ \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 make g++ \
     && cd clothing-inspection-backend \
     && npm ci --omit=dev \
     && npm rebuild bcrypt --build-from-source \
-    && apk del .build-deps
+    && apt-get remove -y python3 make g++ \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy backend source
 COPY clothing-inspection-backend ./clothing-inspection-backend
