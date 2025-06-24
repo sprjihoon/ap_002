@@ -1,7 +1,7 @@
 // ────────────────────────────────────
 //  app.js ― Clothing-Inspection API
 // ────────────────────────────────────
-require('dotenv').config();
+require('./sync-db');
 
 const express = require('express');
 const cors    = require('cors');
