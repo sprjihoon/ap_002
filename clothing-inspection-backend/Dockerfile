@@ -24,8 +24,8 @@ COPY . .
 # 업로드 디렉토리 생성
 RUN mkdir -p uploads/inspection_receipts
 
-# 포트 노출
-EXPOSE 3002
+# Set default environment PORT if not provided
+ENV PORT=3002
 
-# 애플리케이션 시작
+# Run the app
 CMD ["npm", "start"]
