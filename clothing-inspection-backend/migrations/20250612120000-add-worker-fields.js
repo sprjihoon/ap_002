@@ -15,8 +15,8 @@ module.exports = {
     if (!table.assignedWorkerId) {
       await queryInterface.addColumn('inspections','assignedWorkerId',{
         type: Sequelize.INTEGER,
-        allowNull:true,
-        references:{ model:'users', key:'id' }
+        allowNull:true
+        // PlanetScale 호환을 위해 FK 제거
       });
     }
     // inspection_details: handled counters
