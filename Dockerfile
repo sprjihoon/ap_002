@@ -27,7 +27,7 @@ WORKDIR /app/clothing-inspection-backend
 
 EXPOSE 3002
 
-CMD ["sh", "-c", "node sync-db.js && npm start"]
+CMD ["npm", "start"]
 
 # Ensure native modules build from source if prebuilds missing
 ENV npm_config_build_from_source=true
