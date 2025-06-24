@@ -11,7 +11,6 @@ const workerRoutes = require('./routes/workerRoutes');
 const labelRoutes = require('./routes/labelRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const defectRoutes = require('./routes/defectRoutes');
-const mongoose = require('mongoose');
 
 const app = express();
 
