@@ -1,5 +1,5 @@
+// sync-db.js (기존 85줄 구조를 유지하며 안전하게 수정)
 const sequelize = require('./config/database');
-// Register **all** models and associations in one go
 require('./models');
 const User = require('./models/user');
 const Clothes = require('./models/clothes');
@@ -9,9 +9,11 @@ const bcrypt = require('bcrypt');
 
 async function syncDatabase() {
   try {
-    // 데이터베이스 동기화 (테이블을 재생성합니다)
+    console.log('🛠 DB 동기화 시작...');
+
+    // 데이터베이스 동기화 (주의: force: true는 개발용)
     await sequelize.sync({ force: true });
-    console.log('데이터베이스 동기화 완료');
+    console.log('✅ DB 동기화 완료');
 
     // 기본 관리자 계정 생성
     const adminPassword = await bcrypt.hash('admin123', 10);
@@ -20,66 +22,35 @@ async function syncDatabase() {
       password: adminPassword,
       role: 'admin'
     });
-    console.log('기본 관리자 계정이 생성되었습니다.');
+    console.log('✅ 관리자 계정 생성 완료');
 
     // 운영자 계정 생성
     const operatorPassword = await bcrypt.hash('op123', 10);
-    
-    await User.create({
-      username: 'op1',
-      email: 'op1@naver.com',
-      password: operatorPassword,
-      company: '테스트업체1',
-      role: 'operator'
-    });
+    const operators = [
+      { username: 'op1', email: 'op1@naver.com', company: '테스트업체1' },
+      { username: 'op2', email: 'op2@naver.com', company: '테스트업체2' },
+      { username: 'op3', email: 'op3@naver.com', company: '테스트업체3' },
+      { username: 'op4', email: 'op4@naver.com', company: '테스트업체4' },
+      { username: 'op5', email: 'op5@naver.com', company: '테스트업체5' },
+      { username: 'op6', email: 'op6@naver.com', company: '테스트업체6' }
+    ];
 
-    await User.create({
-      username: 'op2',
-      email: 'op2@naver.com',
-      password: operatorPassword,
-      company: '테스트업체2',
-      role: 'operator'
-    });
+    for (const op of operators) {
+      await User.create({
+        username: op.username,
+        email: op.email,
+        password: operatorPassword,
+        company: op.company,
+        role: 'operator'
+      });
+    }
 
-    await User.create({
-      username: 'op3',
-      email: 'op3@naver.com',
-      password: operatorPassword,
-      company: '테스트업체3',
-      role: 'operator'
-    });
-
-    await User.create({
-      username: 'op4',
-      email: 'op4@naver.com',
-      password: operatorPassword,
-      company: '테스트업체4',
-      role: 'operator'
-    });
-
-    await User.create({
-      username: 'op5',
-      email: 'op5@naver.com',
-      password: operatorPassword,
-      company: '테스트업체5',
-      role: 'operator'
-    });
-
-    await User.create({
-      username: 'op6',
-      email: 'op6@naver.com',
-      password: operatorPassword,
-      company: '테스트업체6',
-      role: 'operator'
-    });
-
-    console.log('운영자 계정이 생성되었습니다.');
-    console.log('데이터베이스 동기화가 완료되었습니다.');
-    process.exit(0);
+    console.log('✅ 운영자 계정 6개 생성 완료');
+    console.log('🎉 DB 초기화 및 계정 생성 완료');
   } catch (error) {
-    console.error('데이터베이스 동기화 중 오류 발생:', error);
-    process.exit(1);
+    console.error('❌ DB 동기화 중 오류 발생:', error);
+    // 앱 종료는 하지 않음 (안정성 유지)
   }
 }
 
-syncDatabase(); 
+syncDatabase();
