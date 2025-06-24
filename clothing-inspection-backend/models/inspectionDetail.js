@@ -68,10 +68,22 @@ const InspectionDetail = sequelize.define('InspectionDetail', {
 });
 
 // ✅ Sequelize 관계는 유지 가능 (PlanetScale 호환)
-Inspection.hasMany(InspectionDetail, { foreignKey: 'inspectionId' });
-InspectionDetail.belongsTo(Inspection, { foreignKey: 'inspectionId' });
+Inspection.hasMany(InspectionDetail, {
+  foreignKey: 'inspectionId',
+  constraints: false
+});
+InspectionDetail.belongsTo(Inspection, {
+  foreignKey: 'inspectionId',
+  constraints: false
+});
 
-ProductVariant.hasMany(InspectionDetail, { foreignKey: 'productVariantId' });
-InspectionDetail.belongsTo(ProductVariant, { foreignKey: 'productVariantId' });
+ProductVariant.hasMany(InspectionDetail, {
+  foreignKey: 'productVariantId',
+  constraints: false
+});
+InspectionDetail.belongsTo(ProductVariant, {
+  foreignKey: 'productVariantId',
+  constraints: false
+});
 
 module.exports = InspectionDetail;
