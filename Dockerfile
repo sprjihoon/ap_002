@@ -25,7 +25,7 @@ RUN mkdir -p clothing-inspection-backend/uploads/inspection_receipts
 # Set working directory to backend
 WORKDIR /app/clothing-inspection-backend
 
-EXPOSE 3002
+EXPOSE 10000
 
 CMD ["npm", "start"]
 
