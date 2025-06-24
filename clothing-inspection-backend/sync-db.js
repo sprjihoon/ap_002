@@ -2,10 +2,8 @@
 const sequelize = require('./config/database');
 require('./models'); // 관계설정 models/index.js 에서 하셨으면 이거면 충분
 const User = require('./models/user');
-const Clothes = require('./models/clothes');
-const Inspection = require('./models/inspection');
-const Product = require('./models/product');
 const bcrypt = require('bcrypt');
+require('dotenv').config();
 
 async function syncDatabase() {
   try {
@@ -24,7 +22,8 @@ async function syncDatabase() {
     console.log('✅ DB 동기화 완료');
 
     // 기본 관리자 계정 생성
-    const adminPassword = await bcrypt.hash('admin123', 10);
+    const adminRaw = process.env.ADMIN_PASSWORD || 'admin123';
+    const adminPassword = await bcrypt.hash(adminRaw, 10);
     await User.create({
       username: 'admin',
       password: adminPassword,
@@ -33,7 +32,8 @@ async function syncDatabase() {
     console.log('✅ 관리자 계정 생성 완료');
 
     // 운영자 계정 정보
-    const operatorPassword = await bcrypt.hash('op123', 10);
+    const operatorRaw = process.env.OPERATOR_PASSWORD || 'op123';
+    const operatorPassword = await bcrypt.hash(operatorRaw, 10);
     const operators = [
       { username: 'op1', email: 'op1@naver.com', company: '테스트업체1' },
       { username: 'op2', email: 'op2@naver.com', company: '테스트업체2' },
@@ -43,27 +43,30 @@ async function syncDatabase() {
       { username: 'op6', email: 'op6@naver.com', company: '테스트업체6' }
     ];
 
-    for (const op of operators) {
-      await User.create({
+    await User.bulkCreate(
+      operators.map(op => ({
         username: op.username,
         email: op.email,
         password: operatorPassword,
         company: op.company,
         role: 'operator'
-      });
-      console.log(`✅ 운영자 계정 생성: ${op.username}`);
-    }
+      }))
+    );
+    operators.forEach(op => console.log(`✅ 운영자 계정 생성: ${op.username}`));
 
     console.log('🎉 DB 초기화 및 계정 생성 완료');
   } catch (error) {
     console.error('❌ DB 동기화 중 오류 발생:', error.message);
     // 앱 강제종료 방지 (Render 등 클라우드 환경 대응)
+  } finally {
+    await sequelize.close();
+    console.log('✅ DB 연결 종료');
   }
 }
 
 // 바로 실행
 syncDatabase().then(() => {
-  console.log('✅ sync-db.js 완료 (앱 계속 실행 중)');
+  console.log('✅ sync-db.js 완료');
 }).catch(err => {
   console.error('❌ sync-db.js 오류:', err.message);
 });
