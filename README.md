@@ -152,6 +152,21 @@ The backend exposes lightweight routes for uptime checks:
 - `GET /` – returns `Clothing Inspection API`
 - `GET /api/healthz` – returns `{ "status": "ok" }`
 
+### Troubleshooting Render Deployments
+If a container exits immediately with a `SIGTERM` signal, review the Render logs
+for the real error right before `SIGTERM`. Common culprits are:
+
+1. The service type is set to **Node** instead of **Docker**. Make sure the
+   backend is deployed as a Docker service so the provided `Dockerfile` runs.
+2. A custom `PORT` environment variable is defined. Render sets `PORT`
+   automatically, so remove any manually defined value.
+3. The app fails health checks. Verify `/` and `/api/healthz` return `200`.
+4. Database credentials or other required environment variables are missing,
+   causing startup errors.
+
+Checking the lines immediately above `npm error signal SIGTERM` in the logs
+usually reveals the exact reason.
+
 ## Security Notes
 * **Secrets** (DB, JWT, SMTP) are sourced from environment variables – never commit them.
 * `.gitignore` excludes uploads, node_modules, build artefacts, and any *.env files.
