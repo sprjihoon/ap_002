@@ -12,21 +12,13 @@ module.exports = {
       },
       inspectionId: {
         type: Sequelize.INTEGER,
-        allowNull: true,
-        references: {
-          model: 'inspections',
-          key: 'id'
-        },
-        onDelete: 'SET NULL'
+        allowNull: true
+        // PlanetScale 호환을 위해 FK 제거
       },
       userId: {
         type: Sequelize.INTEGER,
-        allowNull: true,
-        references: {
-          model: 'users',
-          key: 'id'
-        },
-        onDelete: 'SET NULL'
+        allowNull: true
+        // PlanetScale 호환을 위해 FK 제거
       },
       type: {
         type: Sequelize.STRING,
