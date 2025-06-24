@@ -5,12 +5,8 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.addColumn('inspections', 'inspector_id', {
       type: Sequelize.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'users',
-        key: 'id'
-      },
-      onDelete: 'SET NULL'
+      allowNull: true
+      // PlanetScale 호환을 위해 FK 제거
     });
   },
 
