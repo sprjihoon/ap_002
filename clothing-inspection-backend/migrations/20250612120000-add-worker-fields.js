@@ -16,7 +16,6 @@ module.exports = {
       await queryInterface.addColumn('inspections','assignedWorkerId',{
         type: Sequelize.INTEGER,
         allowNull:true
-        // PlanetScale 호환을 위해 FK 제거
       });
     }
     // inspection_details: handled counters
@@ -38,4 +37,4 @@ module.exports = {
     await queryInterface.removeColumn('inspection_details','handledDefect');
     await queryInterface.removeColumn('inspection_details','handledHold');
   }
-}; 
+};
