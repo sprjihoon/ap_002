@@ -11,6 +11,10 @@ async function syncDatabase() {
   try {
     console.log('🛠 DB 동기화 시작...');
 
+    // DB 연결 테스트
+    await sequelize.authenticate();
+    console.log('✅ DB 연결 성공');
+
     // 데이터베이스 동기화 (주의: force: true는 개발용)
     await sequelize.sync({ force: true });
     console.log('✅ DB 동기화 완료');
