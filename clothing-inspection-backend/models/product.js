@@ -69,7 +69,15 @@ const ProductVariant = sequelize.define('ProductVariant', {
 });
 
 // ✅ Sequelize 관계는 유지 가능 (PlanetScale 호환)
-Product.hasMany(ProductVariant, { foreignKey: 'productId', as: 'ProductVariants' });
-ProductVariant.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
+Product.hasMany(ProductVariant, {
+  foreignKey: 'productId',
+  as: 'ProductVariants',
+  constraints: false
+});
+ProductVariant.belongsTo(Product, {
+  foreignKey: 'productId',
+  as: 'product',
+  constraints: false
+});
 
 module.exports = { Product, ProductVariant };
