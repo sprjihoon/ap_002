@@ -1,3 +1,5 @@
+// ✅ 수정된 파일: PlanetScale 호환을 위해 외래키 제약조건 제거 완료
+
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const Inspection = require('./inspection');
