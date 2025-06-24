@@ -1,5 +1,3 @@
-// ✅ 수정된 파일: PlanetScale 호환을 위해 외래키 제약조건 제거 완료
-
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const Inspection = require('./inspection');
@@ -9,15 +7,10 @@ const InspectionDetail = sequelize.define('InspectionDetail', {
   inspectionId: {
     type: DataTypes.INTEGER,
     allowNull: false
-    // 🔥 FK 제거: PlanetScale 호환
-    // references: { model: Inspection, key: 'id' },
-    // onDelete: 'CASCADE'
   },
   productVariantId: {
     type: DataTypes.INTEGER,
     allowNull: false
-    // 🔥 FK 제거
-    // references: { model: ProductVariant, key: 'id' }
   },
   totalQuantity: {
     type: DataTypes.INTEGER,
@@ -67,7 +60,6 @@ const InspectionDetail = sequelize.define('InspectionDetail', {
   tableName: 'inspection_details'
 });
 
-// ✅ Sequelize 관계는 유지 가능 (PlanetScale 호환)
 Inspection.hasMany(InspectionDetail, {
   foreignKey: 'inspectionId',
   constraints: false
