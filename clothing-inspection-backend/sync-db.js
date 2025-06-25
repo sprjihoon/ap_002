@@ -20,11 +20,8 @@ async function syncDatabase() {
     console.log('👉 sequelize.sync({ force: true, logging }) 실행 준비');
     await sequelize.sync({
       force: true,
-      logging: (sql) => {
-        if (/foreign key/i.test(sql)) {
-          console.error('🚨 FK SQL', sql);
-        }
-      }
+      logging: (sql) => /foreign key/i.test(sql) &&
+        console.error('🚨 FK SQL', sql)
     });
     console.log('✅ DB 동기화 완료');
 
