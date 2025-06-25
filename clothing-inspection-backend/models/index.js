@@ -26,13 +26,6 @@ const models = {
   InspectionDetail
 };
 
-// associate 함수는 모든 모델 등록 후 한 번에 실행
-Object.values(models).forEach((model) => {
-  if (typeof model.associate === 'function') {
-    model.associate(models);
-  }
-});
-
 module.exports = models;
 
 // ===== 관계 선언 (hasMany / belongsToMany 등) =====
@@ -92,4 +85,11 @@ ActivityLog.belongsTo(User, {
 User.hasMany(ActivityLog, {
   foreignKey: 'userId',
   constraints: false
+});
+
+// associate 함수는 모든 모델 등록 후 한 번에 실행
+Object.values(models).forEach((model) => {
+  if (typeof model.associate === 'function') {
+    model.associate(models);
+  }
 });
