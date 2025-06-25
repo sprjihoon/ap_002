@@ -17,7 +17,7 @@ const sequelize = new Sequelize(sanitizedUrl, {
   },
   logging: false,
   define: {
-    constraints: false
+    foreignKeyConstraints: false
   }
 });
 
