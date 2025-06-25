@@ -1,95 +1,78 @@
-const User = require('./user');
-const { Product, ProductVariant } = require('./product');
-const Clothes = require('./clothes');
-const Inspection = require('./inspection');
-const InspectionReceiptPhoto = require('./inspectionReceiptPhoto');
-const InspectionComment = require('./inspectionComment');
-const InspectionRead = require('./inspectionRead');
-const LabelTemplate = require('./labelTemplate');
-const ActivityLog = require('./ActivityLog');
-const Setting = require('./Setting');
-const InspectionDetail = require('./inspectionDetail');
-const sequelize = require('../config/database');
+// models/index.js
 
-const models = {
-  User,
-  Product,
-  ProductVariant,
-  Clothes,
-  Inspection,
-  InspectionReceiptPhoto,
-  InspectionComment,
-  InspectionRead,
-  LabelTemplate,
-  ActivityLog,
-  Setting,
-  InspectionDetail
-};
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+
+const basename = path.basename(__filename);
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.js')[env];
+
+const models = {};
+
+let sequelize;
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
+  sequelize = new Sequelize(
+    config.database,
+    config.username,
+    config.password,
+    config
+  );
+}
+
+// Load all model files in this directory (except this one)
+fs.readdirSync(__dirname)
+  .filter((file) => file.indexOf('.') !== 0 && file !== basename && file.slice(-3) === '.js')
+  .forEach((file) => {
+    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    models[model.name] = model;
+  });
+
+/************************************************************
+ * Centralized relationship definitions
+ * ---------------------------------------------------------
+ * Keep everything here to avoid circular dependency issues.
+ ************************************************************/
+if (models.InspectionComment && models.Inspection) {
+  // 댓글 → 검사
+  models.InspectionComment.belongsTo(models.Inspection, {
+    foreignKey: 'inspectionId',
+    as: 'inspection',
+    onDelete: 'CASCADE',
+  });
+
+  // 대댓글(parent) 관계
+  models.InspectionComment.belongsTo(models.InspectionComment, {
+    foreignKey: 'parentCommentId',
+    as: 'parent',
+    onDelete: 'CASCADE',
+  });
+
+  // 댓글 → 작성자
+  models.InspectionComment.belongsTo(models.User, {
+    foreignKey: 'userId',
+    as: 'user',
+    onDelete: 'CASCADE',
+  });
+
+  // (선택) 검사 → 댓글들  (역참조용, 필수 아님)
+  models.Inspection.hasMany(models.InspectionComment, {
+    foreignKey: 'inspectionId',
+    as: 'comments',
+    onDelete: 'CASCADE',
+  });
+}
+
+// 🚫 Disable legacy per‑model associate() execution
+// Object.values(models).forEach((model) => {
+//   if (typeof model.associate === 'function') {
+//     model.associate(models);
+//   }
+// });
+
+models.sequelize = sequelize;
+models.Sequelize = Sequelize;
 
 module.exports = models;
-
-// ===== 관계 선언 (hasMany / belongsToMany 등) =====
-
-Inspection.hasMany(models.InspectionComment, {
-  foreignKey: 'inspectionId',
-  as: 'comments',
-  onDelete: 'CASCADE',
-  constraints: false
-});
-
-User.hasMany(models.InspectionComment, {
-  foreignKey: 'userId',
-  constraints: false
-});
-
-// self-association 관계는 InspectionComment 내부 associate()에서만 관리
-
-Inspection.belongsToMany(User, {
-  through: InspectionRead,
-  foreignKey: 'inspectionId',
-  otherKey: 'userId',
-  as: 'readers',
-  constraints: false
-});
-User.belongsToMany(Inspection, {
-  through: InspectionRead,
-  foreignKey: 'userId',
-  otherKey: 'inspectionId',
-  constraints: false
-});
-
-User.hasMany(Inspection, {
-  foreignKey: 'inspector_id',
-  as: 'inspections',
-  constraints: false
-});
-Inspection.belongsTo(User, {
-  foreignKey: 'inspector_id',
-  as: 'inspector',
-  constraints: false
-});
-
-ActivityLog.belongsTo(Inspection, {
-  foreignKey: 'inspectionId',
-  constraints: false
-});
-Inspection.hasMany(ActivityLog, {
-  foreignKey: 'inspectionId',
-  constraints: false
-});
-
-ActivityLog.belongsTo(User, {
-  foreignKey: 'userId',
-  constraints: false
-});
-User.hasMany(ActivityLog, {
-  foreignKey: 'userId',
-  constraints: false
-});
-
-// ===== associate 실행 (모든 모델 정의 후) =====
-Object.values(models).forEach(model => {
-  if (typeof model.associate === 'function') {
-    model.associate(models);
-  }
-});
