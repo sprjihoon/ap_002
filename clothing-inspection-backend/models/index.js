@@ -51,13 +51,7 @@ User.hasMany(models.InspectionComment, {
   constraints: false
 });
 
-// self association for nested replies
-models.InspectionComment.hasMany(models.InspectionComment, {
-  as: 'replies',
-  foreignKey: 'parentCommentId',
-  onDelete: 'CASCADE',
-  constraints: false
-});
+// self-association 제거됨: belongsTo(parent) 관계는 associate(models) 내에서만 관리
 
 Inspection.belongsToMany(User, {
   through: InspectionRead,
