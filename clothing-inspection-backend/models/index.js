@@ -87,9 +87,22 @@ User.hasMany(ActivityLog, {
   constraints: false
 });
 
-// associate 함수는 모든 관계 선언 이후 안전하게 실행
-Object.values(models).forEach((model) => {
-  if (typeof model.associate === 'function') {
-    model.associate(models);
-  }
+// ===== BelongsTo 관계 =====
+// InspectionComment ↔ Inspection
+models.InspectionComment.belongsTo(models.Inspection, {
+  foreignKey: 'inspectionId',
+  constraints: false
+});
+
+// self‑reference (nested replies)
+models.InspectionComment.belongsTo(models.InspectionComment, {
+  as: 'parent',
+  foreignKey: 'parentCommentId',
+  constraints: false
+});
+
+// InspectionComment ↔ User
+models.InspectionComment.belongsTo(models.User, {
+  foreignKey: 'userId',
+  constraints: false
 });
