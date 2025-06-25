@@ -11,7 +11,6 @@ const Setting = require('./Setting');
 const InspectionDetail = require('./inspectionDetail');
 const sequelize = require('../config/database');
 
-// 모든 모델 객체 정리
 const models = {
   User,
   Product,
@@ -27,14 +26,14 @@ const models = {
   InspectionDetail
 };
 
-// 관계 설정 (associate는 모델 정의 후에 실행되어야 함)
-if (InspectionComment.associate) {
+// associate 호출은 모델 객체 생성 이후 실행
+if (typeof InspectionComment.associate === 'function') {
   InspectionComment.associate(models);
 }
 
 module.exports = models;
 
-// ===== 관계 선언 (hasMany, belongsToMany 등) =====
+// ===== 관계 선언 (hasMany / belongsToMany 등) =====
 
 Inspection.hasMany(models.InspectionComment, {
   foreignKey: 'inspectionId',
@@ -48,7 +47,7 @@ User.hasMany(models.InspectionComment, {
   constraints: false
 });
 
-// belongsTo(parent) 관계는 associate() 내부에서만 선언됨
+// self-association 관계는 InspectionComment 내부 associate()에서만 관리
 
 Inspection.belongsToMany(User, {
   through: InspectionRead,
@@ -64,6 +63,7 @@ User.belongsToMany(Inspection, {
   constraints: false
 });
 
+// Inspector 관계
 User.hasMany(Inspection, {
   foreignKey: 'inspector_id',
   as: 'inspections',
@@ -75,6 +75,7 @@ Inspection.belongsTo(User, {
   constraints: false
 });
 
+// ActivityLog 관계
 ActivityLog.belongsTo(Inspection, {
   foreignKey: 'inspectionId',
   constraints: false
@@ -93,7 +94,7 @@ User.hasMany(ActivityLog, {
   constraints: false
 });
 
-// 자동 alter 동기화는 운영 시 비활성화
+// (선택) 자동 alter는 운영 환경에선 비활성화
 // (async () => {
 //   await sequelize.sync({ alter: true });
 // })();
