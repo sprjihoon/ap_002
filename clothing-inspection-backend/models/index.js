@@ -39,31 +39,25 @@ module.exports = models;
 // })();
 
 // ===== Associations =====
-Inspection.hasMany(InspectionComment, {
+Inspection.hasMany(models.InspectionComment, {
   foreignKey: 'inspectionId',
   as: 'comments',
   onDelete: 'CASCADE',
   constraints: false
 });
-InspectionComment.belongsTo(Inspection, { foreignKey: 'inspectionId', constraints: false });
 
-User.hasMany(InspectionComment, {
-  foreignKey: 'userId',
-  constraints: false
-});
-InspectionComment.belongsTo(User, {
+User.hasMany(models.InspectionComment, {
   foreignKey: 'userId',
   constraints: false
 });
 
 // self association for nested replies
-InspectionComment.hasMany(InspectionComment, {
+models.InspectionComment.hasMany(models.InspectionComment, {
   as: 'replies',
   foreignKey: 'parentCommentId',
   onDelete: 'CASCADE',
   constraints: false
 });
-InspectionComment.belongsTo(InspectionComment, { as: 'parent', foreignKey: 'parentCommentId', constraints: false });
 
 Inspection.belongsToMany(User, {
   through: InspectionRead,
