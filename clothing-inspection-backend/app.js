@@ -23,8 +23,7 @@ const app = express();
 
 /*──────────────── CORS ────────────────*/
 const allowed = (process.env.CORS_ORIGIN || 'http://localhost:3000')
-  .split(',')
-  .map(o => o.trim());
+                .split(',').map(o => o.trim());
 
 app.use(cors({
   origin(origin, cb) {
