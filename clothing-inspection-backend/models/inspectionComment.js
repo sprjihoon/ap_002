@@ -29,20 +29,23 @@ const InspectionComment = sequelize.define('InspectionComment', {
   tableName: 'inspection_comments'
 });
 
-// 관계 정의 (모든 belongsTo는 constraints: false 적용)
+// associate 함수는 모델 정의가 모두 끝난 뒤 호출되도록 외부에서 실행해야 함
+// 모델 참조 시 undefined 오류 방지
 InspectionComment.associate = (models) => {
-  InspectionComment.belongsTo(models.Inspection, {
+  const { Inspection, User, InspectionComment: Self } = models;
+
+  InspectionComment.belongsTo(Inspection, {
     foreignKey: 'inspectionId',
     constraints: false
   });
 
-  InspectionComment.belongsTo(models.InspectionComment, {
+  InspectionComment.belongsTo(Self, {
     as: 'parent',
     foreignKey: 'parentCommentId',
     constraints: false
   });
 
-  InspectionComment.belongsTo(models.User, {
+  InspectionComment.belongsTo(User, {
     foreignKey: 'userId',
     constraints: false
   });
