@@ -28,4 +28,4 @@ const InspectionComment = sequelize.define('InspectionComment', {
   tableName: 'inspection_comments'
 });
 
-module.exports = InspectionComment; 
+module.exports = InspectionComment;
