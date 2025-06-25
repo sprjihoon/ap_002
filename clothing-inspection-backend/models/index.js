@@ -11,6 +11,7 @@ const Setting = require('./Setting');
 const InspectionDetail = require('./inspectionDetail');
 const sequelize = require('../config/database');
 
+// 모든 모델 객체 정리
 const models = {
   User,
   Product,
@@ -26,19 +27,15 @@ const models = {
   InspectionDetail
 };
 
+// 관계 설정 (associate는 모델 정의 후에 실행되어야 함)
 if (InspectionComment.associate) {
   InspectionComment.associate(models);
 }
 
 module.exports = models;
 
-// 자동 alter 동기화는 운영 중 인덱스가 과다 생성되는 문제를 유발할 수 있어 비활성화
-// 초기 마이그레이션 후에는 별도 migration 파일에서 스키마를 관리하세요.
-// (async () => {
-//   await sequelize.sync({ alter: true });
-// })();
+// ===== 관계 선언 (hasMany, belongsToMany 등) =====
 
-// ===== Associations =====
 Inspection.hasMany(models.InspectionComment, {
   foreignKey: 'inspectionId',
   as: 'comments',
@@ -51,7 +48,7 @@ User.hasMany(models.InspectionComment, {
   constraints: false
 });
 
-// self-association 제거됨: belongsTo(parent) 관계는 associate(models) 내에서만 관리
+// belongsTo(parent) 관계는 associate() 내부에서만 선언됨
 
 Inspection.belongsToMany(User, {
   through: InspectionRead,
@@ -67,7 +64,6 @@ User.belongsToMany(Inspection, {
   constraints: false
 });
 
-// Inspector 관계
 User.hasMany(Inspection, {
   foreignKey: 'inspector_id',
   as: 'inspections',
@@ -79,7 +75,6 @@ Inspection.belongsTo(User, {
   constraints: false
 });
 
-// ===== ActivityLog 관계 =====
 ActivityLog.belongsTo(Inspection, {
   foreignKey: 'inspectionId',
   constraints: false
@@ -97,3 +92,8 @@ User.hasMany(ActivityLog, {
   foreignKey: 'userId',
   constraints: false
 });
+
+// 자동 alter 동기화는 운영 시 비활성화
+// (async () => {
+//   await sequelize.sync({ alter: true });
+// })();
