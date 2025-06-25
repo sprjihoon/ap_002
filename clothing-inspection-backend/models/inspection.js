@@ -1,60 +1,50 @@
+// models/inspectionComment.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Inspection = sequelize.define('Inspection', {
-  clientName: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  inspectionName: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  company: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  result: {
-    type: DataTypes.ENUM('pass','fail'),
-    allowNull: true
-  },
-  comment: {
+const InspectionComment = sequelize.define('InspectionComment', {
+  content: {
     type: DataTypes.TEXT,
-    allowNull: true
-  },
-  inspector_id: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
-  assignedWorkerId: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
-  rejectReason:{
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  inspectionType: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  inspectionDetails: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  status: {
-    type: DataTypes.ENUM('pending', 'in_progress', 'completed', 'approved', 'rejected'),
-    defaultValue: 'pending',
     allowNull: false
   },
-  workStatus: {
-    type: DataTypes.ENUM('pending','in_progress','completed','error'),
+  parentCommentId: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  inspectionId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  createdAt: {
+    type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: 'pending'
+    defaultValue: DataTypes.NOW
   }
 }, {
-  timestamps: true,
-  tableName: 'inspections'
+  timestamps: false,
+  tableName: 'inspection_comments'
 });
 
-module.exports = Inspection;
+InspectionComment.associate = (models) => {
+  InspectionComment.belongsTo(models.Inspection, {
+    foreignKey: 'inspectionId',
+    constraints: false
+  });
+
+  InspectionComment.belongsTo(models.InspectionComment, {
+    as: 'parent',
+    foreignKey: 'parentCommentId',
+    constraints: false
+  });
+
+  InspectionComment.belongsTo(models.User, {
+    foreignKey: 'userId',
+    constraints: false
+  });
+};
+
+module.exports = InspectionComment;
