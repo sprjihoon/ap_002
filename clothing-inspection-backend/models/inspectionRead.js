@@ -12,4 +12,4 @@ const InspectionRead = sequelize.define('InspectionRead', {
   tableName: 'inspection_reads'
 });
 
-module.exports = InspectionRead; 
+module.exports = InspectionRead;
