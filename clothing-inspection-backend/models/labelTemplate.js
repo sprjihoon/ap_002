@@ -29,4 +29,4 @@ const LabelTemplate = sequelize.define('LabelTemplate', {
   timestamps: true
 });
 
-module.exports = LabelTemplate; 
+module.exports = LabelTemplate;
