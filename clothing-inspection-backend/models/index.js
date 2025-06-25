@@ -39,10 +39,7 @@ Inspection.hasMany(InspectionComment, {
   onDelete: 'CASCADE',
   constraints: false
 });
-InspectionComment.belongsTo(Inspection, {
-  foreignKey: 'inspectionId',
-  constraints: false
-});
+InspectionComment.belongsTo(Inspection, { foreignKey: 'inspectionId', constraints: false });
 
 User.hasMany(InspectionComment, {
   foreignKey: 'userId',
@@ -60,11 +57,7 @@ InspectionComment.hasMany(InspectionComment, {
   onDelete: 'CASCADE',
   constraints: false
 });
-InspectionComment.belongsTo(InspectionComment, {
-  as: 'parent',
-  foreignKey: 'parentCommentId',
-  constraints: false
-});
+InspectionComment.belongsTo(InspectionComment, { as: 'parent', foreignKey: 'parentCommentId', constraints: false });
 
 Inspection.belongsToMany(User, {
   through: InspectionRead,
