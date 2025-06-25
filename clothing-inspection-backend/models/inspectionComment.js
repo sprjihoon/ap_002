@@ -1,3 +1,4 @@
+// models/inspectionComment.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -27,5 +28,26 @@ const InspectionComment = sequelize.define('InspectionComment', {
   timestamps: false,
   tableName: 'inspection_comments'
 });
+
+const Inspection = require('./inspection');
+const User = require('./user');
+
+InspectionComment.associate = () => {
+  InspectionComment.belongsTo(Inspection, {
+    foreignKey: 'inspectionId',
+    constraints: false
+  });
+
+  InspectionComment.belongsTo(InspectionComment, {
+    as: 'parent',
+    foreignKey: 'parentCommentId',
+    constraints: false
+  });
+
+  InspectionComment.belongsTo(User, {
+    foreignKey: 'userId',
+    constraints: false
+  });
+};
 
 module.exports = InspectionComment;
