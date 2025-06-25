@@ -10,6 +10,14 @@ const InspectionComment = sequelize.define('InspectionComment', {
     type: DataTypes.INTEGER,
     allowNull: true
   },
+  inspectionId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
   createdAt: {
     type: DataTypes.DATE,
     allowNull: false,
