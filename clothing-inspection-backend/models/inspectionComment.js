@@ -1,4 +1,4 @@
-// models/inspectionComment.js
+// models/inspectionComment.js (updated to avoid circular reference)
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -29,10 +29,9 @@ const InspectionComment = sequelize.define('InspectionComment', {
   tableName: 'inspection_comments'
 });
 
-// associate 함수는 모델 정의가 모두 끝난 뒤 호출되도록 외부에서 실행해야 함
-// 모델 참조 시 undefined 오류 방지
-InspectionComment.associate = (models) => {
-  const { Inspection, User, InspectionComment: Self } = models;
+// 관계 정의 — sequelize.models 를 직접 참조해 순환 참조 문제 해결
+InspectionComment.associate = () => {
+  const { Inspection, User, InspectionComment: Self } = sequelize.models;
 
   InspectionComment.belongsTo(Inspection, {
     foreignKey: 'inspectionId',
