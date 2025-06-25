@@ -1,11 +1,20 @@
-export const API_URL = process.env.REACT_APP_API_URL || '/api';
+// utils/api.js  (전체 파일)
+
+/**
+ * API 엔드포인트 베이스 URL
+ * 1) 빌드-타임 env(REACT_APP_API_URL)           – 배포 환경에서 주입
+ * 2) Render 퍼블릭 백엔드 URL(하드코딩)         – env 없을 때 배포에서도 안전
+ * 3) '/api'                                    – 로컬 dev 서버 프록시용
+ */
+export const API_URL =
+  process.env.REACT_APP_API_URL ?? 'https://ap-002.onrender.com/api' ?? '/api';
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');
   console.log('Current token:', token); // 토큰 확인용 로그
   return {
     'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : ''
+    'Authorization': token ? `Bearer ${token}` : '',
   };
 };
 
@@ -14,8 +23,8 @@ export const fetchWithAuth = async (endpoint, options = {}) => {
     ...options,
     headers: {
       ...getHeaders(),
-      ...options.headers
-    }
+      ...options.headers,
+    },
   });
 
   if (response.status === 401) {
@@ -35,20 +44,15 @@ export const fetchWithAuth = async (endpoint, options = {}) => {
 export const login = async (username, password) => {
   const response = await fetch(`${API_URL}/users/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ username, password })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
   });
 
   const data = await response.json().catch(() => null); // JSON 파싱 실패 방지
 
   if (!response.ok) {
-    // data 가 비어 있거나 message 없으면 기본 메시지 사용
     throw new Error(data?.message || '로그인에 실패했습니다.');
   }
-
-  // 정상 응답이어도 data 가 없으면 에러 처리
   if (!data) {
     throw new Error('서버 응답이 올바르지 않습니다.');
   }
@@ -61,4 +65,4 @@ export const login = async (username, password) => {
 export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-}; 
+};
