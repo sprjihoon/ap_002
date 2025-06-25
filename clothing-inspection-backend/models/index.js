@@ -11,7 +11,7 @@ const Setting = require('./Setting');
 const InspectionDetail = require('./inspectionDetail');
 const sequelize = require('../config/database');
 
-module.exports = {
+const models = {
   User,
   Product,
   ProductVariant,
@@ -24,7 +24,13 @@ module.exports = {
   ActivityLog,
   Setting,
   InspectionDetail
-}; 
+};
+
+if (InspectionComment.associate) {
+  InspectionComment.associate(models);
+}
+
+module.exports = models;
 
 // 자동 alter 동기화는 운영 중 인덱스가 과다 생성되는 문제를 유발할 수 있어 비활성화
 // 초기 마이그레이션 후에는 별도 migration 파일에서 스키마를 관리하세요.
