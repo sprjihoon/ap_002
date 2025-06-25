@@ -29,7 +29,6 @@ const InspectionComment = sequelize.define('InspectionComment', {
   tableName: 'inspection_comments'
 });
 
-// 관계 정의 함수
 InspectionComment.associate = (models) => {
   InspectionComment.belongsTo(models.Inspection, {
     foreignKey: 'inspectionId',
