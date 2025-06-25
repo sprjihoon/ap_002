@@ -26,10 +26,12 @@ const models = {
   InspectionDetail
 };
 
-// associate 호출은 모델 객체 생성 이후 실행
-if (typeof InspectionComment.associate === 'function') {
-  InspectionComment.associate(models);
-}
+// associate 함수는 모든 모델 등록 후 한 번에 실행
+Object.values(models).forEach((model) => {
+  if (typeof model.associate === 'function') {
+    model.associate(models);
+  }
+});
 
 module.exports = models;
 
@@ -63,7 +65,6 @@ User.belongsToMany(Inspection, {
   constraints: false
 });
 
-// Inspector 관계
 User.hasMany(Inspection, {
   foreignKey: 'inspector_id',
   as: 'inspections',
@@ -75,7 +76,6 @@ Inspection.belongsTo(User, {
   constraints: false
 });
 
-// ActivityLog 관계
 ActivityLog.belongsTo(Inspection, {
   foreignKey: 'inspectionId',
   constraints: false
@@ -93,8 +93,3 @@ User.hasMany(ActivityLog, {
   foreignKey: 'userId',
   constraints: false
 });
-
-// (선택) 자동 alter는 운영 환경에선 비활성화
-// (async () => {
-//   await sequelize.sync({ alter: true });
-// })();
