@@ -4,36 +4,29 @@ const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 
-const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.js')[env];
+/**
+ * 중앙에서 생성한 sequelize 인스턴스를 재사용합니다.
+ * (config/database.js 는 sync‑db.js 등에서 이미 사용 중인 파일입니다)
+ */
+const sequelize = require('../config/database');
 
 const models = {};
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(
-    config.database,
-    config.username,
-    config.password,
-    config
-  );
-}
-
-// Load all model files in this directory (except this one)
+// 현재 폴더의 모든 모델 파일을 동적으로 로드 (index.js 자신 제외)
 fs.readdirSync(__dirname)
-  .filter((file) => file.indexOf('.') !== 0 && file !== basename && file.slice(-3) === '.js')
+  .filter(
+    (file) =>
+      file.indexOf('.') !== 0 &&
+      file !== path.basename(__filename) &&
+      file.slice(-3) === '.js'
+  )
   .forEach((file) => {
     const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
     models[model.name] = model;
   });
 
 /************************************************************
- * Centralized relationship definitions
- * ---------------------------------------------------------
- * Keep everything here to avoid circular dependency issues.
+ * 관계 정의 – InspectionComment 중심
  ************************************************************/
 if (models.InspectionComment && models.Inspection) {
   // 댓글 → 검사
@@ -57,7 +50,7 @@ if (models.InspectionComment && models.Inspection) {
     onDelete: 'CASCADE',
   });
 
-  // (선택) 검사 → 댓글들  (역참조용, 필수 아님)
+  // (역참조) 검사 → 댓글 목록
   models.Inspection.hasMany(models.InspectionComment, {
     foreignKey: 'inspectionId',
     as: 'comments',
@@ -65,7 +58,7 @@ if (models.InspectionComment && models.Inspection) {
   });
 }
 
-// 🚫 Disable legacy per‑model associate() execution
+// 더 이상 per‑model associate() 자동 호출은 사용하지 않으므로 주석 처리
 // Object.values(models).forEach((model) => {
 //   if (typeof model.associate === 'function') {
 //     model.associate(models);
