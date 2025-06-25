@@ -30,4 +30,4 @@ const ActivityLog = sequelize.define('ActivityLog', {
   updatedAt: false
 });
 
-module.exports = ActivityLog; 
+module.exports = ActivityLog;

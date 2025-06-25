@@ -6,7 +6,9 @@ if (!process.env.DATABASE_URL) {
   throw new Error('❌ Missing DATABASE_URL');
 }
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+const sanitizedUrl = process.env.DATABASE_URL.replace(/([?&])sslaccept=[^&]+&?/i, '$1').replace(/([?&])$/, '');
+
+const sequelize = new Sequelize(sanitizedUrl, {
   dialect: 'mysql',
   dialectOptions: {
     ssl: {
@@ -15,7 +17,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   },
   logging: false,
   define: {
-    constraints: false
+    foreignKeyConstraints: false
   }
 });
 

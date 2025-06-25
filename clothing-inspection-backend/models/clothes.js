@@ -24,4 +24,4 @@ const Clothes = sequelize.define('Clothes', {
   }
 });
 
-module.exports = Clothes; 
+module.exports = Clothes;
