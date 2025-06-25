@@ -87,22 +87,9 @@ User.hasMany(ActivityLog, {
   constraints: false
 });
 
-// ===== BelongsTo 관계 =====
-// InspectionComment ↔ Inspection
-models.InspectionComment.belongsTo(models.Inspection, {
-  foreignKey: 'inspectionId',
-  constraints: false
-});
-
-// self‑reference (nested replies)
-models.InspectionComment.belongsTo(models.InspectionComment, {
-  as: 'parent',
-  foreignKey: 'parentCommentId',
-  constraints: false
-});
-
-// InspectionComment ↔ User
-models.InspectionComment.belongsTo(models.User, {
-  foreignKey: 'userId',
-  constraints: false
+// ===== associate 실행 (모든 모델 정의 후) =====
+Object.values(models).forEach(model => {
+  if (typeof model.associate === 'function') {
+    model.associate(models);
+  }
 });
