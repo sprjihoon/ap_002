@@ -29,22 +29,20 @@ const InspectionComment = sequelize.define('InspectionComment', {
   tableName: 'inspection_comments'
 });
 
-const Inspection = require('./inspection');
-const User = require('./user');
-
-InspectionComment.associate = () => {
-  InspectionComment.belongsTo(Inspection, {
+// 관계 정의 함수
+InspectionComment.associate = (models) => {
+  InspectionComment.belongsTo(models.Inspection, {
     foreignKey: 'inspectionId',
     constraints: false
   });
 
-  InspectionComment.belongsTo(InspectionComment, {
+  InspectionComment.belongsTo(models.InspectionComment, {
     as: 'parent',
     foreignKey: 'parentCommentId',
     constraints: false
   });
 
-  InspectionComment.belongsTo(User, {
+  InspectionComment.belongsTo(models.User, {
     foreignKey: 'userId',
     constraints: false
   });
