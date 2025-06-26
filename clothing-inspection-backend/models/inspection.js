@@ -1,50 +1,37 @@
-// models/inspectionComment.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const InspectionComment = sequelize.define('InspectionComment', {
-  content: {
-    type: DataTypes.TEXT,
-    allowNull: false
+const Inspection = sequelize.define('Inspection', {
+  inspectionName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+    comment: '검수 전표 이름 (업체명+날짜+버전)'
   },
-  parentCommentId: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
-  inspectionId: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  userId: {
-    type: DataTypes.INTEGER,
+  company: {
+    type: DataTypes.STRING,
     allowNull: false
   },
   createdAt: {
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: DataTypes.NOW
+  },
+  result: {
+    type: DataTypes.ENUM('pass', 'fail'),
+    allowNull: false
+  },
+  comment: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  inspector_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   }
 }, {
   timestamps: false,
-  tableName: 'inspection_comments'
+  tableName: 'inspections'
 });
 
-InspectionComment.associate = (models) => {
-  InspectionComment.belongsTo(models.Inspection, {
-    foreignKey: 'inspectionId',
-    constraints: false
-  });
-
-  InspectionComment.belongsTo(models.InspectionComment, {
-    as: 'parent',
-    foreignKey: 'parentCommentId',
-    constraints: false
-  });
-
-  InspectionComment.belongsTo(models.User, {
-    foreignKey: 'userId',
-    constraints: false
-  });
-};
-
-module.exports = InspectionComment;
+module.exports = Inspection;
