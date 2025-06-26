@@ -9,21 +9,20 @@ const sequelize = require('../config/database');
 const models = {};
 
 fs.readdirSync(__dirname)
-  .filter((file) => file.endsWith('.js') && file !== path.basename(__filename))
-  .forEach((file) => {
+  .filter(file => file.endsWith('.js') && file !== path.basename(__filename))
+  .forEach(file => {
     const imported = require(path.join(__dirname, file));
     let model;
 
-    if (
-      typeof imported === 'function' &&
-      !(imported.prototype instanceof Sequelize.Model)
-    ) {
+    // 함수형: export = (sequelize, DataTypes) => Model
+    if (typeof imported === 'function' && !(imported.prototype instanceof Sequelize.Model)) {
       model = imported(sequelize, Sequelize.DataTypes);
     } else {
+      // 클래스형: export class ... extends Model
       model = imported;
     }
 
-    if (!model || !model.name) {
+    if (!model || typeof model.name !== 'string' || model.name.length === 0) {
       console.warn(`[models/index.js] ⚠️  Skip invalid model export in ${file}`);
       return;
     }
@@ -31,17 +30,13 @@ fs.readdirSync(__dirname)
     // original key
     models[model.name] = model;
 
-    // Only add PascalCase alias if model.name is a non‑empty string
-    if (typeof model.name === 'string' && model.name.length > 0) {
-      const pascal = model.name[0].toUpperCase() + model.name.slice(1);
-      models[pascal] = model;
-    } = model.name[0].toUpperCase() + model.name.slice(1);
-    models[pascal] = model;
+    // PascalCase alias (case‑insensitive convenience)
+    const pascal = model.name.charAt(0).toUpperCase() + model.name.slice(1);
+    if (!models[pascal]) models[pascal] = model;
   });
 
-// 2. Helper getter insensitive to case
-const get = (key) =>
-  models[key] || models[key?.toLowerCase?.()] || models[key?.toUpperCase?.()];
+// 2. Helper: case‑insensitive getter
+const get = (key) => models[key] || models[key?.toLowerCase?.()] || models[key?.toUpperCase?.()];
 
 const User              = get('User');
 const Inspection        = get('Inspection');
@@ -49,7 +44,7 @@ const InspectionComment = get('InspectionComment');
 const InspectionRead    = get('InspectionRead');
 const ActivityLog       = get('ActivityLog');
 
-// 3. Relations (constraints:false)
+// 3. Relations (constraints:false to suppress FK creation)
 if (Inspection && InspectionComment) {
   Inspection.hasMany(InspectionComment, {
     foreignKey: 'inspectionId',
@@ -63,7 +58,7 @@ if (Inspection && InspectionComment) {
     constraints: false
   });
 } else {
-  console.error('[models/index.js] ❌ Inspection or InspectionComment model missing – check filenames/model names');
+  console.error('[models/index.js] ❌ Missing Inspection or InspectionComment model – check filenames/model names');
 }
 
 if (User && InspectionComment) {
