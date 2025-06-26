@@ -9,6 +9,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../utils/api';
 
 // TODO: ReceiptPhotoUpload 컴포넌트 import 예정
 
@@ -116,8 +117,8 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
     return true;
   };
 
-  // 백엔드 서버 주소 (개발용 기본값)
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3002';
+  // API_URL = "https://.../api" | "/api" (dev proxy)
+  const API_BASE = API_URL; // includes trailing /api
 
   // 사진 업로드
   const uploadPhoto = async (file, barcode) => {
@@ -127,7 +128,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
       formData.append('barcodes[]', barcode);
     }
     try {
-      const response = await axios.post(`${API_BASE}/api/upload`, formData, {
+      const response = await axios.post(`${API_BASE}/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       // 여러 개일 때와 단일일 때 모두 대응
@@ -214,7 +215,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
       });
 
       const response = await axios.post(
-        `${API_BASE}/api/inspections`,
+        `${API_BASE}/inspections`,
         {
           inspectionName,
           company: selectedCompany,
@@ -300,7 +301,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
         formData.append('barcodes[]', barcode);
       });
 
-      const response = await axios.post(`${API_BASE}/api/upload`, formData, {
+      const response = await axios.post(`${API_BASE}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

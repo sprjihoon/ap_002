@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Paper,
   Table,
@@ -58,6 +58,24 @@ function ClothesList() {
   // pagination state
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  /*───────────────────────────
+   *  Form validation
+   *──────────────────────────*/
+  const isFormValid = useMemo(()=>{
+    const required = [
+      formData.company,
+      formData.productName,
+      formData.size,
+      formData.color,
+      formData.wholesaler,
+      formData.wholesalerProductName
+    ];
+    if(required.some(f=>!f || !f.toString().trim())) return false;
+    if(formData.variants.length===0) return false;
+    if(formData.variants.some(v=>!v.barcode || !v.barcode.trim())) return false;
+    return true;
+  }, [formData]);
 
   const fetchProducts = async () => {
     try {
@@ -535,7 +553,7 @@ function ClothesList() {
           >
             취소
           </Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
+          <Button onClick={handleSubmit} variant="contained" color="primary" disabled={!isFormValid}>
             {editingProduct ? '수정' : '등록'}
           </Button>
         </DialogActions>
