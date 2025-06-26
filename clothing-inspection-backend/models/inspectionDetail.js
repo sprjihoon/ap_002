@@ -60,22 +60,4 @@ const InspectionDetail = sequelize.define('InspectionDetail', {
   tableName: 'inspection_details'
 });
 
-Inspection.hasMany(InspectionDetail, {
-  foreignKey: 'inspectionId',
-  constraints: false
-});
-InspectionDetail.belongsTo(Inspection, {
-  foreignKey: 'inspectionId',
-  constraints: false
-});
-
-ProductVariant.hasMany(InspectionDetail, {
-  foreignKey: 'productVariantId',
-  constraints: false
-});
-InspectionDetail.belongsTo(ProductVariant, {
-  foreignKey: 'productVariantId',
-  constraints: false
-});
-
 module.exports = InspectionDetail;
