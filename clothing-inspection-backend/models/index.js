@@ -128,15 +128,16 @@ if (ActivityLog && User) {
 }
 
 if (Product && ProductVariant) {
+  // Align alias with routes expecting `ProductVariants`
   Product.hasMany(ProductVariant, {
     foreignKey: 'productId',
-    as: 'variants',
-    constraints: false
+    as: 'ProductVariants',
+    constraints: false,
   });
   ProductVariant.belongsTo(Product, {
     foreignKey: 'productId',
     as: 'product',
-    constraints: false
+    constraints: false,
   });
 }
 
