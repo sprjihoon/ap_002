@@ -40,7 +40,7 @@ router.get('/', auth, async (req, res) => {
             include: [{ model: Product, as: 'product' }]
           }]
         },
-        InspectionReceiptPhoto,
+        { model: InspectionReceiptPhoto, as: 'InspectionReceiptPhotos' },
         {
           model: InspectionComment,
           as: 'comments',
@@ -482,7 +482,7 @@ router.get('/:id', auth, async (req, res) => {
             include: [{ model: Product, as: 'product' }]
           }]
         },
-        InspectionReceiptPhoto,
+        { model: InspectionReceiptPhoto, as: 'InspectionReceiptPhotos' },
         {
           model: InspectionComment,
           as: 'comments',
