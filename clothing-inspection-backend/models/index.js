@@ -5,20 +5,25 @@ const path = require('path');
 const Sequelize = require('sequelize');
 const sequelize = require('../config/database');
 
-// 1. Dynamic model loading – skip invalid exports
+// 1. Dynamic model loading – load *.js except this file
 const models = {};
 
 fs.readdirSync(__dirname)
-  .filter(file => file.endsWith('.js') && file !== path.basename(__filename))
-  .forEach(file => {
+  .filter(
+    (file) => file.endsWith('.js') && file !== path.basename(__filename)
+  )
+  .forEach((file) => {
     const imported = require(path.join(__dirname, file));
     let model;
 
-    // 함수형: export = (sequelize, DataTypes) => Model
-    if (typeof imported === 'function' && !(imported.prototype instanceof Sequelize.Model)) {
+    // 함수형 export = (sequelize, DataTypes) => Model
+    if (
+      typeof imported === 'function' &&
+      !(imported.prototype instanceof Sequelize.Model)
+    ) {
       model = imported(sequelize, Sequelize.DataTypes);
     } else {
-      // 클래스형: export class ... extends Model
+      // 클래스형 export class extends Model
       model = imported;
     }
 
@@ -27,28 +32,25 @@ fs.readdirSync(__dirname)
       return;
     }
 
-    // original key
+    // original key (exact name)
     models[model.name] = model;
 
     // PascalCase alias (case‑insensitive convenience)
-    const pascal = model.name.charAt(0).toUpperCase() + model.name.slice(1);
+    const pascal = `${model.name[0].toUpperCase()}${model.name.slice(1)}`;
     if (!models[pascal]) models[pascal] = model;
   });
 
 // 2. Helper: case‑insensitive getter
-const get = (key) => models[key] || models[key?.toLowerCase?.()] || models[key?.toUpperCase?.()];
+const get = (key) =>
+  models[key] || models[key?.toLowerCase?.()] || models[key?.toUpperCase?.()];
 
 const User              = get('User');
 const Inspection        = get('Inspection');
 const InspectionComment = get('InspectionComment');
 const InspectionRead    = get('InspectionRead');
 const ActivityLog       = get('ActivityLog');
-const Product           = get('Product');
-const ProductVariant    = get('ProductVariant');
-const InspectionDetail  = get('InspectionDetail');
-const InspectionReceiptPhoto = get('InspectionReceiptPhoto');
 
-// 3. Relations (constraints:false to suppress FK creation)
+// 3. Relations (all constraints:false to suppress FK creation)
 if (Inspection && InspectionComment) {
   Inspection.hasMany(InspectionComment, {
     foreignKey: 'inspectionId',
@@ -66,13 +68,26 @@ if (Inspection && InspectionComment) {
 }
 
 if (User && InspectionComment) {
-  User.hasMany(InspectionComment, { foreignKey: 'userId', constraints: false });
-  InspectionComment.belongsTo(User, { foreignKey: 'userId', as: 'user', constraints: false });
+  User.hasMany(InspectionComment, {
+    foreignKey: 'userId',
+    constraints: false
+  });
+  InspectionComment.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+    constraints: false
+  });
 }
 
 if (InspectionComment) {
+  // self‑reply
   InspectionComment.belongsTo(InspectionComment, {
-@@ -77,29 +81,75 @@ if (InspectionComment) {
+    foreignKey: 'parentCommentId',
+    as: 'parent',
+    constraints: false
+  });
+}
+
 if (Inspection && User) {
   Inspection.belongsToMany(User, {
     through: InspectionRead,
@@ -90,56 +105,22 @@ if (Inspection && User) {
 }
 
 if (ActivityLog && Inspection) {
-  ActivityLog.belongsTo(Inspection, { foreignKey: 'inspectionId', constraints: false });
-  Inspection.hasMany(ActivityLog, { foreignKey: 'inspectionId', constraints: false });
+  ActivityLog.belongsTo(Inspection, {
+    foreignKey: 'inspectionId',
+    constraints: false
+  });
+  Inspection.hasMany(ActivityLog, {
+    foreignKey: 'inspectionId',
+    constraints: false
+  });
 }
 if (ActivityLog && User) {
-  ActivityLog.belongsTo(User, { foreignKey: 'userId', constraints: false });
-  User.hasMany(ActivityLog, { foreignKey: 'userId', constraints: false });
-}
-
-if (Product && ProductVariant) {
-  Product.hasMany(ProductVariant, {
-    foreignKey: 'productId',
-    as: 'ProductVariants',
+  ActivityLog.belongsTo(User, {
+    foreignKey: 'userId',
     constraints: false
   });
-  ProductVariant.belongsTo(Product, {
-    foreignKey: 'productId',
-    as: 'product',
-    constraints: false
-  });
-}
-
-if (Inspection && InspectionDetail) {
-  Inspection.hasMany(InspectionDetail, {
-    foreignKey: 'inspectionId',
-    constraints: false
-  });
-  InspectionDetail.belongsTo(Inspection, {
-    foreignKey: 'inspectionId',
-    constraints: false
-  });
-}
-
-if (ProductVariant && InspectionDetail) {
-  ProductVariant.hasMany(InspectionDetail, {
-    foreignKey: 'productVariantId',
-    constraints: false
-  });
-  InspectionDetail.belongsTo(ProductVariant, {
-    foreignKey: 'productVariantId',
-    constraints: false
-  });
-}
-
-if (Inspection && InspectionReceiptPhoto) {
-  Inspection.hasMany(InspectionReceiptPhoto, {
-    foreignKey: 'inspectionId',
-    constraints: false
-  });
-  InspectionReceiptPhoto.belongsTo(Inspection, {
-    foreignKey: 'inspectionId',
+  User.hasMany(ActivityLog, {
+    foreignKey: 'userId',
     constraints: false
   });
 }
