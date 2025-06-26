@@ -132,12 +132,12 @@ if (Product && ProductVariant) {
   Product.hasMany(ProductVariant, {
     foreignKey: 'productId',
     as: 'ProductVariants',
-    constraints: false,
+    constraints: false
   });
   ProductVariant.belongsTo(Product, {
     foreignKey: 'productId',
     as: 'product',
-    constraints: false,
+    constraints: false
   });
 }
 
