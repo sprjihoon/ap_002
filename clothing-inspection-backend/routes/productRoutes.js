@@ -284,13 +284,39 @@ router.post('/', auth, async (req, res) => {
       location
     });
 
-    // 바리에이션 생성
-    const variantRecords = variants.map(variant => ({
-      productId: product.id,
-      size: variant.size ? variant.size.trim() : null,
-      color: variant.color ? variant.color.trim() : null,
-      barcode: variant.barcode.trim()
-    }));
+    /*───────────────────────────────────────────
+     * 1) 바코드 서버측 검증
+     *    - 빈 문자열/공백 → 제외
+     *    - 요청 payload 내 중복 → 400 반환
+     *    - 정제된 records 배열 반환
+     *──────────────────────────────────────────*/
+    const seen = new Set();
+    const variantRecords = [];
+    for (let idx = 0; idx < (variants || []).length; idx++) {
+      const v = variants[idx];
+      const barcode = (v.barcode || '').trim();
+      if (!barcode) continue; // skip empty barcode rows
+
+      if (seen.has(barcode)) {
+        return res.status(400).json({
+          message: `요청에 중복된 바코드가 있습니다: ${barcode} (index ${idx})`
+        });
+      }
+      seen.add(barcode);
+
+      variantRecords.push({
+        productId: product.id,
+        size: v.size ? v.size.trim() : null,
+        color: v.color ? v.color.trim() : null,
+        barcode
+      });
+    }
+
+    if (variantRecords.length === 0) {
+      return res
+        .status(400)
+        .json({ message: '바코드를 최소 1개 이상 입력해야 합니다.' });
+    }
 
     await ProductVariant.bulkCreate(variantRecords);
 
@@ -335,9 +361,7 @@ router.put('/:id', auth, async (req, res) => {
     }
 
     // 기존 바리에이션 삭제
-    await ProductVariant.destroy({
-      where: { productId: product.id }
-    });
+    await ProductVariant.destroy({ where: { productId: product.id } });
 
     // 제품 정보 업데이트
     await product.update({
@@ -350,13 +374,35 @@ router.put('/:id', auth, async (req, res) => {
       location
     });
 
-    // 새로운 바리에이션 생성
-    const variantRecords = variants.map(variant => ({
-      productId: product.id,
-      size: variant.size ? variant.size.trim() : null,
-      color: variant.color ? variant.color.trim() : null,
-      barcode: variant.barcode.trim()
-    }));
+    /*───────────────────────────────────────────
+     * 바코드 검증 (POST와 동일 로직)
+     *──────────────────────────────────────────*/
+    const seen = new Set();
+    const variantRecords = [];
+    for (let idx = 0; idx < (variants || []).length; idx++) {
+      const v = variants[idx];
+      const barcode = (v.barcode || '').trim();
+      if (!barcode) continue;
+      if (seen.has(barcode)) {
+        return res.status(400).json({
+          message: `요청에 중복된 바코드가 있습니다: ${barcode} (index ${idx})`
+        });
+      }
+      seen.add(barcode);
+
+      variantRecords.push({
+        productId: product.id,
+        size: v.size ? v.size.trim() : null,
+        color: v.color ? v.color.trim() : null,
+        barcode
+      });
+    }
+
+    if (variantRecords.length === 0) {
+      return res
+        .status(400)
+        .json({ message: '바코드를 최소 1개 이상 입력해야 합니다.' });
+    }
 
     await ProductVariant.bulkCreate(variantRecords);
 
