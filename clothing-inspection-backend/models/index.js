@@ -49,6 +49,8 @@ const Inspection        = get('Inspection');
 const InspectionComment = get('InspectionComment');
 const InspectionRead    = get('InspectionRead');
 const ActivityLog       = get('ActivityLog');
+const Product           = get('Product');
+const ProductVariant    = get('ProductVariant');
 
 // 3. Relations (all constraints:false to suppress FK creation)
 if (Inspection && InspectionComment) {
@@ -121,6 +123,19 @@ if (ActivityLog && User) {
   });
   User.hasMany(ActivityLog, {
     foreignKey: 'userId',
+    constraints: false
+  });
+}
+
+if (Product && ProductVariant) {
+  Product.hasMany(ProductVariant, {
+    foreignKey: 'productId',
+    as: 'variants',
+    constraints: false
+  });
+  ProductVariant.belongsTo(Product, {
+    foreignKey: 'productId',
+    as: 'product',
     constraints: false
   });
 }
