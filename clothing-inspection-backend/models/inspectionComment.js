@@ -27,8 +27,39 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  // ⚠️ Do NOT add an associate() method here.
-  // Associations are defined centrally in models/index.js to avoid circular dependencies.
+  // Associations are defined in an `associate` method and executed after all
+  // models are loaded to avoid circular dependency issues.
+  InspectionComment.associate = (models) => {
+    InspectionComment.belongsTo(models.Inspection, {
+      foreignKey: 'inspectionId',
+      as: 'inspection',
+      onDelete: 'CASCADE',
+      constraints: false,
+    });
+
+    InspectionComment.belongsTo(models.InspectionComment, {
+      foreignKey: 'parentCommentId',
+      as: 'parent',
+      onDelete: 'CASCADE',
+      constraints: false,
+    });
+
+    InspectionComment.belongsTo(models.User, {
+      foreignKey: 'userId',
+      as: 'user',
+      onDelete: 'CASCADE',
+      constraints: false,
+    });
+
+    if (models.Inspection && models.Inspection.hasMany) {
+      models.Inspection.hasMany(InspectionComment, {
+        foreignKey: 'inspectionId',
+        as: 'comments',
+        onDelete: 'CASCADE',
+        constraints: false,
+      });
+    }
+  };
 
   return InspectionComment;
 };
