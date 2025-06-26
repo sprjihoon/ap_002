@@ -33,6 +33,7 @@ router.get('/', auth, async (req, res) => {
       include: [
         {
           model: InspectionDetail,
+          as: 'InspectionDetails',
           include: [{
             model: ProductVariant,
             include: [{ model: Product, as: 'product' }]
@@ -473,6 +474,7 @@ router.get('/:id', auth, async (req, res) => {
       include: [
         {
           model: InspectionDetail,
+          as: 'InspectionDetails',
           include: [{
             model: ProductVariant,
             include: [{ model: Product, as: 'product' }]
