@@ -45,8 +45,8 @@ router.get('/', auth, async (req, res) => {
           model: InspectionComment,
           as: 'comments',
           include:[
-            { model: User, attributes:['id', ['username', 'name'], 'role'] },
-            { model: InspectionComment, as:'replies', include:[{ model: User, attributes:['id', ['username', 'name'], 'role'] }] }
+            { model: User, as: 'user', attributes:['id', ['username', 'name'], 'role'] },
+            { model: InspectionComment, as:'replies', include:[{ model: User, as:'user', attributes:['id', ['username', 'name'], 'role'] }] }
           ]
         },
         { model: User, as:'inspector', attributes:['id', ['username','name'], 'role'] },
@@ -368,8 +368,8 @@ router.get('/:id/comments', auth, async (req, res) => {
         model: InspectionComment,
         as:'comments',
         include:[
-          { model: User, attributes:['id', ['username', 'name'], 'role'] },
-          { model: InspectionComment, as:'replies', include:[{ model: User, attributes:['id', ['username', 'name'], 'role'] }] }
+          { model: User, as: 'user', attributes:['id', ['username', 'name'], 'role'] },
+          { model: InspectionComment, as:'replies', include:[{ model: User, as:'user', attributes:['id', ['username', 'name'], 'role'] }] }
         ],
         order:[['createdAt','ASC']]
       }]
@@ -397,7 +397,7 @@ router.post('/:id/comments', auth, async (req, res) => {
       content
     });
 
-    const commentWithUser = await InspectionComment.findByPk(comment.id, { include:[{ model: User, attributes:['id', ['username', 'name'], 'role'] }]});
+    const commentWithUser = await InspectionComment.findByPk(comment.id, { include:[{ model: User, as: 'user', attributes:['id', ['username', 'name'], 'role'] }]});
 
     res.status(201).json({ success:true, comment: commentWithUser });
   } catch(err){
@@ -419,7 +419,7 @@ router.put('/comments/:commentId', auth, async (req, res) => {
     }
 
     await comment.update({ content });
-    const updated = await InspectionComment.findByPk(comment.id, { include:[{ model: User, attributes:['id', ['username', 'name'], 'role'] }]});
+    const updated = await InspectionComment.findByPk(comment.id, { include:[{ model: User, as: 'user', attributes:['id', ['username', 'name'], 'role'] }]});
     res.json({ success:true, comment: updated });
   } catch(err){
     console.error('comment update error', err);
@@ -461,7 +461,7 @@ router.post('/comments/:commentId/replies', auth, async (req, res) => {
       content
     });
 
-    const replyWithUser = await InspectionComment.findByPk(reply.id, { include:[{ model: User, attributes:['id', ['username', 'name'], 'role'] }]});
+    const replyWithUser = await InspectionComment.findByPk(reply.id, { include:[{ model: User, as: 'user', attributes:['id', ['username', 'name'], 'role'] }]});
     res.status(201).json({ success:true, comment: replyWithUser });
   } catch(err){
     console.error('reply post error', err);
@@ -487,8 +487,8 @@ router.get('/:id', auth, async (req, res) => {
           model: InspectionComment,
           as: 'comments',
           include:[
-            { model: User, attributes:['id', ['username', 'name'], 'role'] },
-            { model: InspectionComment, as:'replies', include:[{ model: User, attributes:['id', ['username', 'name'], 'role'] }] }
+            { model: User, as: 'user', attributes:['id', ['username', 'name'], 'role'] },
+            { model: InspectionComment, as:'replies', include:[{ model: User, as:'user', attributes:['id', ['username', 'name'], 'role'] }] }
           ]
         }
       ]

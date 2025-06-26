@@ -90,6 +90,11 @@ if (InspectionComment) {
     as: 'parent',
     constraints: false
   });
+  InspectionComment.hasMany(InspectionComment, {
+    foreignKey: 'parentCommentId',
+    as: 'replies',
+    constraints: false
+  });
 }
 
 if (Inspection && User) {
