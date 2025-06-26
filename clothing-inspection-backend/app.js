@@ -41,7 +41,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /*──────────── 정적 파일 ────────────────*/
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+const uploadsPath = path.join(__dirname, '..', 'uploads');
+app.use('/uploads', express.static(uploadsPath));
+// allow /api/uploads for clients that prepend API base
+app.use('/api/uploads', express.static(uploadsPath));
 
 /*────────────── API 라우트 ─────────────*/
 app.use('/api/users',       userRoutes);
