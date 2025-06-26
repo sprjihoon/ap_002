@@ -24,6 +24,7 @@ import SpeakerNotesIcon from '@mui/icons-material/SpeakerNotes';
 import Tooltip from '@mui/material/Tooltip';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
+import { API_URL } from '../utils/api';
 
 const InspectionDetail = () => {
   const { id } = useParams();
@@ -50,7 +51,7 @@ const InspectionDetail = () => {
   const fetchInspectionDetail = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/inspections/${id}`, {
+      const response = await axios.get(`${API_URL}/inspections/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -76,7 +77,7 @@ const InspectionDetail = () => {
   const handleApprove = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`/api/inspections/${id}/approve`, {}, {
+      const response = await axios.put(`${API_URL}/inspections/${id}/approve`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -93,7 +94,7 @@ const InspectionDetail = () => {
   const handlePending = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.put(`/api/inspections/${id}/pending`, {}, { headers:{ Authorization:`Bearer ${token}` }});
+      const res = await axios.put(`${API_URL}/inspections/${id}/pending`, {}, { headers:{ Authorization:`Bearer ${token}` }});
       if (res.data.success) {
         enqueueSnackbar('대기중 상태로 변경되었습니다.', { variant:'success' });
         fetchInspectionDetail();
@@ -113,7 +114,7 @@ const InspectionDetail = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`/api/inspections/${id}/reject`, {
+      const response = await axios.put(`${API_URL}/inspections/${id}/reject`, {
         reason: rejectReason
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -134,7 +135,7 @@ const InspectionDetail = () => {
   const handleSaveEdit = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/inspections/${id}`, editData, {
+      await axios.put(`${API_URL}/inspections/${id}`, editData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       enqueueSnackbar('수정되었습니다.', { variant: 'success' });
@@ -151,7 +152,7 @@ const InspectionDetail = () => {
     if (!window.confirm('해당 검수 전표를 삭제하시겠습니까?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/inspections/${id}`, { headers:{ Authorization:`Bearer ${token}` }});
+      await axios.delete(`${API_URL}/inspections/${id}`, { headers:{ Authorization:`Bearer ${token}` }});
       enqueueSnackbar('삭제되었습니다.', { variant:'success' });
       navigate('/inspections');
     } catch (error) {
@@ -186,17 +187,16 @@ const InspectionDetail = () => {
         if (detailEdit.detail?.ProductVariant?.barcode) {
           formData.append('barcodes[]', detailEdit.detail.ProductVariant.barcode);
         }
-        const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-        const uploadRes = await axios.post(`${API_BASE}/api/upload`, formData, {
+        const uploadRes = await axios.post(`${API_URL}/upload`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         let url = uploadRes.data.url || uploadRes.data.urls || '';
         if (Array.isArray(uploadRes.data.urls)) url = uploadRes.data.urls[0];
-        if (url && !url.startsWith('http')) url = `${API_BASE}${url}`;
+        if (url && !url.startsWith('http')) url = `${API_URL.replace(/\/api$/, '')}${url}`;
         payload.photoUrl = url;
       }
 
-      await axios.put(`/api/inspections/details/${detailEdit.detail.id}`, payload, {
+      await axios.put(`${API_URL}/inspections/details/${detailEdit.detail.id}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       enqueueSnackbar('상세 항목이 수정되었습니다.', { variant:'success' });
@@ -216,7 +216,7 @@ const InspectionDetail = () => {
     if (!window.confirm('해당 항목을 삭제하시겠습니까?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/inspections/details/${detail.id}`, { headers:{ Authorization:`Bearer ${token}` }});
+      await axios.delete(`${API_URL}/inspections/details/${detail.id}`, { headers:{ Authorization:`Bearer ${token}` }});
       enqueueSnackbar('삭제되었습니다.', { variant:'success' });
       fetchInspectionDetail();
     } catch (error) {
@@ -237,7 +237,7 @@ const InspectionDetail = () => {
   const handleSaveComment = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/inspections/${inspection.id}/comment`, { comment: commentText }, {
+      await axios.put(`${API_URL}/inspections/${inspection.id}/comment`, { comment: commentText }, {
         headers:{ Authorization:`Bearer ${token}` }
       });
       enqueueSnackbar('코멘트가 저장되었습니다.', { variant:'success' });
@@ -257,7 +257,7 @@ const InspectionDetail = () => {
   const handleDownloadPDF = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/inspections/${id}/pdf`, {
+      const res = await fetch(`${API_URL}/inspections/${id}/pdf`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('fail');
@@ -278,7 +278,7 @@ const InspectionDetail = () => {
   const handleDownloadEZExcel = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/inspections/${id}/ez-admin-xlsx`, {
+      const res = await fetch(`${API_URL}/inspections/${id}/ez-admin-xlsx`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('fail');
@@ -304,7 +304,7 @@ const InspectionDetail = () => {
     }
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`/api/inspections/${id}/comments`, { content:newComment }, {
+      const res = await axios.post(`${API_URL}/inspections/${id}/comments`, { content:newComment }, {
         headers:{ Authorization:`Bearer ${token}` }
       });
       if (res.data.success) {
@@ -330,7 +330,7 @@ const InspectionDetail = () => {
   const handleSaveEditComment = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.put(`/api/inspections/comments/${editingCommentId}`, { content: editingContent }, {
+      const res = await axios.put(`${API_URL}/inspections/comments/${editingCommentId}`, { content: editingContent }, {
         headers:{ Authorization:`Bearer ${token}` }
       });
       if (res.data.success) {
@@ -355,7 +355,7 @@ const InspectionDetail = () => {
     if (!window.confirm('삭제하시겠습니까?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/inspections/comments/${c.id}`, { headers:{ Authorization:`Bearer ${token}` }});
+      await axios.delete(`${API_URL}/inspections/comments/${c.id}`, { headers:{ Authorization:`Bearer ${token}` }});
 
       if (c.parentCommentId) {
         // 답글 삭제 – 부모 댓글의 replies 배열에서 제거
@@ -379,7 +379,7 @@ const InspectionDetail = () => {
     if (!text.trim()) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`/api/inspections/comments/${parentId}/replies`, { content: text }, {
+      const res = await axios.post(`${API_URL}/inspections/comments/${parentId}/replies`, { content: text }, {
         headers:{ Authorization:`Bearer ${token}` }
       });
       if (res.data.success) {

@@ -269,7 +269,7 @@ function ClothesList() {
       if(search) params.append('search', search);
       if(user.role!=='operator' && companyFilter) params.append('company', companyFilter);
       if(wholesalerFilter) params.append('wholesaler', wholesalerFilter);
-      const response = await axios.get(`/api/products/export?${params.toString()}`, {
+      const response = await axios.get(`${API_URL}/products/export?${params.toString()}`, {
         responseType:'blob',
         headers:{ Authorization:`Bearer ${localStorage.getItem('token')}` }
       });
