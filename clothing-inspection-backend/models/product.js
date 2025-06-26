@@ -64,15 +64,4 @@ const ProductVariant = sequelize.define('ProductVariant', {
   tableName: 'product_variants'
 });
 
-Product.hasMany(ProductVariant, {
-  foreignKey: 'productId',
-  as: 'ProductVariants',
-  constraints: false
-});
-ProductVariant.belongsTo(Product, {
-  foreignKey: 'productId',
-  as: 'product',
-  constraints: false
-});
-
 module.exports = { Product, ProductVariant };
