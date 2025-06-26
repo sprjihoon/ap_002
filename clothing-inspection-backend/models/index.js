@@ -1,109 +1,3 @@
-// models/index.js – robust dynamic loader, FK‑free, guards against undefined
-
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const sequelize = require('../config/database');
-
-// 1. Dynamic model loading – load *.js except this file
-const models = {};
-
-fs.readdirSync(__dirname)
-  .filter(
-    (file) => file.endsWith('.js') && file !== path.basename(__filename)
-  )
-  .forEach((file) => {
-    const imported = require(path.join(__dirname, file));
-    let model;
-
-    // 함수형 export = (sequelize, DataTypes) => Model
-    if (
-      typeof imported === 'function' &&
-      !(imported.prototype instanceof Sequelize.Model)
-    ) {
-      model = imported(sequelize, Sequelize.DataTypes);
-    } else {
-      // 클래스형 export class extends Model
-      model = imported;
-    }
-
-    if (!model || typeof model.name !== 'string' || model.name.length === 0) {
-      console.warn(`[models/index.js] ⚠️  Skip invalid model export in ${file}`);
-      return;
-    }
-
-    // original key (exact name)
-    models[model.name] = model;
-
-    // PascalCase alias (case‑insensitive convenience)
-    const pascal = `${model.name[0].toUpperCase()}${model.name.slice(1)}`;
-    if (!models[pascal]) models[pascal] = model;
-  });
-
-// 2. Helper: case‑insensitive getter
-const get = (key) =>
-  models[key] || models[key?.toLowerCase?.()] || models[key?.toUpperCase?.()];
-
-const User              = get('User');
-const Inspection        = get('Inspection');
-const InspectionComment = get('InspectionComment');
-const InspectionRead    = get('InspectionRead');
-const ActivityLog       = get('ActivityLog');
-const Product           = get('Product');
-const ProductVariant    = get('ProductVariant');
-
-// 3. Relations (all constraints:false to suppress FK creation)
-if (Inspection && InspectionComment) {
-  Inspection.hasMany(InspectionComment, {
-    foreignKey: 'inspectionId',
-    as: 'comments',
-    onDelete: 'CASCADE',
-    constraints: false
-  });
-  InspectionComment.belongsTo(Inspection, {
-    foreignKey: 'inspectionId',
-    as: 'inspection',
-    constraints: false
-  });
-} else {
-  console.error('[models/index.js] ❌ Missing Inspection or InspectionComment model – check filenames/model names');
-}
-
-if (User && InspectionComment) {
-  User.hasMany(InspectionComment, {
-    foreignKey: 'userId',
-    constraints: false
-  });
-  InspectionComment.belongsTo(User, {
-    foreignKey: 'userId',
-    as: 'user',
-    constraints: false
-  });
-}
-
-if (InspectionComment) {
-  // self‑reply
-  InspectionComment.belongsTo(InspectionComment, {
-    foreignKey: 'parentCommentId',
-    as: 'parent',
-    constraints: false
-  });
-}
-
-if (Inspection && User) {
-  Inspection.belongsToMany(User, {
-    through: InspectionRead,
-    foreignKey: 'inspectionId',
-    otherKey: 'userId',
-    as: 'readers',
-    constraints: false
-  });
-  User.belongsToMany(Inspection, {
-    through: InspectionRead,
-    foreignKey: 'userId',
-    otherKey: 'inspectionId',
-    constraints: false
-
   });
 }
 
@@ -133,12 +27,12 @@ if (Product && ProductVariant) {
   Product.hasMany(ProductVariant, {
     foreignKey: 'productId',
     as: 'ProductVariants',
-    constraints: false,
+    constraints: false
   });
   ProductVariant.belongsTo(Product, {
     foreignKey: 'productId',
     as: 'product',
-    constraints: false,
+    constraints: false
   });
 }
 
