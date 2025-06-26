@@ -1,114 +1,85 @@
-const User = require('./user');
-const { Product, ProductVariant } = require('./product');
-const Clothes = require('./clothes');
-const Inspection = require('./inspection');
-const InspectionReceiptPhoto = require('./inspectionReceiptPhoto');
-const InspectionComment = require('./inspectionComment');
-const InspectionRead = require('./inspectionRead');
-const LabelTemplate = require('./labelTemplate');
-const ActivityLog = require('./ActivityLog');
-const Setting = require('./Setting');
-const InspectionDetail = require('./inspectionDetail');
+// models/index.js
+
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+
+/**
+ * 중앙에서 생성한 sequelize 인스턴스를 재사용합니다.
+ */
 const sequelize = require('../config/database');
 
-const models = {
-  User,
-  Product,
-  ProductVariant,
-  Clothes,
-  Inspection,
-  InspectionReceiptPhoto,
-  InspectionComment,
-  InspectionRead,
-  LabelTemplate,
-  ActivityLog,
-  Setting,
-  InspectionDetail
-};
+const models = {};
 
-module.exports = models;
+/**
+ * 모델 파일 로드
+ * 1) 함수(export = (sequelize, DataTypes) => Model) 형태 → 즉시 호출
+ * 2) 클래스(export class extends Model ...) 형태 → 그대로 사용 (init() 로직은 각 파일 내부에서 수행되었다고 가정)
+ */
+fs.readdirSync(__dirname)
+  .filter((file) =>
+    file.indexOf('.') !== 0 &&
+    file !== path.basename(__filename) &&
+    file.slice(-3) === '.js'
+  )
+  .forEach((file) => {
+    const imported = require(path.join(__dirname, file));
+    let model;
 
-// ===== 관계 선언 (hasMany / belongsToMany 등) =====
+    // 함수형 (old style)
+    if (typeof imported === 'function' && !(imported.prototype instanceof Sequelize.Model)) {
+      model = imported(sequelize, Sequelize.DataTypes);
+    } else {
+      // 클래스형 (new style)
+      model = imported;
+    }
 
-Inspection.hasMany(models.InspectionComment, {
-  foreignKey: 'inspectionId',
-  as: 'comments',
-  onDelete: 'CASCADE',
-  constraints: false
-});
+    models[model.name] = model;
+  });
 
-User.hasMany(models.InspectionComment, {
-  foreignKey: 'userId',
-  constraints: false
-});
+/************************************************************
+ * 관계 정의 – InspectionComment 중심 (FK 생성 방지)
+ ************************************************************/
+if (models.InspectionComment && models.Inspection) {
+  models.InspectionComment.belongsTo(models.Inspection, {
+    foreignKey: 'inspectionId',
+    as: 'inspection',
+    onDelete: 'CASCADE',
+    constraints: false,
+  });
 
-// ===== BelongsTo 관계 (FK 차단, constraints:false) =====
-models.InspectionComment.belongsTo(models.Inspection, {
-  foreignKey: 'inspectionId',
-  as: 'inspection',
-  constraints: false
-});
+  models.InspectionComment.belongsTo(models.InspectionComment, {
+    foreignKey: 'parentCommentId',
+    as: 'parent',
+    onDelete: 'CASCADE',
+    constraints: false,
+  });
 
-models.InspectionComment.belongsTo(models.InspectionComment, {
-  foreignKey: 'parentCommentId',
-  as: 'parent',
-  constraints: false
-});
+  models.InspectionComment.belongsTo(models.User, {
+    foreignKey: 'userId',
+    as: 'user',
+    onDelete: 'CASCADE',
+    constraints: false,
+  });
 
-models.InspectionComment.belongsTo(models.User, {
-  foreignKey: 'userId',
-  as: 'user',
-  constraints: false
-});
+  if (models.Inspection.hasMany) {
+    models.Inspection.hasMany(models.InspectionComment, {
+      foreignKey: 'inspectionId',
+      as: 'comments',
+      onDelete: 'CASCADE',
+      constraints: false,
+    });
+  }
+}
 
-// ===== 기타 관계 =====
-
-Inspection.belongsToMany(User, {
-  through: InspectionRead,
-  foreignKey: 'inspectionId',
-  otherKey: 'userId',
-  as: 'readers',
-  constraints: false
-});
-User.belongsToMany(Inspection, {
-  through: InspectionRead,
-  foreignKey: 'userId',
-  otherKey: 'inspectionId',
-  constraints: false
-});
-
-User.hasMany(Inspection, {
-  foreignKey: 'inspector_id',
-  as: 'inspections',
-  constraints: false
-});
-Inspection.belongsTo(User, {
-  foreignKey: 'inspector_id',
-  as: 'inspector',
-  constraints: false
-});
-
-ActivityLog.belongsTo(Inspection, {
-  foreignKey: 'inspectionId',
-  constraints: false
-});
-Inspection.hasMany(ActivityLog, {
-  foreignKey: 'inspectionId',
-  constraints: false
-});
-
-ActivityLog.belongsTo(User, {
-  foreignKey: 'userId',
-  constraints: false
-});
-User.hasMany(ActivityLog, {
-  foreignKey: 'userId',
-  constraints: false
-});
-
-// ===== associate 실행 (모든 모델 정의 후) =====
-Object.values(models).forEach(model => {
+// 각 모델의 associate()는 모든 모델이 로드된 후 호출
+Object.values(models).forEach((model) => {
   if (typeof model.associate === 'function') {
     model.associate(models);
   }
 });
+
+models.sequelize = sequelize;
+models.Sequelize = Sequelize;
+
+module.exports = models;
