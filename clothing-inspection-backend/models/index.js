@@ -190,6 +190,20 @@ if (Inspection && InspectionReceiptPhoto) {
   });
 }
 
+// belongsTo inspector association
+if (User && Inspection) {
+  Inspection.belongsTo(User, {
+    foreignKey: 'inspector_id',
+    as: 'inspector',
+    constraints: false
+  });
+  User.hasMany(Inspection, {
+    foreignKey: 'inspector_id',
+    as: 'inspections',
+    constraints: false
+  });
+}
+
 // 4. Export
 models.sequelize = sequelize;
 models.Sequelize = Sequelize;

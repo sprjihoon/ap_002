@@ -29,6 +29,7 @@ router.get('/stats/overview', auth, async (req, res) => {
     const wholesalerRows = await InspectionDetail.findAll({
       include: [{
         model: ProductVariant,
+        as: 'ProductVariant',
         attributes: [],
         include: [{ model: Product, as: 'product', attributes: [] }]
       }, {
