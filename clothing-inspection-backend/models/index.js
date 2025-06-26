@@ -1,20 +1,15 @@
-// models/index.js – tolerant to model name casing, FK-free
+// models/index.js – robust dynamic loader, FK‑free, guards against undefined
 
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 const sequelize = require('../config/database');
 
-// 1. Dynamic model loading (adds both original key and PascalCase key)
+// 1. Dynamic model loading – skip invalid exports
 const models = {};
 
 fs.readdirSync(__dirname)
-  .filter(
-    (file) =>
-      file.indexOf('.') !== 0 &&
-      file !== path.basename(__filename) &&
-      file.slice(-3) === '.js'
-  )
+  .filter((file) => file.endsWith('.js') && file !== path.basename(__filename))
   .forEach((file) => {
     const imported = require(path.join(__dirname, file));
     let model;
@@ -28,16 +23,25 @@ fs.readdirSync(__dirname)
       model = imported;
     }
 
-    // original key (whatever model.name is)
+    if (!model || !model.name) {
+      console.warn(`[models/index.js] ⚠️  Skip invalid model export in ${file}`);
+      return;
+    }
+
+    // original key
     models[model.name] = model;
 
-    // PascalCase alias to avoid case‑sensitive misses (e.g., inspection → Inspection)
-    const pascal = model.name.charAt(0).toUpperCase() + model.name.slice(1);
+    // Only add PascalCase alias if model.name is a non‑empty string
+    if (typeof model.name === 'string' && model.name.length > 0) {
+      const pascal = model.name[0].toUpperCase() + model.name.slice(1);
+      models[pascal] = model;
+    } = model.name[0].toUpperCase() + model.name.slice(1);
     models[pascal] = model;
   });
 
-// 2. Safe getters
-const get = (key) => models[key] || models[key && key.toLowerCase()] || models[key && key.toUpperCase()];
+// 2. Helper getter insensitive to case
+const get = (key) =>
+  models[key] || models[key?.toLowerCase?.()] || models[key?.toUpperCase?.()];
 
 const User              = get('User');
 const Inspection        = get('Inspection');
@@ -45,7 +49,7 @@ const InspectionComment = get('InspectionComment');
 const InspectionRead    = get('InspectionRead');
 const ActivityLog       = get('ActivityLog');
 
-// 3. Relations (all constraints:false & guards)
+// 3. Relations (constraints:false)
 if (Inspection && InspectionComment) {
   Inspection.hasMany(InspectionComment, {
     foreignKey: 'inspectionId',
