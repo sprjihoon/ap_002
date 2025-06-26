@@ -42,4 +42,10 @@ module.exports.associate = models => {
     as: 'inspections',
     constraints: false
   });
+
+  // read history
+  User.hasMany(models.InspectionRead, {
+    foreignKey: 'user_id',
+    constraints: false
+  });
 };

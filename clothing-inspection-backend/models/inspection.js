@@ -45,6 +45,12 @@ Inspection.associate = models => {
     as: 'inspector',
     constraints: false
   });
+
+  // Link to read tracking (no FK in PlanetScale)
+  Inspection.hasMany(models.InspectionRead, {
+    foreignKey: 'inspection_id',
+    constraints: false
+  });
 };
 
 module.exports = Inspection;
