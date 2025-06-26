@@ -36,6 +36,7 @@ router.get('/', auth, async (req, res) => {
           as: 'InspectionDetails',
           include: [{
             model: ProductVariant,
+            as: 'ProductVariant',
             include: [{ model: Product, as: 'product' }]
           }]
         },
@@ -477,6 +478,7 @@ router.get('/:id', auth, async (req, res) => {
           as: 'InspectionDetails',
           include: [{
             model: ProductVariant,
+            as: 'ProductVariant',
             include: [{ model: Product, as: 'product' }]
           }]
         },
@@ -561,6 +563,7 @@ router.get('/:id/ez-admin-xlsx', auth, async (req, res) => {
         model: InspectionDetail,
         include: [{
           model: ProductVariant,
+          as: 'ProductVariant',
           include: [{ model: Product, as: 'product' }]
         }]
       }]
