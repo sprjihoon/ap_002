@@ -2,18 +2,21 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const InspectionRead = sequelize.define('InspectionRead', {
-  inspection_id: {
+  inspectionId: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    field: 'inspection_id'
   },
-  user_id: {
+  userId: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    field: 'user_id'
   },
   lastViewedAt: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: DataTypes.NOW
+    defaultValue: DataTypes.NOW,
+    field: 'lastViewedAt'
   }
 }, {
   timestamps: false,
