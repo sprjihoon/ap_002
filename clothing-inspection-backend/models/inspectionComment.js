@@ -1,4 +1,5 @@
-// models/inspectionComment.js
+// models/inspectionComment.js — cleaned version
+// 관계 정의는 전부 models/index.js 한 곳에서만 선언합니다.
 
 module.exports = (sequelize, DataTypes) => {
   const InspectionComment = sequelize.define(
@@ -6,65 +7,27 @@ module.exports = (sequelize, DataTypes) => {
     {
       content: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: false
       },
       parentCommentId: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: true
       },
       inspectionId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: false
       },
       userId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-      },
+        allowNull: false
+      }
     },
     {
       tableName: 'inspection_comments',
-      underscored: true,
+      underscored: true
     }
   );
 
-  // 관계 정의는 models/index.js에서 일괄 처리합니다.
-
-  return InspectionComment;
-};
-
-  // Associations are defined in an `associate` method and executed after all
-  // models are loaded to avoid circular dependency issues.
-  InspectionComment.associate = (models) => {
-    InspectionComment.belongsTo(models.Inspection, {
-      foreignKey: 'inspectionId',
-      as: 'inspection',
-      onDelete: 'CASCADE',
-      constraints: false,
-    });
-
-    InspectionComment.belongsTo(models.InspectionComment, {
-      foreignKey: 'parentCommentId',
-      as: 'parent',
-      onDelete: 'CASCADE',
-      constraints: false,
-    });
-
-    InspectionComment.belongsTo(models.User, {
-      foreignKey: 'userId',
-      as: 'user',
-      onDelete: 'CASCADE',
-      constraints: false,
-    });
-
-    if (models.Inspection && models.Inspection.hasMany) {
-      models.Inspection.hasMany(InspectionComment, {
-        foreignKey: 'inspectionId',
-        as: 'comments',
-        onDelete: 'CASCADE',
-        constraints: false,
-      });
-    }
-  };
-
+  // ✅ associate() 는 제거했습니다. (index.js 에서 constraints:false 로 관계 선언)
   return InspectionComment;
 };
