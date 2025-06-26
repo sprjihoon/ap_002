@@ -27,6 +27,11 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
+  // 관계 정의는 models/index.js에서 일괄 처리합니다.
+
+  return InspectionComment;
+};
+
   // Associations are defined in an `associate` method and executed after all
   // models are loaded to avoid circular dependency issues.
   InspectionComment.associate = (models) => {
