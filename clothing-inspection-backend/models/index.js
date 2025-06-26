@@ -1,85 +1,116 @@
-// models/index.js
+// models/index.js – consolidated relations, no associate loop, FK‑free
 
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
-
-/**
- * 중앙에서 생성한 sequelize 인스턴스를 재사용합니다.
- */
 const sequelize = require('../config/database');
 
+// ────────────────────────
+// 1. Dynamic model loading
+// ────────────────────────
 const models = {};
 
-/**
- * 모델 파일 로드
- * 1) 함수(export = (sequelize, DataTypes) => Model) 형태 → 즉시 호출
- * 2) 클래스(export class extends Model ...) 형태 → 그대로 사용 (init() 로직은 각 파일 내부에서 수행되었다고 가정)
- */
 fs.readdirSync(__dirname)
-  .filter((file) =>
-    file.indexOf('.') !== 0 &&
-    file !== path.basename(__filename) &&
-    file.slice(-3) === '.js'
+  .filter(
+    (file) =>
+      file.indexOf('.') !== 0 &&
+      file !== path.basename(__filename) &&
+      file.slice(-3) === '.js'
   )
   .forEach((file) => {
     const imported = require(path.join(__dirname, file));
     let model;
 
-    // 함수형 (old style)
-    if (typeof imported === 'function' && !(imported.prototype instanceof Sequelize.Model)) {
+    if (
+      typeof imported === 'function' &&
+      !(imported.prototype instanceof Sequelize.Model)
+    ) {
       model = imported(sequelize, Sequelize.DataTypes);
     } else {
-      // 클래스형 (new style)
       model = imported;
     }
 
     models[model.name] = model;
   });
 
-/************************************************************
- * 관계 정의 – InspectionComment 중심 (FK 생성 방지)
- ************************************************************/
-if (models.InspectionComment && models.Inspection) {
-  models.InspectionComment.belongsTo(models.Inspection, {
-    foreignKey: 'inspectionId',
-    as: 'inspection',
-    onDelete: 'CASCADE',
-    constraints: false,
-  });
+// ────────────────────────
+// 2. Relations (constraints:false)
+// ────────────────────────
+const {
+  User,
+  Inspection,
+  InspectionComment,
+  InspectionRead,
+  ActivityLog
+} = models;
 
-  models.InspectionComment.belongsTo(models.InspectionComment, {
-    foreignKey: 'parentCommentId',
-    as: 'parent',
-    onDelete: 'CASCADE',
-    constraints: false,
-  });
-
-  models.InspectionComment.belongsTo(models.User, {
-    foreignKey: 'userId',
-    as: 'user',
-    onDelete: 'CASCADE',
-    constraints: false,
-  });
-
-  if (models.Inspection.hasMany) {
-    models.Inspection.hasMany(models.InspectionComment, {
-      foreignKey: 'inspectionId',
-      as: 'comments',
-      onDelete: 'CASCADE',
-      constraints: false,
-    });
-  }
-}
-
-// 각 모델의 associate()는 모든 모델이 로드된 후 호출
-Object.values(models).forEach((model) => {
-  if (typeof model.associate === 'function') {
-    model.associate(models);
-  }
+// Inspection ↔ InspectionComment (1:N)
+Inspection.hasMany(InspectionComment, {
+  foreignKey: 'inspectionId',
+  as: 'comments',
+  onDelete: 'CASCADE',
+  constraints: false
+});
+InspectionComment.belongsTo(Inspection, {
+  foreignKey: 'inspectionId',
+  as: 'inspection',
+  constraints: false
 });
 
+// User ↔ InspectionComment (1:N)
+User.hasMany(InspectionComment, {
+  foreignKey: 'userId',
+  constraints: false
+});
+InspectionComment.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user',
+  constraints: false
+});
+
+// self‑reply
+InspectionComment.belongsTo(InspectionComment, {
+  foreignKey: 'parentCommentId',
+  as: 'parent',
+  constraints: false
+});
+
+// Inspection ↔ User (읽음표시)
+Inspection.belongsToMany(User, {
+  through: InspectionRead,
+  foreignKey: 'inspectionId',
+  otherKey: 'userId',
+  as: 'readers',
+  constraints: false
+});
+User.belongsToMany(Inspection, {
+  through: InspectionRead,
+  foreignKey: 'userId',
+  otherKey: 'inspectionId',
+  constraints: false
+});
+
+// ActivityLog 예시
+ActivityLog.belongsTo(Inspection, {
+  foreignKey: 'inspectionId',
+  constraints: false
+});
+Inspection.hasMany(ActivityLog, {
+  foreignKey: 'inspectionId',
+  constraints: false
+});
+ActivityLog.belongsTo(User, {
+  foreignKey: 'userId',
+  constraints: false
+});
+User.hasMany(ActivityLog, {
+  foreignKey: 'userId',
+  constraints: false
+});
+
+// ────────────────────────
+// 3. Export
+// ────────────────────────
 models.sequelize = sequelize;
 models.Sequelize = Sequelize;
-
 module.exports = models;
