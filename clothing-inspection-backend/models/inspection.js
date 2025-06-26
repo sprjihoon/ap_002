@@ -17,6 +17,11 @@ const Inspection = sequelize.define('Inspection', {
     allowNull: false,
     defaultValue: DataTypes.NOW
   },
+  updatedAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
+  },
   result: {
     type: DataTypes.ENUM('pass', 'fail'),
     allowNull: false
