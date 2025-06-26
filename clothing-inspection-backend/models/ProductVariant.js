@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define('ProductVariant', {
+  const ProductVariant = sequelize.define('ProductVariant', {
     productId: {
       type: DataTypes.INTEGER,
       allowNull: false
@@ -15,4 +15,15 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'product_variants',
     timestamps: false
   });
+
+  // 관계 설정은 models/index.js에서 할 수도 있지만, 명시적 정의를 하려면 다음 추가
+  ProductVariant.associate = (models) => {
+    ProductVariant.belongsTo(models.Product, {
+      foreignKey: 'productId',
+      as: 'product',
+      constraints: false
+    });
+  };
+
+  return ProductVariant;
 };
