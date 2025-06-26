@@ -34,3 +34,12 @@ const User = sequelize.define('User', {
 });
 
 module.exports = User;
+
+// association helper
+module.exports.associate = models => {
+  User.hasMany(models.Inspection, {
+    foreignKey: 'inspector_id',
+    as: 'inspections',
+    constraints: false
+  });
+};

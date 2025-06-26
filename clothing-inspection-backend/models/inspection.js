@@ -39,4 +39,12 @@ const Inspection = sequelize.define('Inspection', {
   tableName: 'inspections'
 });
 
+Inspection.associate = models => {
+  Inspection.belongsTo(models.User, {
+    foreignKey: 'inspector_id',
+    as: 'inspector',
+    constraints: false
+  });
+};
+
 module.exports = Inspection;
