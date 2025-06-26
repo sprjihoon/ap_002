@@ -22,13 +22,4 @@ const InspectionReceiptPhoto = sequelize.define('InspectionReceiptPhoto', {
   tableName: 'inspection_receipt_photos'
 });
 
-Inspection.hasMany(InspectionReceiptPhoto, {
-  foreignKey: 'inspectionId',
-  constraints: false
-});
-InspectionReceiptPhoto.belongsTo(Inspection, {
-  foreignKey: 'inspectionId',
-  constraints: false
-});
-
 module.exports = InspectionReceiptPhoto;
