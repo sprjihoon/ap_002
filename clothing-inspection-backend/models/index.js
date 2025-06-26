@@ -43,6 +43,10 @@ const Inspection        = get('Inspection');
 const InspectionComment = get('InspectionComment');
 const InspectionRead    = get('InspectionRead');
 const ActivityLog       = get('ActivityLog');
+const Product           = get('Product');
+const ProductVariant    = get('ProductVariant');
+const InspectionDetail  = get('InspectionDetail');
+const InspectionReceiptPhoto = get('InspectionReceiptPhoto');
 
 // 3. Relations (constraints:false to suppress FK creation)
 if (Inspection && InspectionComment) {
@@ -68,12 +72,7 @@ if (User && InspectionComment) {
 
 if (InspectionComment) {
   InspectionComment.belongsTo(InspectionComment, {
-    foreignKey: 'parentCommentId',
-    as: 'parent',
-    constraints: false
-  });
-}
-
+@@ -77,29 +81,75 @@ if (InspectionComment) {
 if (Inspection && User) {
   Inspection.belongsToMany(User, {
     through: InspectionRead,
@@ -97,6 +96,52 @@ if (ActivityLog && Inspection) {
 if (ActivityLog && User) {
   ActivityLog.belongsTo(User, { foreignKey: 'userId', constraints: false });
   User.hasMany(ActivityLog, { foreignKey: 'userId', constraints: false });
+}
+
+if (Product && ProductVariant) {
+  Product.hasMany(ProductVariant, {
+    foreignKey: 'productId',
+    as: 'ProductVariants',
+    constraints: false
+  });
+  ProductVariant.belongsTo(Product, {
+    foreignKey: 'productId',
+    as: 'product',
+    constraints: false
+  });
+}
+
+if (Inspection && InspectionDetail) {
+  Inspection.hasMany(InspectionDetail, {
+    foreignKey: 'inspectionId',
+    constraints: false
+  });
+  InspectionDetail.belongsTo(Inspection, {
+    foreignKey: 'inspectionId',
+    constraints: false
+  });
+}
+
+if (ProductVariant && InspectionDetail) {
+  ProductVariant.hasMany(InspectionDetail, {
+    foreignKey: 'productVariantId',
+    constraints: false
+  });
+  InspectionDetail.belongsTo(ProductVariant, {
+    foreignKey: 'productVariantId',
+    constraints: false
+  });
+}
+
+if (Inspection && InspectionReceiptPhoto) {
+  Inspection.hasMany(InspectionReceiptPhoto, {
+    foreignKey: 'inspectionId',
+    constraints: false
+  });
+  InspectionReceiptPhoto.belongsTo(Inspection, {
+    foreignKey: 'inspectionId',
+    constraints: false
+  });
 }
 
 // 4. Export
