@@ -201,7 +201,7 @@ router.put('/:id/approve', auth, async (req, res) => {
         return res.status(403).json({ success:false, message:'승인 권한이 없습니다.'});
       }
     }
-    await inspection.update({ status: 'approved', rejectReason: null });
+    await inspection.update({ status: 'approved' });
 
     await ActivityLog.create({ inspectionId: inspection.id, userId: req.user.id, type:'status_change', message:`전표 승인`, level:'info' });
 
@@ -377,8 +377,14 @@ router.put('/details/:detailId', auth, async (req, res) => {
     }
 
     const { totalQuantity, normalQuantity, defectQuantity, result, comment, photoUrl } = req.body;
-    if (photoUrl === '') payload.photoUrl = null;
-    await detail.update({ totalQuantity, normalQuantity, defectQuantity, result, comment, photoUrl });
+    await detail.update({
+      totalQuantity,
+      normalQuantity,
+      defectQuantity,
+      result,
+      comment,
+      photoUrl: photoUrl === '' ? null : photoUrl
+    });
 
     res.json({ success: true, message: '검수 상세가 수정되었습니다.', detail });
   } catch (error) {

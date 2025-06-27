@@ -233,6 +233,10 @@ const InspectionDetail = () => {
     }
   };
 
+  const handleRemovePhoto = () => {
+    setDetailEdit(prev => ({ ...prev, form:{ ...prev.form, photoUrl:'', photoFile:null } }));
+  };
+
   // 운영자 코멘트 수정
   const handleSaveComment = async () => {
     try {
@@ -834,7 +838,12 @@ const InspectionDetail = () => {
           />
           <Box sx={{ mt:2 }}>
             {detailEdit.form.photoUrl && (
-              <Box component="img" src={detailEdit.form.photoUrl} alt="사진 미리보기" sx={{ maxWidth:200, maxHeight:200, mb:1 }} />
+              <Box sx={{ position:'relative', display:'inline-block' }}>
+                <Box component="img" src={detailEdit.form.photoUrl} alt="사진 미리보기" sx={{ maxWidth:200, maxHeight:200, mb:1, borderRadius:1 }} />
+                <IconButton size="small" color="error" onClick={handleRemovePhoto} sx={{ position:'absolute', top:4, right:4, background:'#fff' }}>
+                  <Delete fontSize="small" />
+                </IconButton>
+              </Box>
             )}
             <Button variant="outlined" component="label" size="small">
               사진 선택
