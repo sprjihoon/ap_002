@@ -4,6 +4,7 @@ const { Op, Sequelize } = require('sequelize');
 const { auth } = require('../middleware/auth');
 const Inspection = require('../models/inspection');
 const InspectionDetail = require('../models/inspectionDetail');
+const { ProductVariant } = require('../models');
 const { ProductVariant } = require('../models/product');
 const User = require('../models/user');
 const ActivityLog = require('../models/ActivityLog');
