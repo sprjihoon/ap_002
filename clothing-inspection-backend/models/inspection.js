@@ -12,6 +12,16 @@ const Inspection = sequelize.define('Inspection', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  status: {
+    type: DataTypes.ENUM('pending', 'in_progress', 'completed', 'approved', 'rejected'),
+    allowNull: false,
+    defaultValue: 'pending'
+  },
+  workStatus: {
+    type: DataTypes.ENUM('pending', 'in_progress', 'completed', 'error'),
+    allowNull: false,
+    defaultValue: 'pending'
+  },
   createdAt: {
     type: DataTypes.DATE,
     allowNull: false,
@@ -27,6 +37,10 @@ const Inspection = sequelize.define('Inspection', {
     allowNull: false
   },
   comment: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  rejectReason: {
     type: DataTypes.TEXT,
     allowNull: true
   },
