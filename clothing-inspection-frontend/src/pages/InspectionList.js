@@ -82,22 +82,30 @@ const InspectionList = () => {
   };
 
   // 상태별 칩 색상
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return 'warning';
-      case 'approved': return 'success';
-      case 'rejected': return 'error';
-      default: return 'default';
+  const getStatusColor = (status, workStatus) => {
+    const s = status || workStatus;
+    switch (s) {
+      case 'pending':        return 'warning';
+      case 'approved':       return 'success';
+      case 'rejected':       return 'error';
+      case 'in_progress':    return 'info';
+      case 'completed':      return 'primary';
+      case 'error':          return 'error';
+      default:               return 'default';
     }
   };
 
   // 상태별 한글 표시
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'pending': return '대기중';
-      case 'approved': return '확정';
-      case 'rejected': return '반려';
-      default: return status;
+  const getStatusLabel = (status, workStatus) => {
+    const s = status || workStatus;
+    switch (s) {
+      case 'pending':      return '대기중';
+      case 'approved':     return '확정';
+      case 'rejected':     return '반려';
+      case 'in_progress':  return '작업중';
+      case 'completed':    return '완료';
+      case 'error':        return '오류';
+      default:             return s || '-';
     }
   };
 
@@ -220,8 +228,8 @@ const InspectionList = () => {
                 <TableCell>{new Date(inspection.createdAt).toLocaleString()}</TableCell>
                 <TableCell>
                   <Chip
-                    label={getStatusLabel(inspection.status)}
-                    color={getStatusColor(inspection.status)}
+                    label={getStatusLabel(inspection.status, inspection.workStatus)}
+                    color={getStatusColor(inspection.status, inspection.workStatus)}
                     size="small"
                     onClick={() => {}}
                   />
