@@ -69,7 +69,7 @@ router.get('/', auth, async (req, res) => {
     for (const ins of inspectionsRaw) {
       const latestCommentAt = ins.comments && ins.comments.length > 0 ? Math.max(...ins.comments.map(c=>new Date(c.createdAt))) : null;
       const lastActivity = latestCommentAt ? new Date(Math.max(new Date(ins.updatedAt), latestCommentAt)) : new Date(ins.updatedAt);
-      const readRec = await InspectionRead.findOne({ where: { inspection_id: ins.id, user_id: req.user.id } });
+      const readRec = await InspectionRead.findOne({ where: { inspectionId: ins.id, userId: req.user.id } });
       const hasNew = !readRec || new Date(readRec.lastViewedAt) < lastActivity;
       ins.dataValues.hasNew = hasNew;
       inspections.push(ins);
@@ -551,7 +551,11 @@ router.get('/:id', auth, async (req, res) => {
       return res.status(404).json({ success:false, message:'검수 전표를 찾을 수 없습니다.'});
     }
     // mark as read
-    await InspectionRead.upsert({ inspection_id: inspection.id, user_id: req.user.id, lastViewedAt: new Date() });
+    await InspectionRead.upsert({
+      inspectionId: inspection.id,
+      userId:       req.user.id,
+      lastViewedAt: new Date()
+    });
 
     res.json({ success:true, data: inspection });
   } catch (error) {
