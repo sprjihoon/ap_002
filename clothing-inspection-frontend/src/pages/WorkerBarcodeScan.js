@@ -3,6 +3,7 @@ import { Box, TextField, Button, Paper, Typography, CircularProgress, Grid, Tabl
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { API_URL } from '../utils/api';
 
 const WorkerBarcodeScan=()=>{
   const storedList = JSON.parse(sessionStorage.getItem('currentInspections') || '[]');
@@ -28,7 +29,7 @@ const WorkerBarcodeScan=()=>{
   },[]);
 
   const token=localStorage.getItem('token');
-  const api=axios.create({ headers:{ Authorization:`Bearer ${token}` }});
+  const api=axios.create({ baseURL: API_URL, headers:{ Authorization:`Bearer ${token}` }});
 
   const lookup=async ()=>{
     const bc = barcode.trim();
@@ -57,7 +58,7 @@ const WorkerBarcodeScan=()=>{
     // ------ 최초 스캔(또는 다른 전표 시작) : 전표/상세 조회 ------
     setLoading(true);
     try{
-      const res=await api.get(`/api/worker/barcode/${bc}`);
+      const res=await api.get(`/worker/barcode/${bc}`);
       const totalRemain = res.data.details.reduce((t,d)=>t+d.remaining,0);
       const existsIdx = inspections.findIndex(i=> i.inspection.id === res.data.inspection.id);
       if(existsIdx!==-1){
@@ -84,7 +85,7 @@ const WorkerBarcodeScan=()=>{
     setLoading(true);
     try{
       const grade=target.details.find(d=>d.id===detailId)?.qualityGrade || null;
-      const res=await api.post('/api/worker/scan',{ detailId, result, qualityGrade: grade });
+      const res=await api.post('/worker/scan',{ detailId, result, qualityGrade: grade });
       const newList=[...inspections];
       const item=newList[idx];
       // update matching detail
@@ -123,7 +124,7 @@ const WorkerBarcodeScan=()=>{
   const preloadInspection = async(id)=>{
     setLoading(true);
     try{
-      const res = await api.get(`/api/worker/inspection/${id}/details`);
+      const res = await api.get(`/worker/inspection/${id}/details`);
       const totalRemain = res.data.details.reduce((t,d)=>t+d.remaining,0);
       const newItem = { inspection: res.data.inspection, details: res.data.details.map(d=>({...d,myCount:0})), remaining: totalRemain, myHandled:{}, barcode:'' };
       setInspections([newItem]);
