@@ -213,10 +213,34 @@ router.get('/barcode/:code', auth, async (req,res)=>{
       return { ...d.toJSON(), remaining, ProductVariant: d.ProductVariant };
     });
 
-    res.json({ inspection, details });
+  res.json({ inspection, details });
   }catch(err){
     console.error('barcode lookup error', err);
     res.status(500).json({ message:err.message });
+  }
+});
+
+// ---------------- 특정 전표 상세(스캔용) ----------------
+router.get('/inspection/:id/details', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const inspection = await Inspection.findByPk(id, {
+      include: [{
+        model: InspectionDetail,
+        include: [{ model: ProductVariant, as: 'ProductVariant' }],
+        order: [['createdAt', 'ASC']]
+      }]
+    });
+    if (!inspection) return res.status(404).json({ message: '전표를 찾을 수 없습니다.' });
+
+    const details = inspection.InspectionDetails.map(d => {
+      const remaining = d.totalQuantity - d.handledNormal - d.handledDefect - d.handledHold;
+      return { ...d.toJSON(), remaining, ProductVariant: d.ProductVariant };
+    });
+    res.json({ inspection, details });
+  } catch (err) {
+    console.error('inspection details error', err);
+    res.status(500).json({ message: err.message });
   }
 });
 
