@@ -190,14 +190,24 @@ router.get('/barcode/:code', auth, async (req,res)=>{
     const variant = await ProductVariant.findOne({ where:{ barcode:req.params.code } });
     if (!variant) return res.status(404).json({ message:'바코드를 찾을 수 없습니다.'});
 
-    // 해당 품목이 포함된 "확정·미완료" 전표 하나 찾기
-    const targetDetail = await InspectionDetail.findOne({
+    let targetDetail = await InspectionDetail.findOne({
       where:{ productVariantId: variant.id,
         [Op.and]: Sequelize.literal('(totalQuantity - handledNormal - handledDefect - handledHold) > 0') },
       include:[{ model: Inspection, where:{ status:'approved', workStatus:{[Op.ne]:'completed'} } }],
       order:[['createdAt','ASC']]
     });
-    if (!targetDetail) return res.status(404).json({ message:'남은 수량이 있는 전표가 없습니다.'});
+
+    // 남은 수량이 없더라도 전표 확인용으로 반환 (읽기 전용)
+    if (!targetDetail) {
+      targetDetail = await InspectionDetail.findOne({
+        where:{ productVariantId: variant.id },
+        include:[{ model: Inspection, where:{ status:'approved' } }],
+        order:[['createdAt','ASC']]
+      });
+      if(!targetDetail){
+        return res.status(404).json({ message:'해당 바코드의 전표를 찾을 수 없습니다.'});
+      }
+    }
 
     const inspection = await Inspection.findByPk(targetDetail.inspectionId, {
       include:[{ model: InspectionDetail, include:[{ model: ProductVariant, as:'ProductVariant' }] }],
