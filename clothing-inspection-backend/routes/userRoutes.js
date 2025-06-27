@@ -71,8 +71,8 @@ router.post('/register', auth, isAdmin, async (req, res) => {
   }
 });
 
-// Login without rate limiting
-router.post('/login', async (req, res) => {
+// Login with rate limiting
+router.post('/login', loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ where: { username } });
