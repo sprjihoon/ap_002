@@ -1,9 +1,9 @@
 {
   "name": "ai_05",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "clothing-inspection-backend/app.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node clothing-inspection-backend/app.js",
     "test": "echo \"No tests available\" && exit 0"
   },
   "dependencies": {
