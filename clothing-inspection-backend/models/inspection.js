@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const { ProductVariant } = require('../models');
 
 const Inspection = sequelize.define('Inspection', {
   inspectionName: {
