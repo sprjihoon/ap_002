@@ -19,7 +19,7 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
-import { ArrowBack, Check, Close, Edit, Delete, FileDownload, Restore } from '@mui/icons-material';
+import { ArrowBack, Check, Close, Edit, Delete, FileDownload, Restore, PhotoCamera } from '@mui/icons-material';
 import SpeakerNotesIcon from '@mui/icons-material/SpeakerNotes';
 import Tooltip from '@mui/material/Tooltip';
 import axios from 'axios';
@@ -412,6 +412,47 @@ const InspectionDetail = () => {
     }
   };
 
+  // 영수증 사진 교체/삭제
+  const handleReplaceReceiptPhoto = (photo) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const token = localStorage.getItem('token');
+        await axios.patch(`${API_URL}/inspections/receipt-photo/${photo.id}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        enqueueSnackbar('사진이 교체되었습니다.', { variant: 'success' });
+        fetchInspectionDetail();
+      } catch (err) {
+        enqueueSnackbar(err.response?.data?.message || '교체 실패', { variant: 'error' });
+      }
+    };
+    input.click();
+  };
+
+  const handleDeleteReceiptPhoto = async (photo) => {
+    if (!window.confirm('해당 사진을 삭제하시겠습니까?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/inspections/receipt-photo/${photo.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      enqueueSnackbar('사진이 삭제되었습니다.', { variant: 'success' });
+      fetchInspectionDetail();
+    } catch (err) {
+      enqueueSnackbar(err.response?.data?.message || '삭제 실패', { variant: 'error' });
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -572,6 +613,16 @@ const InspectionDetail = () => {
                       sx={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 1, '&:hover':{ opacity:0.8 } }}
                     />
                   </a>
+                  {userRole !== 'operator' && (
+                    <Box sx={{ position:'absolute', top:4, right:4, display:'flex', gap:0.5 }}>
+                      <IconButton size="small" color="error" onClick={()=>handleDeleteReceiptPhoto(photo)} sx={{ bgcolor:'rgba(255,255,255,0.7)' }}>
+                        <Delete fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={()=>handleReplaceReceiptPhoto(photo)} sx={{ bgcolor:'rgba(255,255,255,0.7)' }}>
+                        <PhotoCamera fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  )}
                   {photo.description && (
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
                       {photo.description}
