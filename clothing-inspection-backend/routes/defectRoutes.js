@@ -4,7 +4,7 @@ const { Op, Sequelize } = require('sequelize');
 const { auth } = require('../middleware/auth');
 const InspectionDetail = require('../models/inspectionDetail');
 const Inspection = require('../models/inspection');
-const { ProductVariant } = require('../models/product');
+const { ProductVariant, Product } = require('../models');
 const User = require('../models/user');
 
 // GET /api/defects  - 불량 내역 목록 (기간 필터 optional)
@@ -54,7 +54,7 @@ router.get('/', auth, async (req, res)=>{
       include:[
         { model: Inspection, attributes:['id','inspectionName','company','inspector_id','assignedWorkerId'],
           include:[{ model: User, as:'inspector', attributes:['id','username','company'] }] },
-        { model: ProductVariant, as:'ProductVariant', attributes:['id','barcode'], include:[{ association:'product', attributes:['productName','wholesaler'] }] }
+        { model: ProductVariant, as:'ProductVariant', attributes:['id','barcode'], include:[{ model: Product, as:'product', attributes:['productName','wholesaler'] }] }
       ],
       order:[[Sequelize.col('InspectionDetail.updatedAt'),'DESC']]
     });

@@ -444,7 +444,6 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                         const input = document.createElement('input');
                         input.type = 'file';
                         input.accept = 'image/*';
-                        input.capture = 'environment';
                         input.onchange = (e) => {
                           if (e.target.files?.[0]) {
                             handleOpenPhotoUpload(e.target.files[0]);
