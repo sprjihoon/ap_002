@@ -133,7 +133,7 @@ router.post('/scan', auth, async (req, res) => {
     }
     let detail;
     if(detailId){
-      detail = await InspectionDetail.findByPk(detailId, { include:[Inspection] });
+      detail = await InspectionDetail.findByPk(detailId, { include:[{ model: Inspection, as:'Inspection' }] });
       if(!detail) return res.status(404).json({ success:false, message:'detailId 가 올바르지 않습니다.'});
       if(detail.Inspection.status!=='approved' || detail.Inspection.workStatus==='completed'){
         return res.status(400).json({ success:false, message:'작업 불가한 전표입니다.'});
@@ -162,7 +162,7 @@ router.post('/scan', auth, async (req, res) => {
       await detail.update({ qualityGrade });
     }
 
-    await detail.reload();
+    await detail.reload({ include:[{ model: Inspection, as:'Inspection' }] });
 
     const remaining = detail.totalQuantity - detail.handledNormal - detail.handledDefect - detail.handledHold;
     
