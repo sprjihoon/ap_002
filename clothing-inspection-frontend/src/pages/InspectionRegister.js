@@ -329,6 +329,24 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
     handleClosePhotoUpload();
   };
 
+  // Android 자동 저장 helper
+  const saveFileToDevice = (file) => {
+    try {
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      // 확장자 유지
+      const ext = file.name.split('.').pop() || 'jpg';
+      link.download = `inspection_${Date.now()}.${ext}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (err) {
+      console.warn('auto save failed', err);
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>검수 등록</DialogTitle>
@@ -446,6 +464,10 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                       onChange={(e)=>{
                         const file = e.target.files?.[0];
                         if(file){
+                          // Android 단말이면 다운로드 폴더에 자동 저장
+                          if(/Android/i.test(navigator.userAgent)){
+                            saveFileToDevice(file);
+                          }
                           handleOpenPhotoUpload(file);
                         }
                         // allow re-selecting same file later
