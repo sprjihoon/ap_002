@@ -10,6 +10,7 @@ import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../utils/api';
+import { useRef } from 'react';
 
 // TODO: ReceiptPhotoUpload 컴포넌트 import 예정
 
@@ -437,23 +438,23 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                   </Box>
                   {/* 옵션별 사진 업로드 */}
                   <Box sx={{ mt: 2 }}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<PhotoCamera />}
-                      onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
-                        input.onchange = (e) => {
-                          if (e.target.files?.[0]) {
-                            handleOpenPhotoUpload(e.target.files[0]);
-                          }
-                        };
-                        input.click();
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      id={`option-photo-${variant.barcode}`}
+                      onChange={(e)=>{
+                        const file = e.target.files?.[0];
+                        if(file){
+                          handleOpenPhotoUpload(file);
+                        }
+                        // allow re-selecting same file later
+                        e.target.value='';
                       }}
-                    >
-                      사진 업로드
-                    </Button>
+                    />
+                    <label htmlFor={`option-photo-${variant.barcode}`}> 
+                      <Button variant="outlined" component="span" startIcon={<PhotoCamera />}>사진 업로드</Button>
+                    </label>
                     {input.photoUrl && (
                       <Box sx={{ mt: 1 }}>
                         <img
