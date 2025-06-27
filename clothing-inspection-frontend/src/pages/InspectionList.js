@@ -212,7 +212,10 @@ const InspectionList = () => {
             {paginatedInspections.map((inspection, idx) => (
               <TableRow key={inspection.id}>
                 <TableCell>{filteredInspections.length - (page * rowsPerPage + idx)}</TableCell>
-                <TableCell>
+                <TableCell
+                  sx={{ cursor:'pointer', textDecoration:'underline' }}
+                  onClick={() => navigate(`/inspections/${inspection.id}`)}
+                >
                   {inspection.inspectionName || inspection.inspectionSlipName}
                   {inspection.hasNew && (
                     <Chip
