@@ -26,6 +26,8 @@ import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { API_URL } from '../utils/api';
 
+const resolveUrl = (u) => (u && !u.startsWith('http')) ? API_URL.replace(/\/api$/, '') + u : u;
+
 const InspectionDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -579,13 +581,13 @@ const InspectionDetail = () => {
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="text.secondary">사진</Typography>
                   <Tooltip
-                    title={<Box component="img" src={detail.photoUrl} alt="large" sx={{ maxWidth:300, maxHeight:300 }} />}
+                    title={<Box component="img" src={resolveUrl(detail.photoUrl)} alt="large" sx={{ maxWidth:300, maxHeight:300 }} />}
                     placement="right"
                     followCursor
                   >
                   <Box
                     component="img"
-                    src={detail.photoUrl}
+                    src={resolveUrl(detail.photoUrl)}
                     alt="검수 사진"
                       sx={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 1, cursor:'pointer' }}
                   />
@@ -605,10 +607,10 @@ const InspectionDetail = () => {
             {inspection.InspectionReceiptPhotos.map((photo, index) => (
               <Grid item xs={12} sm={6} md={4} key={photo.id}>
                 <Box sx={{ position: 'relative' }}>
-                  <a href={photo.photoUrl} target="_blank" rel="noopener noreferrer" download style={{ textDecoration:'none' }}>
+                  <a href={resolveUrl(photo.photoUrl)} target="_blank" rel="noopener noreferrer" download style={{ textDecoration:'none' }}>
                     <Box
                       component="img"
-                      src={photo.photoUrl}
+                      src={resolveUrl(photo.photoUrl)}
                       alt={`영수증 ${index + 1}`}
                       sx={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 1, '&:hover':{ opacity:0.8 } }}
                     />
@@ -896,7 +898,7 @@ const InspectionDetail = () => {
           <Box sx={{ mt:2 }}>
             {detailEdit.form.photoUrl && (
               <Box sx={{ position:'relative', display:'inline-block' }}>
-                <Box component="img" src={detailEdit.form.photoUrl} alt="사진 미리보기" sx={{ maxWidth:200, maxHeight:200, mb:1, borderRadius:1 }} />
+                <Box component="img" src={resolveUrl(detailEdit.form.photoUrl)} alt="사진 미리보기" sx={{ maxWidth:200, maxHeight:200, mb:1, borderRadius:1 }} />
                 <IconButton size="small" color="error" onClick={handleRemovePhoto} sx={{ position:'absolute', top:4, right:4, background:'#fff' }}>
                   <Delete fontSize="small" />
                 </IconButton>
