@@ -204,7 +204,7 @@ router.get('/barcode/:code', auth, async (req, res) => {
           productVariantId: variant.id,
           [Op.and]: Sequelize.literal('(totalQuantity - handledNormal - handledDefect - handledHold) > 0')
         },
-        include: [{ model: Inspection, where: { status: { [Op.in]: ['approved', 'confirmed'] }, workStatus: { [Op.ne]: 'completed' } } }],
+        include: [{ model: Inspection, as:'Inspection', where: { status: { [Op.in]: ['approved', 'confirmed'] }, workStatus: { [Op.ne]: 'completed' } } }],
         order: [['createdAt', 'ASC']]
       });
     }
@@ -213,7 +213,7 @@ router.get('/barcode/:code', auth, async (req, res) => {
     if (!detail) {
       detail = await InspectionDetail.findOne({
         where: { barcode: code },
-        include: [{ model: Inspection, where: { status: { [Op.in]: ['approved', 'confirmed'] }, workStatus: { [Op.ne]: 'completed' } } }],
+        include: [{ model: Inspection, as:'Inspection', where: { status: { [Op.in]: ['approved', 'confirmed'] }, workStatus: { [Op.ne]: 'completed' } } }],
         order: [['createdAt', 'ASC']]
       });
     }
@@ -222,7 +222,7 @@ router.get('/barcode/:code', auth, async (req, res) => {
     if (!detail) {
       detail = await InspectionDetail.findOne({
         where: { barcode: code },
-        include: [{ model: Inspection, where: { status: { [Op.in]: ['approved', 'confirmed'] } } }],
+        include: [{ model: Inspection, as:'Inspection', where: { status: { [Op.in]: ['approved', 'confirmed'] } } }],
         order: [['createdAt', 'ASC']]
       });
     }
