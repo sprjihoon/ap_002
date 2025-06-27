@@ -8,6 +8,9 @@ const { ProductVariant } = require('../models');
 const User = require('../models/user');
 const ActivityLog = require('../models/ActivityLog');
 
+// 바코드 앞쪽 0 제거 (스캐너마다 0-padding 차이 대응)
+const stripZero = code => code.replace(/^0+/, '');
+
 // 작업자 대시보드 통계
 router.get('/stats', auth, async (req, res) => {
   try {
@@ -184,38 +187,68 @@ router.post('/scan', auth, async (req, res) => {
   }
 });
 
-// 바코드 조회(수량 확인만)
-router.get('/barcode/:code', auth, async (req,res)=>{
-  try{
-    // 해당 바코드가 포함된 품목이 있는 미완료 전표를 조회한다.
-    const targetDetail = await InspectionDetail.findOne({
-      where:{
-        [Op.and]: [
-          Sequelize.literal('(totalQuantity - handledNormal - handledDefect - handledHold) > 0')
-        ]
-      },
-      include:[
-        { model: ProductVariant, as:'ProductVariant', where:{ barcode:req.params.code } },
-        { model: Inspection, as:'Inspection', where:{ status:'approved', workStatus:{[Op.ne]:'completed'} } }
-      ],
-      order:[[Sequelize.col('InspectionDetail.createdAt'),'ASC']]
-    });
-    if (!targetDetail) return res.status(404).json({ message:'남은 수량이 있는 전표가 없습니다.'});
+// ----- BARCODE LOOKUP ROUTE (consolidated) -----
+// replace entire existing router.get('/barcode/:code') implementation
+router.get('/barcode/:code', auth, async (req, res) => {
+  try {
+    const code = stripZero(req.params.code.trim());
 
-    const inspection = await Inspection.findByPk(targetDetail.inspectionId, {
-      include:[{ model: InspectionDetail, as:'InspectionDetails', include:[{ model: ProductVariant, as:'ProductVariant' }] }],
-      order:[[Sequelize.col('InspectionDetails.createdAt'),'ASC']]
+    // 1) ProductVariant 우선 조회
+    let variant = await ProductVariant.findOne({ where: { barcode: code } });
+
+    // 2) 남은 수량 >0 이면서 확정·미완료 전표(detail) 찾기
+    let detail = null;
+    if (variant) {
+      detail = await InspectionDetail.findOne({
+        where: {
+          productVariantId: variant.id,
+          [Op.and]: Sequelize.literal('(totalQuantity - handledNormal - handledDefect - handledHold) > 0')
+        },
+        include: [{ model: Inspection, where: { status: { [Op.in]: ['approved', 'confirmed'] }, workStatus: { [Op.ne]: 'completed' } } }],
+        order: [['createdAt', 'ASC']]
+      });
+    }
+
+    // 3) variant 없음 이거나 잔량 0 → barcode 필드 직접 매칭 (variant FK 없는 경우 대비)
+    if (!detail) {
+      detail = await InspectionDetail.findOne({
+        where: { barcode: code },
+        include: [{ model: Inspection, where: { status: { [Op.in]: ['approved', 'confirmed'] }, workStatus: { [Op.ne]: 'completed' } } }],
+        order: [['createdAt', 'ASC']]
+      });
+    }
+
+    // 4) 잔량 0 이지만 전표는 보여주어야 할 때 (읽기 전용)
+    if (!detail) {
+      detail = await InspectionDetail.findOne({
+        where: { barcode: code },
+        include: [{ model: Inspection, where: { status: { [Op.in]: ['approved', 'confirmed'] } } }],
+        order: [['createdAt', 'ASC']]
+      });
+    }
+
+    if (!detail) {
+      return res.status(404).json({ message: '해당 바코드의 전표를 찾을 수 없습니다.' });
+    }
+
+    const inspection = await Inspection.findByPk(detail.inspectionId, {
+      include: [{
+        model: InspectionDetail,
+        as: 'InspectionDetails',
+        include: [{ model: ProductVariant, as: 'ProductVariant' }]
+      }],
+      order: [[Sequelize.col('InspectionDetails.createdAt'), 'ASC']]
     });
 
-    const details = inspection.InspectionDetails.map(d=>{
+    const details = inspection.InspectionDetails.map(d => {
       const remaining = d.totalQuantity - d.handledNormal - d.handledDefect - d.handledHold;
       return { ...d.toJSON(), remaining, ProductVariant: d.ProductVariant };
     });
 
-  res.json({ inspection, details });
-  }catch(err){
+    return res.json({ inspection, details });
+  } catch (err) {
     console.error('barcode lookup error', err);
-    res.status(500).json({ message:err.message });
+    return res.status(500).json({ message: err.message });
   }
 });
 
