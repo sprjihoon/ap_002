@@ -82,6 +82,8 @@ const InspectionDetail = () => {
       });
       if (response.data.success) {
         enqueueSnackbar('검수가 승인되었습니다.', { variant: 'success' });
+        setInspection(prev=>({ ...prev, status:'approved', rejectReason:null }));
+        sessionStorage.setItem('inspections_need_refresh','1');
         fetchInspectionDetail();
       }
     } catch (error) {
@@ -97,6 +99,8 @@ const InspectionDetail = () => {
       const res = await axios.put(`${API_URL}/inspections/${id}/pending`, {}, { headers:{ Authorization:`Bearer ${token}` }});
       if (res.data.success) {
         enqueueSnackbar('대기중 상태로 변경되었습니다.', { variant:'success' });
+        setInspection(prev=>({ ...prev, status:'pending', rejectReason:null }));
+        sessionStorage.setItem('inspections_need_refresh','1');
         fetchInspectionDetail();
       }
     } catch(error) {
@@ -123,6 +127,8 @@ const InspectionDetail = () => {
         enqueueSnackbar('검수가 반려되었습니다.', { variant: 'success' });
         setRejectDialogOpen(false);
         setRejectReason('');
+        setInspection(prev=>({ ...prev, status:'rejected', rejectReason:rejectReason }));
+        sessionStorage.setItem('inspections_need_refresh','1');
         fetchInspectionDetail();
       }
     } catch (error) {

@@ -20,7 +20,7 @@ import {
   Button,
   TablePagination
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Visibility, Search, Delete, Edit, SpeakerNotes } from '@mui/icons-material';
 import { fetchWithAuth } from '../utils/api';
 import { useSnackbar } from 'notistack';
@@ -38,6 +38,7 @@ const InspectionList = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const location = useLocation();
 
   // 검수 목록 조회
   const fetchInspections = async () => {
@@ -54,6 +55,17 @@ const InspectionList = () => {
 
   useEffect(() => {
     fetchInspections();
+  }, []);
+
+  useEffect(()=>{
+    const handleFocus = () => {
+      if(sessionStorage.getItem('inspections_need_refresh')==='1'){
+        fetchInspections();
+        sessionStorage.removeItem('inspections_need_refresh');
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   // 최신 순 정렬 후 필터링
