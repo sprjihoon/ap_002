@@ -18,6 +18,9 @@ const ActivityLog = require('../models/ActivityLog');
 const { Op } = require('sequelize');
 const xlsx = require('xlsx');
 
+const UPLOAD_BASE = process.env.UPLOAD_BASE || path.join(__dirname, '..', 'uploads');
+const uploadDir   = path.join(UPLOAD_BASE, 'images');   // 또는 inspection_receipts
+
 // 모든 검수 내역 조회
 router.get('/', auth, async (req, res) => {
   try {
@@ -30,6 +33,14 @@ router.get('/', auth, async (req, res) => {
 
     const inspectionsRaw = await Inspection.findAll({
       where,
+      attributes: [
+        'id',
+        'inspectionName',
+        'company',
+        'status',
+        'workStatus',
+        'createdAt'
+      ],
       include: [
         {
           model: InspectionDetail,
@@ -58,7 +69,7 @@ router.get('/', auth, async (req, res) => {
     for (const ins of inspectionsRaw) {
       const latestCommentAt = ins.comments && ins.comments.length > 0 ? Math.max(...ins.comments.map(c=>new Date(c.createdAt))) : null;
       const lastActivity = latestCommentAt ? new Date(Math.max(new Date(ins.updatedAt), latestCommentAt)) : new Date(ins.updatedAt);
-      const readRec = await InspectionRead.findOne({ where: { inspectionId: ins.id, userId: req.user.id } });
+      const readRec = await InspectionRead.findOne({ where: { inspection_id: ins.id, user_id: req.user.id } });
       const hasNew = !readRec || new Date(readRec.lastViewedAt) < lastActivity;
       ins.dataValues.hasNew = hasNew;
       inspections.push(ins);
@@ -264,10 +275,7 @@ router.put('/:id/pending', auth, async (req, res) => {
 });
 
 // 업로드 폴더 생성
-const uploadDir = path.join(__dirname, '..', 'uploads', 'inspection_receipts');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 // multer 설정
 const storage = multer.diskStorage({
@@ -294,7 +302,7 @@ router.post('/:inspectionId/receipt-photo', auth, upload.single('file'), async (
     }
     const photo = await InspectionReceiptPhoto.create({
       inspectionId: inspection.id,
-      photoUrl: `/uploads/inspection_receipts/${req.file.filename}`
+      photoUrl: `/uploads/images/${req.file.filename}`
     });
     res.json({
       message: '사진이 업로드되었습니다.',
@@ -303,6 +311,51 @@ router.post('/:inspectionId/receipt-photo', auth, upload.single('file'), async (
   } catch (error) {
     console.error('Receipt photo upload error:', error);
     res.status(500).json({ message: error.message });
+  }
+});
+
+// 교체(업로드) – 특정 영수증 사진을 새로운 파일로 대체
+router.patch('/receipt-photo/:photoId', auth, upload.single('file'), async (req, res) => {
+  try {
+    const { photoId } = req.params;
+    const photo = await InspectionReceiptPhoto.findByPk(photoId);
+    if (!photo) return res.status(404).json({ message: '사진을 찾을 수 없습니다.' });
+
+    // 권한: 작성자 또는 관리자
+    const inspection = await Inspection.findByPk(photo.inspectionId);
+    if (!inspection) return res.status(404).json({ message: '검수 전표를 찾을 수 없습니다.' });
+    if (req.user.role !== 'admin' && req.user.id !== inspection.inspector_id) {
+      return res.status(403).json({ message: '수정 권한이 없습니다.' });
+    }
+
+    if (!req.file) return res.status(400).json({ message: '파일이 업로드되지 않았습니다.' });
+
+    await photo.update({ photoUrl: `/uploads/inspection_receipts/${req.file.filename}` });
+    res.json({ message: '사진이 교체되었습니다.', photo });
+  } catch (err) {
+    console.error('Receipt photo replace error', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 삭제 – 특정 영수증 사진 제거
+router.delete('/receipt-photo/:photoId', auth, async (req, res) => {
+  try {
+    const { photoId } = req.params;
+    const photo = await InspectionReceiptPhoto.findByPk(photoId);
+    if (!photo) return res.status(404).json({ message: '사진을 찾을 수 없습니다.' });
+
+    const inspection = await Inspection.findByPk(photo.inspectionId);
+    if (!inspection) return res.status(404).json({ message: '검수 전표를 찾을 수 없습니다.' });
+    if (req.user.role !== 'admin' && req.user.id !== inspection.inspector_id) {
+      return res.status(403).json({ message: '삭제 권한이 없습니다.' });
+    }
+
+    await photo.destroy();
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Receipt photo delete error', err);
+    res.status(500).json({ message: err.message });
   }
 });
 
@@ -324,6 +377,7 @@ router.put('/details/:detailId', auth, async (req, res) => {
     }
 
     const { totalQuantity, normalQuantity, defectQuantity, result, comment, photoUrl } = req.body;
+    if (photoUrl === '') payload.photoUrl = null;
     await detail.update({ totalQuantity, normalQuantity, defectQuantity, result, comment, photoUrl });
 
     res.json({ success: true, message: '검수 상세가 수정되었습니다.', detail });
@@ -497,7 +551,7 @@ router.get('/:id', auth, async (req, res) => {
       return res.status(404).json({ success:false, message:'검수 전표를 찾을 수 없습니다.'});
     }
     // mark as read
-    await InspectionRead.upsert({ inspectionId: inspection.id, userId: req.user.id, lastViewedAt: new Date() });
+    await InspectionRead.upsert({ inspection_id: inspection.id, user_id: req.user.id, lastViewedAt: new Date() });
 
     res.json({ success:true, data: inspection });
   } catch (error) {
