@@ -5,7 +5,6 @@ const { auth } = require('../middleware/auth');
 const Inspection = require('../models/inspection');
 const InspectionDetail = require('../models/inspectionDetail');
 const { ProductVariant } = require('../models');
-const { ProductVariant } = require('../models/product');
 const User = require('../models/user');
 const ActivityLog = require('../models/ActivityLog');
 
@@ -220,7 +219,7 @@ router.get('/barcode/:code', auth, async (req,res)=>{
   }
 });
 
-// ---------------- 특정 전표 상세(스캔용) ----------------
+/// ---------------- 특정 전표 상세(스캔용) ----------------
 router.get('/inspection/:id/details', auth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -245,7 +244,6 @@ router.get('/inspection/:id/details', auth, async (req, res) => {
 });
 
 // ------- 최근 활동 / 오류 보고 (간이 구현) -------
-
 // 최근 활동 (향후 ActivityLog 테이블 구현 전까지 빈 배열 반환)
 router.get('/recent-activity', auth, async (req, res) => {
   try {
