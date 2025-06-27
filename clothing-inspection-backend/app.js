@@ -41,7 +41,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /*──────────── 정적 파일 ────────────────*/
-const uploadsPath = path.join(__dirname, '..', 'uploads');
+const uploadsPath = process.env.UPLOAD_BASE || path.join(__dirname, '..', 'uploads');
 app.use('/uploads', express.static(uploadsPath));
 // allow /api/uploads for clients that prepend API base
 app.use('/api/uploads', express.static(uploadsPath));

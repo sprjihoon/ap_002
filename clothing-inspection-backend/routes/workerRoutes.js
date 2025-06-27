@@ -7,6 +7,7 @@ const InspectionDetail = require('../models/inspectionDetail');
 const { ProductVariant } = require('../models');
 const User = require('../models/user');
 const ActivityLog = require('../models/ActivityLog');
+const path = require('path');
 
 // 바코드 앞쪽 0 제거 (스캐너마다 0-padding 차이 대응)
 const stripZero = code => code.replace(/^0+/, '');
@@ -259,6 +260,7 @@ router.get('/inspection/:id/details', auth, async (req, res) => {
     const inspection = await Inspection.findByPk(id, {
       include: [{
         model: InspectionDetail,
+        as: 'InspectionDetails',
         include: [{ model: ProductVariant, as: 'ProductVariant' }],
         order: [['createdAt', 'ASC']]
       }]

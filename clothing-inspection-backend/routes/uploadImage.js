@@ -5,7 +5,8 @@ const fs = require('fs');
 const router = express.Router();
 
 // 업로드 폴더 생성
-const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'images');
+const baseDir = process.env.UPLOAD_BASE || path.join(__dirname, '..', '..', 'uploads');
+const uploadDir = path.join(baseDir, 'images');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
