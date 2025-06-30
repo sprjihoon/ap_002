@@ -55,8 +55,11 @@ const WorkerBarcodeScan=()=>{
         if(detail){
           if(detail.remaining===0){
             enqueueSnackbar('이미 처리 완료된 항목입니다.', { variant:'warning' });
+          }else if((detail.myCount||0)===0){
+            // 첫 스캔은 로드만 하고 처리하지 않음
+            enqueueSnackbar('첫 스캔: 전표 로드되었습니다. 다시 스캔하면 정상 처리됩니다.',{variant:'info'});
           }else{
-            // 자동으로 정상 1개 처리
+            // 두 번째 이후 스캔부터 자동 정상 처리
             await handleScan(idx, detail.id, 'normal');
           }
           setBarcode('');
