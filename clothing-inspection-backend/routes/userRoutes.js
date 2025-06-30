@@ -293,4 +293,53 @@ router.get('/history', auth, async (req,res)=>{
   res.json(list);
 });
 
+router.get('/my-inspections', auth, async (req,res)=>{
+  const rows = await WorkerScan.findAll({
+    where:{ userId:req.user.id },
+    attributes:[
+      'inspectionId',
+      [Sequelize.fn('COUNT',Sequelize.col('*')),'myCount']
+    ],
+    include:[
+      { model:Inspection, as:'Inspection', attributes:['inspectionName','company'] },
+      { model:WorkerScan, as:'others',                     // self-join로 타인 집계
+        attributes:[[Sequelize.fn('COUNT',Sequelize.col('others.id')),'othersCount']],
+        required:false,
+        where:{ userId:{[Op.ne]:req.user.id} }
+      }
+    ],
+    group:['inspectionId']
+  });
+  res.json(rows.map(r=>({
+    inspectionId : r.inspectionId,
+    inspectionName: r.Inspection.inspectionName,
+    company      : r.Inspection.company,
+    myCount      : r.get('myCount'),
+    othersCount  : r.others?.[0]?.get('othersCount')||0
+  })));
+});
+
+router.put('/history/details/:detailId', auth, async (req,res)=>{
+  const detail = await InspectionDetail.findByPk(req.params.detailId,{ include:[{model:Inspection,as:'Inspection'}]});
+  if(!detail) return res.status(404).json({message:'detail not found'});
+  // 권한: 본인 또는 admin
+  if(req.user.role!=='admin'){
+    const scan = await WorkerScan.findOne({ where:{ detailId:detail.id, userId:req.user.id }});
+    if(!scan) return res.status(403).json({message:'권한 없음'});
+  }
+
+  const { handledNormal, handledDefect, handledHold } = req.body;
+  await detail.update({ handledNormal, handledDefect, handledHold });
+
+  // ❶ 잔여 수량 재계산
+  const remaining = detail.totalQuantity - handledNormal - handledDefect - handledHold;
+
+  // ❷ 전표 상태 복구
+  if(remaining > 0 && detail.Inspection.workStatus==='completed'){
+    await detail.Inspection.update({ workStatus:'in_progress' });
+  }
+
+  res.json({success:true, remaining});
+});
+
 module.exports = router; 
