@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
+    "migrate": "npx sequelize-cli db:migrate",
+    "start": "npm run migrate && node app.js",
     "dev": "nodemon app.js",
     "test": "echo \"No backend tests available\" && exit 0"
   },
