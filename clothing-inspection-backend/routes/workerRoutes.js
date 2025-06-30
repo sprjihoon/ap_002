@@ -4,7 +4,7 @@ const { Op, Sequelize } = require('sequelize');
 const { auth } = require('../middleware/auth');
 const Inspection = require('../models/inspection');
 const InspectionDetail = require('../models/inspectionDetail');
-const { ProductVariant } = require('../models');
+const { ProductVariant, WorkerScan } = require('../models');
 const User = require('../models/user');
 const ActivityLog = require('../models/ActivityLog');
 const path = require('path');
@@ -180,6 +180,15 @@ router.post('/scan', auth, async (req, res) => {
       await insp.update({ workStatus:'completed' });
       await ActivityLog.create({ inspectionId: insp.id, userId:req.user.id, type:'work_complete', message:'작업 완료', level:'info' });
     }
+
+    // 완료 체크 이후
+    await WorkerScan.create({
+      inspectionId: detail.inspectionId,
+      detailId: detail.id,
+      userId: req.user.id,
+      result,
+      qualityGrade: qualityGrade || null
+    });
 
     res.json({ success:true, inspectionId: insp.id, detailId: detail.id, remaining, detail });
   } catch(err){

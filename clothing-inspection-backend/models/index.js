@@ -53,6 +53,7 @@ const Product           = get('Product');
 const ProductVariant    = get('ProductVariant');
 const InspectionDetail  = get('InspectionDetail');
 const InspectionReceiptPhoto = get('InspectionReceiptPhoto');
+const WorkerScan        = get('WorkerScan');
 
 // 3. Relations (all constraints:false to suppress FK creation)
 if (Inspection && InspectionComment) {
@@ -200,6 +201,31 @@ if (User && Inspection) {
   User.hasMany(Inspection, {
     foreignKey: 'inspector_id',
     as: 'inspections',
+    constraints: false
+  });
+}
+
+if (WorkerScan && User) {
+  WorkerScan.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'worker',
+    constraints: false
+  });
+  User.hasMany(WorkerScan, {
+    foreignKey: 'userId',
+    constraints: false
+  });
+}
+
+if (WorkerScan && InspectionDetail) {
+  WorkerScan.belongsTo(InspectionDetail, {
+    foreignKey: 'detailId',
+    as: 'detail',
+    constraints: false
+  });
+  InspectionDetail.hasMany(WorkerScan, {
+    foreignKey: 'detailId',
+    as: 'scans',
     constraints: false
   });
 }
