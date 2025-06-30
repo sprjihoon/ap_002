@@ -217,6 +217,19 @@ if (WorkerScan && User) {
   });
 }
 
+if (WorkerScan && Inspection) {
+  WorkerScan.belongsTo(Inspection, {
+    foreignKey: 'inspectionId',
+    as: 'Inspection',
+    constraints: false
+  });
+  Inspection.hasMany(WorkerScan, {
+    foreignKey: 'inspectionId',
+    as: 'scans',
+    constraints: false
+  });
+}
+
 if (WorkerScan && InspectionDetail) {
   WorkerScan.belongsTo(InspectionDetail, {
     foreignKey: 'detailId',
