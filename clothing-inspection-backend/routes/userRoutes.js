@@ -9,7 +9,6 @@ const { WorkerScan } = require('../models');
 const { Op, Sequelize } = require('sequelize');
 const Inspection = require('../models/inspection');
 const InspectionDetail = require('../models/inspectionDetail');
-const errorHandler = require('./middleware/errorHandler.js');
 
 // 관리자 권한 확인 미들웨어
 const isAdmin = async (req, res, next) => {
