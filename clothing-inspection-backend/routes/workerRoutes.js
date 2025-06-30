@@ -360,4 +360,33 @@ router.delete('/history/:id', auth, async (req,res)=>{
   }
 });
 
+router.put('/history/details/:detailId', auth, async (req,res)=>{
+  try{
+    const { detailId } = req.params;
+    const { handledNormal, handledDefect, handledHold, qualityGrade } = req.body;
+
+    const detail = await InspectionDetail.findByPk(detailId, { include:[{model:Inspection, as:'Inspection'}]});
+    if(!detail) return res.status(404).json({ message:'detail not found'});
+
+    // 권한: admin or 해당 작업자
+    if(req.user.role!=='admin'){
+      const has = await WorkerScan.findOne({ where:{ detailId: detail.id, userId: req.user.id } });
+      if(!has) return res.status(403).json({ message:'권한 없음'});
+    }
+
+    await detail.update({ handledNormal, handledDefect, handledHold, qualityGrade });
+
+    const remaining = detail.totalQuantity - handledNormal - handledDefect - handledHold;
+    // workStatus 복귀
+    const insp = detail.Inspection;
+    if(remaining>0 && insp && insp.workStatus==='completed'){
+      await insp.update({ workStatus:'in_progress' });
+    }
+    res.json({ success:true, remaining });
+  }catch(err){
+    console.error('history detail update error',err);
+    res.status(500).json({ message:err.message });
+  }
+});
+
 module.exports = router;
