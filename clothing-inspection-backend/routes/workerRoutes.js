@@ -228,8 +228,8 @@ router.get('/barcode/:code', auth, async (req, res) => {
 
     // 남은 수량이 없는 경우 detail 을 반환하지 않는다 (완료 전표 건너뜀)
 
-    if (!detail) {
-      return res.status(404).json({ message: '해당 바코드의 전표를 찾을 수 없습니다.' });
+    if (!detail || !detail.Inspection || ['completed', 'deleted'].includes(detail.Inspection.workStatus)) {
+      return res.status(404).json({ success:false, code:'NOT_FOUND', message:'해당 전표를 찾을 수 없거나 완료되었습니다.' });
     }
 
     const inspection = await Inspection.findByPk(detail.inspectionId, {

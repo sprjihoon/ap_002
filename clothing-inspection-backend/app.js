@@ -8,6 +8,7 @@ if (process.env.RUN_SYNC_DB === 'true') {
 const express = require('express');
 const cors    = require('cors');
 const path    = require('path');
+const errorHandler = require('./middleware/errorHandler');
 
 const userRoutes        = require('./routes/userRoutes');
 const clothesRoutes     = require('./routes/clothesRoutes');
@@ -78,3 +79,5 @@ process.on('SIGTERM', () => {
   console.log('Received SIGTERM → graceful shutdown');
   server.close(() => process.exit(0));
 });
+
+app.use(errorHandler);

@@ -26,6 +26,7 @@ import { ListAlt, QrCodeScanner, RestartAlt } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
 import axios from 'axios';
 import DefectList from './pages/DefectList';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // 관리자 권한 확인 컴포넌트
 const AdminRoute = ({ children }) => {
@@ -58,154 +59,156 @@ function App() {
   return (
     <AuthProvider>
       <SnackbarProvider maxSnack={3}>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route
-              path="/dashboard"
-              element={
-                <Layout>
-                  <Dashboard />
-                </Layout>
-              }
-            />
-            <Route
-              path="/clothes"
-              element={
-                <Layout>
-                  <ClothesList />
-                </Layout>
-              }
-            />
-            <Route
-              path="/inspections"
-              element={
-                <Layout>
-                  <InspectionList />
-                </Layout>
-              }
-            />
-            <Route
-              path="/inspections/:id"
-              element={
-                <Layout>
-                  <InspectionDetail />
-                </Layout>
-              }
-            />
-            <Route
-              path="/change-password"
-              element={
-                <Layout>
-                  <ChangePassword />
-                </Layout>
-              }
-            />
-            <Route
-              path="/users"
-              element={
-                <Layout>
-                  <AdminRoute>
-                    <UserManagement />
-                  </AdminRoute>
-                </Layout>
-              }
-            />
-            <Route
-              path="/products"
-              element={
-                <Layout>
-                  <ProductManagement />
-                </Layout>
-              }
-            />
-            <Route
-              path="/company"
-              element={
-                <Layout>
-                  <CompanyManagement />
-                </Layout>
-              }
-            />
-            <Route
-              path="/inspections/register"
-              element={
-                <Layout>
-                  <InspectionRegisterPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/worker/inspections"
-              element={
-                <WorkerRoute>
+        <ErrorBoundary>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route
+                path="/dashboard"
+                element={
                   <Layout>
-                    <WorkerInspectionList />
+                    <Dashboard />
                   </Layout>
-                </WorkerRoute>
-              }
-            />
-            <Route
-              path="/worker/scan"
-              element={
-                <WorkerRoute>
+                }
+              />
+              <Route
+                path="/clothes"
+                element={
                   <Layout>
-                    <WorkerBarcodeScan />
+                    <ClothesList />
                   </Layout>
-                </WorkerRoute>
-              }
-            />
-            <Route
-              path="/worker/dashboard"
-              element={
-                <WorkerRoute>
+                }
+              />
+              <Route
+                path="/inspections"
+                element={
                   <Layout>
-                    <WorkerDashboard />
+                    <InspectionList />
                   </Layout>
-                </WorkerRoute>
-              }
-            />
-            <Route
-              path="/worker/history"
-              element={
-                <WorkerRoute>
+                }
+              />
+              <Route
+                path="/inspections/:id"
+                element={
                   <Layout>
-                    <WorkerWorkHistory />
+                    <InspectionDetail />
                   </Layout>
-                </WorkerRoute>
-              }
-            />
-            <Route
-              path="/worker/stats"
-              element={
-                <WorkerRoute>
+                }
+              />
+              <Route
+                path="/change-password"
+                element={
                   <Layout>
-                    <WorkerStats />
+                    <ChangePassword />
                   </Layout>
-                </WorkerRoute>
-              }
-            />
-            <Route
-              path="/workers/stats"
-              element={
-                <Layout>
-                  <AdminOrInspectorRoute>
-                    <WorkersStats />
-                  </AdminOrInspectorRoute>
-                </Layout>
-              }
-            />
-            <Route
-              path="/defects"
-              element={
-                <Layout>
-                  <DefectList />
-                </Layout>
-              }
-            />
-          </Routes>
-        </Router>
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  <Layout>
+                    <AdminRoute>
+                      <UserManagement />
+                    </AdminRoute>
+                  </Layout>
+                }
+              />
+              <Route
+                path="/products"
+                element={
+                  <Layout>
+                    <ProductManagement />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/company"
+                element={
+                  <Layout>
+                    <CompanyManagement />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/inspections/register"
+                element={
+                  <Layout>
+                    <InspectionRegisterPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/worker/inspections"
+                element={
+                  <WorkerRoute>
+                    <Layout>
+                      <WorkerInspectionList />
+                    </Layout>
+                  </WorkerRoute>
+                }
+              />
+              <Route
+                path="/worker/scan"
+                element={
+                  <WorkerRoute>
+                    <Layout>
+                      <WorkerBarcodeScan />
+                    </Layout>
+                  </WorkerRoute>
+                }
+              />
+              <Route
+                path="/worker/dashboard"
+                element={
+                  <WorkerRoute>
+                    <Layout>
+                      <WorkerDashboard />
+                    </Layout>
+                  </WorkerRoute>
+                }
+              />
+              <Route
+                path="/worker/history"
+                element={
+                  <WorkerRoute>
+                    <Layout>
+                      <WorkerWorkHistory />
+                    </Layout>
+                  </WorkerRoute>
+                }
+              />
+              <Route
+                path="/worker/stats"
+                element={
+                  <WorkerRoute>
+                    <Layout>
+                      <WorkerStats />
+                    </Layout>
+                  </WorkerRoute>
+                }
+              />
+              <Route
+                path="/workers/stats"
+                element={
+                  <Layout>
+                    <AdminOrInspectorRoute>
+                      <WorkersStats />
+                    </AdminOrInspectorRoute>
+                  </Layout>
+                }
+              />
+              <Route
+                path="/defects"
+                element={
+                  <Layout>
+                    <DefectList />
+                  </Layout>
+                }
+              />
+            </Routes>
+          </Router>
+        </ErrorBoundary>
       </SnackbarProvider>
     </AuthProvider>
   );
