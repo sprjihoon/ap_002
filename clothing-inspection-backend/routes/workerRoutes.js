@@ -194,36 +194,41 @@ router.get('/barcode/:code', auth, async (req, res) => {
   try {
     const code = stripZero(req.params.code.trim());
 
-    // 1) ProductVariant 우선 조회
-    let variant = await ProductVariant.findOne({ where: { barcode: code } });
+    // 1) 해당 바코드의 상품 변형 조회
+    const variant = await ProductVariant.findOne({ where: { barcode: code } });
+    if (!variant) {
+      return res.status(404).json({ message: '해당 바코드에 대한 상품이 등록되어 있지 않습니다.' });
+    }
 
-    // 2) 남은 수량 >0 이면서 확정·미완료 전표(detail) 찾기
-    let detail = null;
-    if (variant) {
-      detail = await InspectionDetail.findOne({
-        where: {
-          productVariantId: variant.id,
-          [Op.and]: Sequelize.literal('(totalQuantity - handledNormal - handledDefect - handledHold) > 0')
+    // 2) 잔량이 남아있는 확정·미완료 전표 상세 조회
+    let detail = await InspectionDetail.findOne({
+      where: {
+        productVariantId: variant.id,
+        [Op.and]: Sequelize.literal('(totalQuantity - handledNormal - handledDefect - handledHold) > 0')
+      },
+      include: [
+        {
+          model: Inspection,
+          as: 'Inspection',
+          where: { status: { [Op.in]: ['approved', 'confirmed'] }, workStatus: { [Op.ne]: 'completed' } }
         },
-        include: [{ model: Inspection, as:'Inspection', where: { status: { [Op.in]: ['approved', 'confirmed'] }, workStatus: { [Op.ne]: 'completed' } } }],
-        order: [['createdAt', 'ASC']]
-      });
-    }
+        { model: ProductVariant, as: 'ProductVariant' }
+      ],
+      order: [['createdAt', 'ASC']]
+    });
 
-    // 3) variant 없음 이거나 잔량 0 → barcode 필드 직접 매칭 (variant FK 없는 경우 대비)
+    // 3) 잔량이 없지만 전표는 존재하는 경우(읽기 전용)
     if (!detail) {
       detail = await InspectionDetail.findOne({
-        where: { barcode: code },
-        include: [{ model: Inspection, as:'Inspection', where: { status: { [Op.in]: ['approved', 'confirmed'] }, workStatus: { [Op.ne]: 'completed' } } }],
-        order: [['createdAt', 'ASC']]
-      });
-    }
-
-    // 4) 잔량 0 이지만 전표는 보여주어야 할 때 (읽기 전용)
-    if (!detail) {
-      detail = await InspectionDetail.findOne({
-        where: { barcode: code },
-        include: [{ model: Inspection, as:'Inspection', where: { status: { [Op.in]: ['approved', 'confirmed'] } } }],
+        where: { productVariantId: variant.id },
+        include: [
+          {
+            model: Inspection,
+            as: 'Inspection',
+            where: { status: { [Op.in]: ['approved', 'confirmed'] } }
+          },
+          { model: ProductVariant, as: 'ProductVariant' }
+        ],
         order: [['createdAt', 'ASC']]
       });
     }
@@ -233,11 +238,13 @@ router.get('/barcode/:code', auth, async (req, res) => {
     }
 
     const inspection = await Inspection.findByPk(detail.inspectionId, {
-      include: [{
-        model: InspectionDetail,
-        as: 'InspectionDetails',
-        include: [{ model: ProductVariant, as: 'ProductVariant' }]
-      }],
+      include: [
+        {
+          model: InspectionDetail,
+          as: 'InspectionDetails',
+          include: [{ model: ProductVariant, as: 'ProductVariant' }]
+        }
+      ],
       order: [[Sequelize.col('InspectionDetails.createdAt'), 'ASC']]
     });
 
