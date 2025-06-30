@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "migrate": "npx sequelize-cli db:migrate",
+    "migrate": "sequelize-cli db:migrate --env production",
     "start": "npm run migrate && node app.js",
     "dev": "nodemon app.js",
     "test": "echo \"No backend tests available\" && exit 0"
@@ -20,7 +20,8 @@
     "sequelize": "^6.32.1",
     "nodemailer": "^6.9.4",
     "pdfkit": "^0.13.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "sequelize-cli": "^6.6.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const { auth, JWT_SECRET } = require('../middleware/auth');
 const { loginLimiter } = require('../middleware/rateLimiter');
 const User = require('../models/user');
+const { WorkerScan } = require('../models');
 
 // 관리자 권한 확인 미들웨어
 const isAdmin = async (req, res, next) => {
@@ -241,6 +242,49 @@ router.delete('/:id', auth, isAdmin, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+});
+
+// 목록
+router.get('/history', auth, async (req,res)=>{
+  const where = {};
+  if(req.user.role!=='admin'){
+    where.userId = req.user.id;     // 작업자 자신만
+  }else if(req.query.userId){
+    where.userId = req.query.userId; // 관리자가 필터링할 경우
+  }
+
+  const scans = await WorkerScan.findAll({
+    where,
+    include:[
+      { model: User, as:'worker', attributes:['id','username','name'] },
+      { model: InspectionDetail, as:'detail', include:[{ model: ProductVariant, as:'ProductVariant' }] },
+    ],
+    order:[['createdAt','DESC']]
+  });
+
+  // 전표(inspectionId) 단위로 그룹화 & 합계 계산
+  const map = new Map();
+  for(const s of scans){
+    const key = s.inspectionId;
+    if(!map.has(key)){
+      map.set(key,{
+        id:key,
+        inspectionName: s.detail?.Inspection?.inspectionName,
+        company:        s.detail?.Inspection?.company,
+        worker:         s.worker,
+        createdAt:      s.createdAt,
+        updatedAt:      s.createdAt,
+        totalNormal:0,totalDefect:0,totalHold:0,
+        workStatus:'completed'
+      });
+    }
+    const rec = map.get(key);
+    if(s.result==='normal') rec.totalNormal++;
+    else if(s.result==='defect') rec.totalDefect++;
+    else rec.totalHold++;
+    rec.updatedAt = s.createdAt; // 마지막 스캔 시간이 완료 시간
+  }
+  res.json(Array.from(map.values()));
 });
 
 module.exports = router; 
