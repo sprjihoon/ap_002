@@ -38,7 +38,7 @@ const WorkerBarcodeScan=()=>{
     // 이미 전표가 로드되어 있는 경우 -> 정상 1개 처리
     if(inspections.length>0){
       // 현재 로드된 전표(가장 먼저 로드된 것)에서 바코드 매칭
-      const idx = inspections.findIndex(item=> item.details.some(d=> d.ProductVariant?.barcode === bc));
+      const idx = inspections.findIndex(item=> item.remaining>0 && item.details.some(d=> d.ProductVariant?.barcode === bc));
       if(idx!==-1){
         const detail = inspections[idx].details.find(d=> d.ProductVariant?.barcode === bc);
         if(detail){
