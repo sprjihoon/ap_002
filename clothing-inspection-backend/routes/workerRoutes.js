@@ -307,7 +307,8 @@ router.get('/history', auth, async (req, res) => {
           as: 'detail',
           include: [{ model: ProductVariant, as: 'ProductVariant' }]
         },
-        { model: User, as: 'worker', attributes: ['id', 'username'] }
+        { model: User, as: 'worker', attributes: ['id', 'username'] },
+        { model: Inspection, as:'Inspection', required:false, attributes:['inspectionName','company'] }
       ],
       order: [['createdAt', 'DESC']]
     });
@@ -315,6 +316,7 @@ router.get('/history', auth, async (req, res) => {
     // 그룹화: 전표 단위 요약
     const summaryMap = new Map();
     for (const s of scans) {
+      if(!s.Inspection) continue; // skip orphan scans
       const inspId = s.inspectionId;
       if (!summaryMap.has(inspId)) {
         summaryMap.set(inspId, {

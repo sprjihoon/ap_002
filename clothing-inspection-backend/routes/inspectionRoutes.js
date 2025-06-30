@@ -17,6 +17,7 @@ const InspectionRead = require('../models/inspectionRead');
 const ActivityLog = require('../models/ActivityLog');
 const { Op } = require('sequelize');
 const xlsx = require('xlsx');
+const WorkerScan = require('../models/WorkerScan');
 
 const UPLOAD_BASE = process.env.UPLOAD_BASE || path.join(__dirname, '..', 'uploads');
 const uploadDir   = path.join(UPLOAD_BASE, 'images');   // 또는 inspection_receipts
@@ -581,6 +582,9 @@ router.delete('/:id', auth, async (req, res) => {
     if (req.user.role !== 'admin' && req.user.id !== inspection.inspector_id) {
       return res.status(403).json({ success: false, message: '삭제 권한이 없습니다.' });
     }
+
+    // 연관 스캔 로그도 함께 삭제
+    await WorkerScan.destroy({ where:{ inspectionId: inspection.id } });
 
     await inspection.destroy(); // cascade 로 상세/사진 함께 삭제
     res.json({ success: true, message: '검수 전표가 삭제되었습니다.' });

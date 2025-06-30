@@ -8,6 +8,7 @@ const User = require('../models/user');
 const { WorkerScan } = require('../models');
 const { Op, Sequelize } = require('sequelize');
 const Inspection = require('../models/inspection');
+const InspectionDetail = require('../models/inspectionDetail');
 
 // 관리자 권한 확인 미들웨어
 const isAdmin = async (req, res, next) => {
@@ -249,30 +250,46 @@ router.delete('/:id', auth, isAdmin, async (req, res) => {
 // 목록
 router.get('/history', auth, async (req,res)=>{
   const where = {};
-  const isAdmin = req.user.role === 'admin';
-  if (!isAdmin) where.userId = req.user.id;
-  // optional: ?userId= , ?from=2025-06-01 , ?to=2025-06-30
-  if (req.query.userId) where.userId = req.query.userId;
-  if (req.query.from)    where.createdAt = { [Op.gte]: new Date(req.query.from) };
-  if (req.query.to)      where.createdAt = { ...(where.createdAt||{}), [Op.lte]: new Date(req.query.to+'T23:59:59') };
+  if (req.user.role !== 'admin') where.userId = req.user.id;
+  if (req.query.userId)          where.userId = req.query.userId;
 
-  const scans = await WorkerScan.findAll({
-    attributes:['inspectionId','userId',
-      [Sequelize.fn('SUM',Sequelize.literal("result='normal'")), 'normal'],
-      [Sequelize.fn('SUM',Sequelize.literal("result='defect'")), 'defect'],
-      [Sequelize.fn('SUM',Sequelize.literal("result='hold'")),   'hold'],
-      [Sequelize.fn('MIN',Sequelize.col('createdAt')), 'startedAt'],
-      [Sequelize.fn('MAX',Sequelize.col('createdAt')), 'finishedAt']
+  const rows = await WorkerScan.findAll({
+    where,
+    attributes:[
+      'inspectionId','userId',
+      [Sequelize.literal(`
+        SUM(CASE WHEN result IN ('normal','defect','hold') THEN 1 END)
+      `),'myCount'],
+      // othersCount = totalByDetail - myCount  (아래 after 처리)
+      [Sequelize.fn('MIN',Sequelize.col('createdAt')),'startedAt'],
+      [Sequelize.fn('MAX',Sequelize.col('createdAt')),'finishedAt']
     ],
     include:[
-      { model:Inspection, as:'Inspection', attributes:['inspectionName','company'] },
-      { model:User, as:'worker', attributes:['id','username'] }
+      { model:Inspection,   as:'Inspection', required:false },
+      { model:User,         as:'worker',     attributes:['id','username'] },
+      { model:InspectionDetail, as:'detail', attributes:['totalQuantity'] } // 합계 계산용
     ],
-    where,
     group:['inspectionId','userId'],
     order:[['finishedAt','DESC']]
   });
-  res.json(scans);
+
+  const list = rows.map(r=>{
+    const totalDetail = r.detail.reduce((t,d)=>t+d.totalQuantity,0);
+    const my      = parseInt(r.get('myCount'),10);
+    if (!r.Inspection) return;
+    return {
+      inspectionId: r.inspectionId,
+      inspectionName: r.Inspection ? r.Inspection.inspectionName : '(삭제됨)',
+      company: r.Inspection.company,
+      userId: r.userId,
+      worker: r.worker,
+      myCount: my,
+      othersCount: totalDetail - my,
+      startedAt: r.get('startedAt'),
+      finishedAt: r.get('finishedAt')
+    };
+  });
+  res.json(list);
 });
 
 module.exports = router; 
