@@ -8,7 +8,7 @@ if (process.env.RUN_SYNC_DB === 'true') {
 const express = require('express');
 const cors    = require('cors');
 const path    = require('path');
-const errorHandler = require('./middleware/errorHandler');
+const errorHandler = require('./middleware/errorHandler.js');
 
 const userRoutes        = require('./routes/userRoutes');
 const clothesRoutes     = require('./routes/clothesRoutes');
