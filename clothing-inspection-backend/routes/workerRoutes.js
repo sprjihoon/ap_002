@@ -307,7 +307,7 @@ router.get('/history', auth, async (req, res) => {
           as: 'detail',
           include: [{ model: ProductVariant, as: 'ProductVariant' }]
         },
-        { model: User, as: 'worker', attributes: ['id', 'username', 'name'] }
+        { model: User, as: 'worker', attributes: ['id', 'username'] }
       ],
       order: [['createdAt', 'DESC']]
     });
