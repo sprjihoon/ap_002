@@ -1,9 +1,10 @@
 import React,{ useState,useEffect } from 'react';
-import { Box, TextField, Button, Paper, Typography, CircularProgress, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem } from '@mui/material';
+import { Box, TextField, Button, Paper, Typography, CircularProgress, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, IconButton } from '@mui/material';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { API_URL } from '../utils/api';
+import { Close } from '@mui/icons-material';
 
 const WorkerBarcodeScan=()=>{
   const storedList = (JSON.parse(sessionStorage.getItem('currentInspections') || '[]')||[]).filter(it=>it.inspection && (it.remaining??1)>0);
@@ -148,6 +149,15 @@ const WorkerBarcodeScan=()=>{
     }finally{ setLoading(false); }
   };
 
+  const handleCloseCard = (idx)=>{
+    setInspections(list=>{
+      const copy=[...list];
+      copy.splice(idx,1);
+      sessionStorage.setItem('currentInspections',JSON.stringify(copy));
+      return copy;
+    });
+  };
+
   return (
     <Box sx={{p:3}}>
       <Typography variant="h5" gutterBottom>바코드 스캔</Typography>
@@ -157,7 +167,10 @@ const WorkerBarcodeScan=()=>{
       </Paper>
 
       {inspections.filter(it=>it.remaining>0).map((item,idx)=>(
-        <Paper key={item.inspection.id} sx={{p:2, mt:3}}>
+        <Paper key={item.inspection.id} sx={{p:2, mt:3, position:'relative'}}>
+          <IconButton size="small" sx={{position:'absolute', top:4, right:4}} onClick={()=>handleCloseCard(idx)}>
+            <Close fontSize="small" />
+          </IconButton>
           <Typography>전표ID: {item.inspection.id}</Typography>
           <Typography sx={{ mt:1 }}>전표 남은수량: <b>{item.remaining}</b></Typography>
 
