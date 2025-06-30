@@ -226,21 +226,7 @@ router.get('/barcode/:code', auth, async (req, res) => {
       order: [['createdAt', 'ASC']]
     });
 
-    // 3) 잔량이 없지만 전표는 존재하는 경우(읽기 전용)
-    if (!detail) {
-      detail = await InspectionDetail.findOne({
-        where: { productVariantId: variant.id },
-        include: [
-          {
-            model: Inspection,
-            as: 'Inspection',
-            where: { status: { [Op.in]: ['approved', 'confirmed'] } }
-          },
-          { model: ProductVariant, as: 'ProductVariant' }
-        ],
-        order: [['createdAt', 'ASC']]
-      });
-    }
+    // 남은 수량이 없는 경우 detail 을 반환하지 않는다 (완료 전표 건너뜀)
 
     if (!detail) {
       return res.status(404).json({ message: '해당 바코드의 전표를 찾을 수 없습니다.' });
