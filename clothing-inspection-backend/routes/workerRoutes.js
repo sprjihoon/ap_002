@@ -321,8 +321,8 @@ router.get('/history', auth, async (req, res) => {
       if (!summaryMap.has(inspId)) {
         summaryMap.set(inspId, {
           id: inspId,
-          inspectionName: s.detail?.Inspection?.inspectionName || '',
-          company: s.detail?.Inspection?.company || '',
+          inspectionName: s.Inspection?.inspectionName || '',
+          company: s.Inspection?.company || '',
           worker: s.worker,
           createdAt: s.createdAt,
           updatedAt: s.createdAt,
