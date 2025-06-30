@@ -344,4 +344,18 @@ router.get('/history', auth, async (req, res) => {
   }
 });
 
+router.delete('/history/:id', auth, async (req,res)=>{
+  try{
+    if(req.user.role!=='admin') return res.status(403).json({message:'삭제 권한이 없습니다.'});
+    const { id } = req.params; // id = WorkerScan record id
+    const scan = await WorkerScan.findByPk(id);
+    if(!scan) return res.status(404).json({ message:'기록을 찾을 수 없습니다.'});
+    await scan.destroy();
+    res.json({ success:true });
+  }catch(err){
+    console.error('history delete error', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

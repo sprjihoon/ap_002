@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   Box,
   Typography,
@@ -27,8 +27,11 @@ import {
 } from '@mui/material';
 import { Delete, Visibility } from '@mui/icons-material';
 import { fetchWithAuth } from '../utils/api';
+import { AuthContext } from '../contexts/AuthContext';
 
 const WorkerWorkHistory = () => {
+  const { user } = useContext(AuthContext);
+  const isAdmin = user?.role === 'admin';
   const [data, setData] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -187,9 +190,11 @@ const WorkerWorkHistory = () => {
                   <IconButton size="small" onClick={()=>viewDetail(row.id)}>
                     <Visibility fontSize="small" />
                   </IconButton>
-                  <IconButton size="small" color="error" onClick={()=>handleDelete(row.id)}>
-                    <Delete fontSize="small" />
-                  </IconButton>
+                  {isAdmin && (
+                    <IconButton size="small" color="error" onClick={()=>handleDelete(row.id)}>
+                      <Delete fontSize="small" />
+                    </IconButton>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

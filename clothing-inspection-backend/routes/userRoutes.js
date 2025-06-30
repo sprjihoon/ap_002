@@ -6,6 +6,8 @@ const { auth, JWT_SECRET } = require('../middleware/auth');
 const { loginLimiter } = require('../middleware/rateLimiter');
 const User = require('../models/user');
 const { WorkerScan } = require('../models');
+const { Op, Sequelize } = require('sequelize');
+const Inspection = require('../models/inspection');
 
 // 관리자 권한 확인 미들웨어
 const isAdmin = async (req, res, next) => {
@@ -247,44 +249,30 @@ router.delete('/:id', auth, isAdmin, async (req, res) => {
 // 목록
 router.get('/history', auth, async (req,res)=>{
   const where = {};
-  if(req.user.role!=='admin'){
-    where.userId = req.user.id;     // 작업자 자신만
-  }else if(req.query.userId){
-    where.userId = req.query.userId; // 관리자가 필터링할 경우
-  }
+  const isAdmin = req.user.role === 'admin';
+  if (!isAdmin) where.userId = req.user.id;
+  // optional: ?userId= , ?from=2025-06-01 , ?to=2025-06-30
+  if (req.query.userId) where.userId = req.query.userId;
+  if (req.query.from)    where.createdAt = { [Op.gte]: new Date(req.query.from) };
+  if (req.query.to)      where.createdAt = { ...(where.createdAt||{}), [Op.lte]: new Date(req.query.to+'T23:59:59') };
 
   const scans = await WorkerScan.findAll({
-    where,
-    include:[
-      { model: User, as:'worker', attributes:['id','username','name'] },
-      { model: InspectionDetail, as:'detail', include:[{ model: ProductVariant, as:'ProductVariant' }] },
+    attributes:['inspectionId','userId',
+      [Sequelize.fn('SUM',Sequelize.literal("result='normal'")), 'normal'],
+      [Sequelize.fn('SUM',Sequelize.literal("result='defect'")), 'defect'],
+      [Sequelize.fn('SUM',Sequelize.literal("result='hold'")),   'hold'],
+      [Sequelize.fn('MIN',Sequelize.col('createdAt')), 'startedAt'],
+      [Sequelize.fn('MAX',Sequelize.col('createdAt')), 'finishedAt']
     ],
-    order:[['createdAt','DESC']]
+    include:[
+      { model:Inspection, as:'Inspection', attributes:['inspectionName','company'] },
+      { model:User, as:'worker', attributes:['id','username'] }
+    ],
+    where,
+    group:['inspectionId','userId'],
+    order:[['finishedAt','DESC']]
   });
-
-  // 전표(inspectionId) 단위로 그룹화 & 합계 계산
-  const map = new Map();
-  for(const s of scans){
-    const key = s.inspectionId;
-    if(!map.has(key)){
-      map.set(key,{
-        id:key,
-        inspectionName: s.detail?.Inspection?.inspectionName,
-        company:        s.detail?.Inspection?.company,
-        worker:         s.worker,
-        createdAt:      s.createdAt,
-        updatedAt:      s.createdAt,
-        totalNormal:0,totalDefect:0,totalHold:0,
-        workStatus:'completed'
-      });
-    }
-    const rec = map.get(key);
-    if(s.result==='normal') rec.totalNormal++;
-    else if(s.result==='defect') rec.totalDefect++;
-    else rec.totalHold++;
-    rec.updatedAt = s.createdAt; // 마지막 스캔 시간이 완료 시간
-  }
-  res.json(Array.from(map.values()));
+  res.json(scans);
 });
 
 module.exports = router; 
