@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -27,10 +27,10 @@ import {
 } from '@mui/material';
 import { Delete, Visibility } from '@mui/icons-material';
 import { fetchWithAuth } from '../utils/api';
-import { AuthContext } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const WorkerWorkHistory = () => {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [data, setData] = useState([]);
   const [page, setPage] = useState(0);
