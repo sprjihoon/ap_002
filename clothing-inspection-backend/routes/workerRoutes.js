@@ -290,4 +290,58 @@ router.get('/recent-activity', auth, async (req, res) => {
   }
 });
 
+router.get('/history', auth, async (req, res) => {
+  try {
+    const where = {};
+    if (req.user.role !== 'admin') {
+      where.userId = req.user.id;
+    } else if (req.query.userId) {
+      where.userId = req.query.userId;
+    }
+
+    const scans = await WorkerScan.findAll({
+      where,
+      include: [
+        {
+          model: InspectionDetail,
+          as: 'detail',
+          include: [{ model: ProductVariant, as: 'ProductVariant' }]
+        },
+        { model: User, as: 'worker', attributes: ['id', 'username', 'name'] }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    // 그룹화: 전표 단위 요약
+    const summaryMap = new Map();
+    for (const s of scans) {
+      const inspId = s.inspectionId;
+      if (!summaryMap.has(inspId)) {
+        summaryMap.set(inspId, {
+          id: inspId,
+          inspectionName: s.detail?.Inspection?.inspectionName || '',
+          company: s.detail?.Inspection?.company || '',
+          worker: s.worker,
+          createdAt: s.createdAt,
+          updatedAt: s.createdAt,
+          totalNormal: 0,
+          totalDefect: 0,
+          totalHold: 0,
+          workStatus: 'completed'
+        });
+      }
+      const rec = summaryMap.get(inspId);
+      if (s.result === 'normal') rec.totalNormal += 1;
+      else if (s.result === 'defect') rec.totalDefect += 1;
+      else rec.totalHold += 1;
+      if (s.createdAt > rec.updatedAt) rec.updatedAt = s.createdAt;
+    }
+
+    return res.json(Array.from(summaryMap.values()));
+  } catch (err) {
+    console.error('history list error', err);
+    return res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
