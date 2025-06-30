@@ -12,7 +12,7 @@ COPY package*.json ./
 # 의존성 설치
 RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 make g++ \
-    && npm ci --omit=dev \
+    && npm install --omit=dev \
     && npm rebuild bcrypt --build-from-source \
     && apt-get remove -y python3 make g++ \
     && apt-get autoremove -y \
