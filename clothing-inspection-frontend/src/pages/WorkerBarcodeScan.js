@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { API_URL } from '../utils/api';
 
 const WorkerBarcodeScan=()=>{
-  const storedList = JSON.parse(sessionStorage.getItem('currentInspections') || '[]');
+  const storedList = (JSON.parse(sessionStorage.getItem('currentInspections') || '[]')||[]).filter(it=>it.inspection && (it.remaining??1)>0);
   const [barcode,setBarcode]=useState('');
   const [inspections,setInspections]=useState(storedList); // each item { inspection, details:[], remaining, myHandled, barcode }
   const [loading,setLoading]=useState(false);
@@ -26,6 +26,16 @@ const WorkerBarcodeScan=()=>{
       preloadInspection(inspId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[]);
+
+  useEffect(()=>{
+    setInspections(list=>{
+      const filtered=list.filter(it=>it.inspection && it.remaining>0);
+      if(filtered.length!==list.length){
+        sessionStorage.setItem('currentInspections',JSON.stringify(filtered));
+      }
+      return filtered;
+    });
   },[]);
 
   const token=localStorage.getItem('token');
