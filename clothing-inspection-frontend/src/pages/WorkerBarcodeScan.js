@@ -60,6 +60,10 @@ const WorkerBarcodeScan=()=>{
     try{
       const res=await api.get(`/worker/barcode/${bc}`);
       const totalRemain = res.data.details.reduce((t,d)=>t+d.remaining,0);
+      if(totalRemain===0){
+        enqueueSnackbar('이미 완료된 전표입니다.',{variant:'info'});
+        return;
+      }
       const existsIdx = inspections.findIndex(i=> i.inspection.id === res.data.inspection.id);
       if(existsIdx!==-1){
         const newList=[...inspections];
