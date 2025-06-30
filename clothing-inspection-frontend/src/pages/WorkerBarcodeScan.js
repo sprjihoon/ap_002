@@ -146,7 +146,7 @@ const WorkerBarcodeScan=()=>{
         <Button fullWidth variant="contained" sx={{mt:1}} onClick={lookup} disabled={loading}>{loading?<CircularProgress size={24}/>:'조회'}</Button>
       </Paper>
 
-      {inspections.map((item,idx)=>(
+      {inspections.filter(it=>it.remaining>0).map((item,idx)=>(
         <Paper key={item.inspection.id} sx={{p:2, mt:3}}>
           <Typography>전표ID: {item.inspection.id}</Typography>
           <Typography sx={{ mt:1 }}>전표 남은수량: <b>{item.remaining}</b></Typography>
