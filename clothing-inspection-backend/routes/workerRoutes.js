@@ -69,8 +69,8 @@ router.get('/stats', auth, async (req, res) => {
         }],
         raw:true
       }),
-      // 오늘 전체 전표 수 (오늘 생성)
-      Inspection.count({ where:{ status:{[Op.in]:['approved','completed']}, [Op.and]: Sequelize.literal('DATE(Inspection.createdAt)=CURDATE()') } }),
+      // 오늘 전체 전표 수 (오늘 생성, 모든 status)
+      Inspection.count({ where: Sequelize.literal('DATE(Inspection.createdAt)=CURDATE()') }),
       // 오늘 완료 전표 수 (오늘 생성 + 작업 완료)
       Inspection.count({ where:{ status:{[Op.in]:['approved','completed']}, workStatus:'completed', [Op.and]: Sequelize.literal('DATE(Inspection.createdAt)=CURDATE()') } }),
       // 오늘 진행중 전표 수 (오늘 생성 + 진행중)
