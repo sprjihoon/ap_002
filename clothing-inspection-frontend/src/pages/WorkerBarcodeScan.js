@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { API_URL } from '../utils/api';
-import { Close } from '@mui/icons-material';
+import { Close, Refresh } from '@mui/icons-material';
 
 const WorkerBarcodeScan=()=>{
   const storedList = (JSON.parse(sessionStorage.getItem('currentInspections') || '[]')||[]).filter(it=>it.inspection && (it.remaining??1)>0);
@@ -161,6 +161,21 @@ const WorkerBarcodeScan=()=>{
     });
   };
 
+  const handleRefreshCard = async(idx)=>{
+    const item = inspections[idx];
+    if(!item) return;
+    setLoading(true);
+    try{
+      const res = await api.get(`/worker/inspection/${item.inspection.id}/details`);
+      const totalRemain = res.data.details.reduce((t,d)=>t+d.remaining,0);
+      const newList=[...inspections];
+      newList[idx]={ ...item, details: res.data.details.map(d=>({...d,myCount:0})), remaining: totalRemain };
+      setInspections(newList);
+      sessionStorage.setItem('currentInspections',JSON.stringify(newList));
+    }catch(err){ enqueueSnackbar(err.response?.data?.message||'전표 새로고침 실패',{variant:'error'}); }
+    finally{ setLoading(false); }
+  };
+
   const handleReset = ()=>{
     setBarcode('');
     setInspections([]);
@@ -185,9 +200,14 @@ const WorkerBarcodeScan=()=>{
 
       {inspections.filter(it=>it.remaining>0).map((item,idx)=>(
         <Paper key={item.inspection.id} sx={{p:2, mt:3, position:'relative'}}>
-          <IconButton size="small" sx={{position:'absolute', top:4, right:4}} onClick={()=>handleCloseCard(idx)}>
-            <Close fontSize="small" />
-          </IconButton>
+          <Box sx={{ position:'absolute', top:4, right:4 }}>
+            <IconButton size="small" onClick={()=>handleRefreshCard(idx)} sx={{ mr:0.5 }} title="새로고침">
+              <Refresh fontSize="small" />
+            </IconButton>
+            <IconButton size="small" onClick={()=>handleCloseCard(idx)} title="닫기">
+              <Close fontSize="small" />
+            </IconButton>
+          </Box>
           <Typography>전표ID: {item.inspection.id}</Typography>
           <Typography sx={{ mt:1 }}>전표 남은수량: <b>{item.remaining}</b></Typography>
 
