@@ -75,7 +75,7 @@ const InspectionList = () => {
     const company = (inspection.company || '').toLowerCase();
     const matchesSearch = slipName.includes(searchTerm.toLowerCase()) || company.includes(searchTerm.toLowerCase());
     const matchesCompany = (user.role === 'operator') ? true : (!companyFilter || inspection.company === companyFilter);
-    const matchesStatus = !statusFilter || inspection.status === statusFilter;
+    const matchesStatus = !statusFilter || inspection.status === statusFilter || inspection.workStatus === statusFilter;
     const created = new Date(inspection.createdAt);
     const matchesStart = !startDate || created >= new Date(startDate);
     const matchesEnd = !endDate || created <= new Date(endDate+'T23:59:59');
@@ -132,6 +132,9 @@ const InspectionList = () => {
     }
   };
 
+  // 필터 변경 시 첫 페이지로 이동
+  useEffect(()=>{ setPage(0); }, [searchTerm, companyFilter, statusFilter, startDate, endDate]);
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" sx={{ mb: 3 }}>검수 목록</Typography>
@@ -177,8 +180,11 @@ const InspectionList = () => {
           >
             <MenuItem value="">전체</MenuItem>
             <MenuItem value="pending">대기중</MenuItem>
-            <MenuItem value="approved">승인</MenuItem>
+            <MenuItem value="approved">확정</MenuItem>
             <MenuItem value="rejected">반려</MenuItem>
+            <MenuItem value="in_progress">작업중</MenuItem>
+            <MenuItem value="completed">완료</MenuItem>
+            <MenuItem value="error">오류</MenuItem>
           </Select>
         </FormControl>
         <TextField type="date" size="small" label="시작일" InputLabelProps={{shrink:true}} value={startDate} onChange={e=>setStartDate(e.target.value)} />
