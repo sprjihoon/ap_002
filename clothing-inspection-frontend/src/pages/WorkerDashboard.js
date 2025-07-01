@@ -32,6 +32,8 @@ const WorkerDashboard = () => {
   const [error, setError] = useState('');
   const [unconfirmedList, setUnconfirmedList] = useState([]);
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const canEdit = ['inspector','admin'].includes((user.role||'').toLowerCase());
 
   useEffect(() => {
     fetchDashboardData();
@@ -160,7 +162,9 @@ const WorkerDashboard = () => {
             <Grid container spacing={2}>
               {unconfirmedList.map(u=>(
                 <Grid item xs={12} sm={6} md={4} lg={3} key={u.id}>
-                  <Card sx={{ bgcolor: u.status==='pending'? 'warning.light':'error.light', textAlign:'center' }}>
+                  <Card
+                    onClick={()=>{ if(canEdit) navigate(`/inspections/${u.id}?edit=1`); }}
+                    sx={{ cursor: canEdit?'pointer':'default', bgcolor: u.status==='pending'? 'warning.light':'error.light', textAlign:'center' }}>
                     <CardContent>
                       <Typography variant="subtitle2" gutterBottom>{u.company}</Typography>
                       <Typography variant="h6" gutterBottom>{u.inspectionName}</Typography>
