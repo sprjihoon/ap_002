@@ -52,6 +52,7 @@ router.get('/stats', auth, async (req, res) => {
         ],
         include:[{
           model: Inspection,
+          as: 'Inspection',
           attributes:[],
           where:{ status:{[Op.in]:['approved','completed']}, [Op.and]: Sequelize.where(Sequelize.fn('DATE', Sequelize.col('Inspection.createdAt')), todayDateLiteral) }
         }],
@@ -64,6 +65,7 @@ router.get('/stats', auth, async (req, res) => {
         ],
         include:[{
           model: Inspection,
+          as: 'Inspection',
           attributes:[],
           where:{ status:{[Op.in]:['approved','completed']}, workStatus:{[Op.ne]:'completed'}, [Op.and]: Sequelize.literal('DATE(Inspection.createdAt) < CURDATE()') }
         }],
@@ -307,16 +309,16 @@ router.get('/history', auth, async (req, res) => {
           as: 'detail',
           include: [{ model: ProductVariant, as: 'ProductVariant' }]
         },
-        { model: User, as: 'worker', attributes: ['id', 'username'] },
-        { model: Inspection, as:'Inspection', required:false, attributes:['inspectionName','company'] }
+        { model: User, as: 'worker', attributes: ['id', 'username', 'name'] },
+        { model: Inspection, as: 'Inspection', required: false, attributes: ['inspectionName', 'company'] }
       ],
       order: [['createdAt', 'DESC']]
     });
 
-    // 그룹화: 전표 단위 요약
+    // 그룹화: 전표 단위 요약 (WorkerScan 기준으로 worker 및 날짜 파악)
     const summaryMap = new Map();
     for (const s of scans) {
-      if(!s.Inspection) continue; // skip orphan scans
+      if (!s.Inspection) continue; // skip orphan scans
       const inspId = s.inspectionId;
       if (!summaryMap.has(inspId)) {
         summaryMap.set(inspId, {
@@ -333,15 +335,88 @@ router.get('/history', auth, async (req, res) => {
         });
       }
       const rec = summaryMap.get(inspId);
-      if (s.result === 'normal') rec.totalNormal += 1;
-      else if (s.result === 'defect') rec.totalDefect += 1;
-      else rec.totalHold += 1;
+      // 가장 최근 스캔 시점으로 updatedAt 유지
       if (s.createdAt > rec.updatedAt) rec.updatedAt = s.createdAt;
+    }
+
+    // ----- 핵심 변경: InspectionDetail 에서 집계하여 정확한 최종 수량 반영 -----
+    const inspIds = Array.from(summaryMap.keys());
+    if (inspIds.length) {
+      const aggregates = await InspectionDetail.findAll({
+        attributes: [
+          'inspectionId',
+          [Sequelize.fn('SUM', Sequelize.col('handledNormal')), 'totalNormal'],
+          [Sequelize.fn('SUM', Sequelize.col('handledDefect')), 'totalDefect'],
+          [Sequelize.fn('SUM', Sequelize.col('handledHold')), 'totalHold']
+        ],
+        where: { inspectionId: { [Op.in]: inspIds } },
+        group: ['inspectionId'],
+        raw: true
+      });
+      for (const a of aggregates) {
+        const rec = summaryMap.get(a.inspectionId);
+        if (rec) {
+          rec.totalNormal = parseInt(a.totalNormal || 0, 10);
+          rec.totalDefect = parseInt(a.totalDefect || 0, 10);
+          rec.totalHold = parseInt(a.totalHold || 0, 10);
+        }
+      }
+
+      // updatedAt 은 Inspection.updatedAt 사용 (최근 수정 시각)
+      const inspRows = await Inspection.findAll({
+        attributes: ['id', 'updatedAt'],
+        where: { id: { [Op.in]: inspIds } },
+        raw: true
+      });
+      for (const i of inspRows) {
+        const rec = summaryMap.get(i.id);
+        if (rec) rec.updatedAt = i.updatedAt;
+      }
     }
 
     return res.json(Array.from(summaryMap.values()));
   } catch (err) {
     console.error('history list error', err);
+    return res.status(500).json({ message: err.message });
+  }
+});
+
+// ----- 신규: 특정 완료 전표 상세 조회 (작업 완료 내역 수정용) -----
+router.get('/history/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    // 완료 여부와 상태 무관하게 조회 (history 화면에서 이미 필터)
+    const inspection = await Inspection.findByPk(id, {
+      include: [
+        {
+          model: InspectionDetail,
+          as: 'InspectionDetails',
+          include: [{ model: ProductVariant, as: 'ProductVariant' }],
+          order: [['createdAt', 'ASC']]
+        },
+        { model: User, as: 'inspector', attributes: ['id', 'username', 'name'] }
+      ]
+    });
+    if (!inspection) return res.status(404).json({ message: 'inspection not found' });
+
+    // 권한 체크: admin 또는 해당 작업자의 이력 포함 시 허용
+    if (req.user.role !== 'admin') {
+      const scanned = await WorkerScan.findOne({ where: { inspectionId: id, userId: req.user.id } });
+      if (!scanned) return res.status(403).json({ message: '권한 없음' });
+    }
+
+    // 작업자 정보(최초 스캔자) 첨부 – history 화면 호환용
+    const firstScan = await WorkerScan.findOne({
+      where: { inspectionId: id },
+      include: [{ model: User, as: 'worker', attributes: ['id', 'username', 'name'] }],
+      order: [['createdAt', 'ASC']]
+    });
+    const json = inspection.toJSON();
+    json.worker = firstScan?.worker || null;
+
+    return res.json(json);
+  } catch (err) {
+    console.error('history detail fetch error', err);
     return res.status(500).json({ message: err.message });
   }
 });
@@ -381,6 +456,10 @@ router.put('/history/details/:detailId', auth, async (req,res)=>{
     const insp = detail.Inspection;
     if(remaining>0 && insp && insp.workStatus==='completed'){
       await insp.update({ workStatus:'in_progress' });
+    }
+    // 갱신 시간 업데이트 (내역 화면 최신순 정렬을 위해)
+    if (insp) {
+      await insp.update({ updatedAt: new Date() });
     }
     res.json({ success:true, remaining });
   }catch(err){
