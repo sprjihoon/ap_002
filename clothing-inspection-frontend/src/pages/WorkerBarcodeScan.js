@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { API_URL } from '../utils/api';
-import { Close, Refresh } from '@mui/icons-material';
+import { Close, Refresh, Undo } from '@mui/icons-material';
 
 const WorkerBarcodeScan=()=>{
   const storedList = (JSON.parse(sessionStorage.getItem('currentInspections') || '[]')||[]).filter(it=>it.inspection && (it.remaining??1)>0);
@@ -187,6 +187,27 @@ const WorkerBarcodeScan=()=>{
     document.getElementById('barcode-input')?.focus();
   };
 
+  const handleUndo = async(cardIdx, detailId, result)=>{
+    setLoading(true);
+    try{
+      const res = await api.post('/worker/scan/undo',{ detailId, result });
+      const newList=[...inspections];
+      const item=newList[cardIdx];
+      const dIdx=item.details.findIndex(d=>d.id===detailId);
+      if(dIdx!==-1){
+        const det=item.details[dIdx];
+        det.remaining = res.data.remaining;
+        det.myCount = Math.max(0,(det.myCount||0)-1);
+        if(det.remaining>0){ // update totals
+          item.remaining = item.details.reduce((t,d)=>t+d.remaining,0);
+        }
+      }
+      setInspections(newList);
+      sessionStorage.setItem('currentInspections',JSON.stringify(newList));
+      enqueueSnackbar('1건 취소되었습니다.',{variant:'info'});
+    }catch(err){ enqueueSnackbar(err.response?.data?.message||'취소 실패',{variant:'error'});}finally{ setLoading(false); }
+  };
+
   return (
     <Box sx={{p:3}}>
       <Typography variant="h5" gutterBottom>바코드 스캔</Typography>
@@ -240,6 +261,11 @@ const WorkerBarcodeScan=()=>{
                         <Button size="small" variant={r==='normal'?'contained':'outlined'} color={r==='defect'?'error':r==='hold'?'warning':'primary'} disabled={loading || det.remaining===0} onClick={()=>handleScan(idx, det.id, r)}>
                           {r==='normal'?'정상':r==='defect'?'불량':'보류'}
                         </Button>
+                        {det.myCount>0 && (
+                          <IconButton size="small" color="secondary" onClick={()=>handleUndo(idx, det.id, r)} disabled={loading} title="되돌리기">
+                            <Undo fontSize="small" />
+                          </IconButton>
+                        )}
                       </TableCell>
                     ))}
                     <TableCell align="center">
