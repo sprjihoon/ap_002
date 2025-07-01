@@ -26,6 +26,7 @@ import { IconButton } from '@mui/material';
 import axios from 'axios';
 import DefectList from './pages/DefectList';
 import ErrorBoundary from './components/ErrorBoundary';
+import TvDashboard from './pages/TvDashboard';
 
 // 관리자 권한 확인 컴포넌트
 const AdminRoute = ({ children }) => {
@@ -38,7 +39,7 @@ const AdminRoute = ({ children }) => {
 const WorkerRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const role = (user.role || '').toLowerCase();
-  return user && (['worker','inspector','admin'].includes(role)) ? children : <Navigate to="/login" />;
+  return user && (['worker','inspector','admin','display'].includes(role)) ? children : <Navigate to="/login" />;
 };
 
 // Route accessible to admin or inspector
@@ -46,6 +47,11 @@ const AdminOrInspectorRoute = ({ children }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const role = (user.role || '').toLowerCase();
   return user && (role==='admin' || role==='inspector') ? children : <Navigate to="/dashboard" />;
+};
+
+const DisplayRoute = ({ children }) => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  return user && (user.role==='display') ? children : <Navigate to="/login" />;
 };
 
 function App() {
@@ -193,6 +199,14 @@ function App() {
                   <Layout>
                     <DefectList />
                   </Layout>
+                }
+              />
+              <Route
+                path="/tv/dashboard"
+                element={
+                  <DisplayRoute>
+                    <TvDashboard />
+                  </DisplayRoute>
                 }
               />
             </Routes>
