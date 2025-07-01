@@ -169,7 +169,7 @@ const WorkerBarcodeScan=()=>{
       const res = await api.get(`/worker/inspection/${item.inspection.id}/details`);
       const totalRemain = res.data.details.reduce((t,d)=>t+d.remaining,0);
       const newDetails = res.data.details.map(d=>{
-        const prev = item.details.find(p=>p.id===d.id);
+        const prev = item.details.find(p=>Number(p.id)===Number(d.id));
         return { ...d, myCount: prev?.myCount||0 };
       });
       const newList=[...inspections];
