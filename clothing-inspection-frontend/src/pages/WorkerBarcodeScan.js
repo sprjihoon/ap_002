@@ -161,12 +161,26 @@ const WorkerBarcodeScan=()=>{
     });
   };
 
+  const handleReset = ()=>{
+    setBarcode('');
+    setInspections([]);
+    sessionStorage.removeItem('currentInspections');
+    document.getElementById('barcode-input')?.focus();
+  };
+
   return (
     <Box sx={{p:3}}>
       <Typography variant="h5" gutterBottom>바코드 스캔</Typography>
       <Paper sx={{p:2, maxWidth:400}}>
         <TextField id="barcode-input" fullWidth label="바코드" value={barcode} onChange={e=>setBarcode(e.target.value)} onKeyPress={e=>{if(e.key==='Enter'){lookup();}}} disabled={loading}/>
-        <Button fullWidth variant="contained" sx={{mt:1}} onClick={lookup} disabled={loading}>{loading?<CircularProgress size={24}/>:'조회'}</Button>
+        <Grid container spacing={1} sx={{mt:1}}>
+          <Grid item xs>
+            <Button fullWidth variant="contained" onClick={lookup} disabled={loading}>{loading?<CircularProgress size={24}/>:'조회'}</Button>
+          </Grid>
+          <Grid item xs>
+            <Button fullWidth variant="outlined" color="warning" onClick={handleReset}>초기화</Button>
+          </Grid>
+        </Grid>
       </Paper>
 
       {inspections.filter(it=>it.remaining>0).map((item,idx)=>(
