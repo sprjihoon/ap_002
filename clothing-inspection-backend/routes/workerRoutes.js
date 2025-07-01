@@ -416,6 +416,23 @@ router.get('/history/:id', auth, async (req, res) => {
     const json = inspection.toJSON();
     json.worker = firstScan?.worker || null;
 
+    // 작업자별 기여 집계
+    const scans = await WorkerScan.findAll({
+      where:{ inspectionId: id },
+      attributes:['userId','result', [Sequelize.fn('COUNT',Sequelize.col('id')),'cnt']],
+      include:[{ model: User, as:'worker', attributes:['id','username'] }],
+      group:['userId','result','worker.id','worker.username'],
+      raw:true
+    });
+    const contribMap = {};
+    for(const s of scans){
+      if(!contribMap[s.userId]) contribMap[s.userId]={ userId:s.userId, username:s['worker.username'], normal:0, defect:0, hold:0 };
+      if(s.result==='normal') contribMap[s.userId].normal = parseInt(s.cnt,10);
+      else if(s.result==='defect') contribMap[s.userId].defect = parseInt(s.cnt,10);
+      else contribMap[s.userId].hold = parseInt(s.cnt,10);
+    }
+    json.contributions = Object.values(contribMap);
+
     return res.json(json);
   } catch (err) {
     console.error('history detail fetch error', err);

@@ -239,7 +239,7 @@ const WorkerWorkHistory = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {detail.InspectionDetails.map((d,idx)=>(
+                    {detail.InspectionDetails.map((d,idx)=> (
                       <TableRow key={d.id}>
                         <TableCell>{d.ProductVariant?.barcode}</TableCell>
                         <TableCell align="right">{d.totalQuantity}</TableCell>
@@ -252,6 +252,59 @@ const WorkerWorkHistory = () => {
                             {['A','B','C','D','E'].map(g=>(<MenuItem key={g} value={g}>{g}</MenuItem>))}
                           </Select>
                         </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              {/* 작업자별 처리 건수 */}
+              {detail.contributions && detail.contributions.length>0 && (
+                <TableContainer component={Paper} sx={{ mt:2 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>작업자</TableCell>
+                        <TableCell align="right">정상</TableCell>
+                        <TableCell align="right">불량</TableCell>
+                        <TableCell align="right">보류</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {detail.contributions.map(c=>(
+                        <TableRow key={c.userId}>
+                          <TableCell>{c.username}</TableCell>
+                          <TableCell align="right">{c.normal}</TableCell>
+                          <TableCell align="right">{c.defect}</TableCell>
+                          <TableCell align="right">{c.hold}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+
+              <TableContainer component={Paper} sx={{ mt:2 }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>바코드</TableCell>
+                      <TableCell align="right">총수량</TableCell>
+                      <TableCell align="right">정상</TableCell>
+                      <TableCell align="right">불량</TableCell>
+                      <TableCell align="right">보류</TableCell>
+                      <TableCell align="center">품질등급</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {detail.InspectionDetails.map((d,idx)=> (
+                      <TableRow key={d.id}>
+                        <TableCell>{d.ProductVariant?.barcode}</TableCell>
+                        <TableCell align="right">{d.totalQuantity}</TableCell>
+                        <TableCell align="right">{d.handledNormal}</TableCell>
+                        <TableCell align="right">{d.handledDefect}</TableCell>
+                        <TableCell align="right">{d.handledHold}</TableCell>
+                        <TableCell align="center">{d.qualityGrade}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
