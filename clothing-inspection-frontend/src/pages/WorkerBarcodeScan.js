@@ -168,8 +168,12 @@ const WorkerBarcodeScan=()=>{
     try{
       const res = await api.get(`/worker/inspection/${item.inspection.id}/details`);
       const totalRemain = res.data.details.reduce((t,d)=>t+d.remaining,0);
+      const newDetails = res.data.details.map(d=>{
+        const prev = item.details.find(p=>p.id===d.id);
+        return { ...d, myCount: prev?.myCount||0 };
+      });
       const newList=[...inspections];
-      newList[idx]={ ...item, details: res.data.details.map(d=>({...d,myCount:0})), remaining: totalRemain };
+      newList[idx]={ ...item, details: newDetails, remaining: totalRemain };
       setInspections(newList);
       sessionStorage.setItem('currentInspections',JSON.stringify(newList));
     }catch(err){ enqueueSnackbar(err.response?.data?.message||'전표 새로고침 실패',{variant:'error'}); }
