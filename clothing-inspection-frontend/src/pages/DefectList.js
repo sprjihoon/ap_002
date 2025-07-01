@@ -99,7 +99,7 @@ const DefectList = () => {
               <TableCell>상품</TableCell>
               <TableCell>도매처</TableCell>
               <TableCell>바코드</TableCell>
-              <TableCell align="right">불량수량</TableCell>
+              <TableCell align="right">검수불량</TableCell>
               <TableCell align="right">처리불량</TableCell>
               <TableCell>작업자</TableCell>
               <TableCell>검수자</TableCell>
