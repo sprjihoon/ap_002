@@ -629,6 +629,7 @@ router.get('/:id/ez-admin-xlsx', auth, async (req, res) => {
     const inspection = await Inspection.findByPk(id, {
       include: [{
         model: InspectionDetail,
+        as: 'InspectionDetails',
         include: [{
           model: ProductVariant,
           as: 'ProductVariant',
