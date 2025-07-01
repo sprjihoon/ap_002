@@ -33,7 +33,6 @@ const Sidebar = () => {
     { key:'defects', label:'불량 내역', icon:<AssessmentIcon />, to:'/defects', roles:['operator','inspector','admin'] },
     { key:'scan', label:'바코드스캔', icon:<QrCodeScannerIcon />, to:'/worker/scan', roles:['worker','inspector','admin'] },
     { key:'history', label:'작업내역', icon:<ListAltIcon />, to:'/worker/history', roles:['worker','inspector','admin'] },
-    { key:'myStats', label:'내통계', icon:<AssessmentIcon />, to:'/worker/stats', roles:['worker'] },
     { key:'password', label:'비밀번호 변경', icon:<SettingsIcon />, to:'/change-password', roles:['worker','inspector','operator','admin'] },
     { key:'users', label:'사용자 관리', icon:<PeopleIcon />, to:'/users', roles:['admin'] },
   ];

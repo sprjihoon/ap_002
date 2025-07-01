@@ -20,7 +20,6 @@ import BarcodeScanPage from './pages/BarcodeScanPage';
 import WorkerDashboard from './pages/WorkerDashboard';
 import WorkerBarcodeScan from './pages/WorkerBarcodeScan';
 import WorkerWorkHistory from './pages/WorkerWorkHistory';
-import WorkerStats from './pages/WorkerStats';
 import WorkersStats from './pages/WorkersStats';
 import { ListAlt, QrCodeScanner, RestartAlt } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
@@ -174,16 +173,6 @@ function App() {
                   <WorkerRoute>
                     <Layout>
                       <WorkerWorkHistory />
-                    </Layout>
-                  </WorkerRoute>
-                }
-              />
-              <Route
-                path="/worker/stats"
-                element={
-                  <WorkerRoute>
-                    <Layout>
-                      <WorkerStats />
                     </Layout>
                   </WorkerRoute>
                 }
