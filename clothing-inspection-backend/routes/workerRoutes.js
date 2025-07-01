@@ -419,7 +419,7 @@ router.get('/history/:id', auth, async (req, res) => {
     // 작업자별 기여 집계
     const scans = await WorkerScan.findAll({
       where:{ inspectionId: id },
-      attributes:['userId','result', [Sequelize.fn('COUNT',Sequelize.col('id')),'cnt']],
+      attributes:['userId','result', [Sequelize.fn('COUNT',Sequelize.col('WorkerScan.id')),'cnt']],
       include:[{ model: User, as:'worker', attributes:['id','username'] }],
       group:['userId','result','worker.id','worker.username'],
       raw:true
@@ -563,7 +563,7 @@ router.get('/stats/summary', auth, async(req,res)=>{
       attributes:[
         [Sequelize.fn('DATE', Sequelize.col('createdAt')), 'date'],
         'result',
-        [Sequelize.fn('COUNT', Sequelize.col('id')), 'cnt']
+        [Sequelize.fn('COUNT', Sequelize.col('WorkerScan.id')), 'cnt']
       ],
       group:['date','result'],
       raw:true
@@ -607,7 +607,7 @@ router.get('/stats/summary/all', auth, async(req,res)=>{
     // aggregate counts per worker/result
     const agg = await WorkerScan.findAll({
       where:{ createdAt:{ [Op.between]:[startDate,endDate] }},
-      attributes:['userId','result', [Sequelize.fn('COUNT',Sequelize.col('id')),'cnt']],
+      attributes:['userId','result', [Sequelize.fn('COUNT',Sequelize.col('WorkerScan.id')),'cnt']],
       include:[{ model: User, as:'worker', attributes:['username'] }],
       group:['userId','result','worker.id','worker.username'],
       raw:true
@@ -640,7 +640,7 @@ router.get('/stats/summary/all', auth, async(req,res)=>{
     // counts per slip result
     const slipCnts = await WorkerScan.findAll({
       where:{ createdAt:{ [Op.between]:[startDate,endDate] }},
-      attributes:['userId','inspectionId','result',[Sequelize.fn('COUNT',Sequelize.col('id')),'cnt']],
+      attributes:['userId','inspectionId','result',[Sequelize.fn('COUNT',Sequelize.col('WorkerScan.id')),'cnt']],
       group:['userId','inspectionId','result'],
       raw:true
     });
