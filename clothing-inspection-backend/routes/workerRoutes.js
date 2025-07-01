@@ -199,6 +199,48 @@ router.post('/scan', auth, async (req, res) => {
   }
 });
 
+// ---------- 스캔 취소(undo) ----------
+router.post('/scan/undo', auth, async (req,res)=>{
+  try{
+    const { detailId, result } = req.body; // result normal|defect|hold
+    if(!detailId || !['normal','defect','hold'].includes(result)){
+      return res.status(400).json({ success:false, message:'잘못된 파라미터'});
+    }
+    const detail = await InspectionDetail.findByPk(detailId, { include:[{ model: Inspection, as:'Inspection'}]});
+    if(!detail) return res.status(404).json({ success:false, message:'detail not found' });
+
+    // 본인 스캔 기록 검색 (가장 최근)
+    const scan = await WorkerScan.findOne({
+      where:{ detailId, userId:req.user.id, result },
+      order:[['createdAt','DESC']]
+    });
+    if(!scan) return res.status(400).json({ success:false, message:'되돌릴 스캔이 없습니다.'});
+
+    // decrement counts (방어: 음수 방지)
+    const field = result==='normal'?'handledNormal': result==='defect'?'handledDefect':'handledHold';
+    if(detail[field]===0){
+      return res.status(400).json({ success:false, message:'더 이상 취소할 수 없습니다.'});
+    }
+    await detail.decrement(field,{ by:1 });
+
+    await scan.destroy();
+
+    const remaining = detail.totalQuantity - detail.handledNormal - detail.handledDefect - detail.handledHold + (field==='handledHold'?1:0); // but easier recalc after reload
+    await detail.reload();
+    const newRemaining = detail.totalQuantity - detail.handledNormal - detail.handledDefect - detail.handledHold;
+
+    // 전표 상태 복귀
+    const insp = detail.Inspection;
+    if(insp && insp.workStatus==='completed' && newRemaining>0){
+      await insp.update({ workStatus:'in_progress' });
+    }
+    res.json({ success:true, remaining:newRemaining, detail });
+  }catch(err){
+    console.error('scan undo error', err);
+    res.status(500).json({ success:false, message:err.message });
+  }
+});
+
 // ----- BARCODE LOOKUP ROUTE (consolidated) -----
 // replace entire existing router.get('/barcode/:code') implementation
 router.get('/barcode/:code', auth, async (req, res) => {
