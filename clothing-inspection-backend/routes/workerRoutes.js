@@ -614,7 +614,7 @@ router.get('/stats/summary/all', auth, async(req,res)=>{
     });
     const map = {};
     agg.forEach(a=>{
-      if(!map[a.userId]) map[a.userId]={ workerId:a.userId, workerName:a['worker.username'], totalNormal:0, totalDefect:0, totalHold:0, slips:new Map() };
+      if(!map[a.userId]) map[a.userId]={ workerId:a.userId, workerName:a['worker.username'], totalNormal:0, totalDefect:0, totalHold:0, slips:[] };
       if(a.result==='normal') map[a.userId].totalNormal += parseInt(a.cnt,10);
       else if(a.result==='defect') map[a.userId].totalDefect += parseInt(a.cnt,10);
       else map[a.userId].totalHold += parseInt(a.cnt,10);
@@ -634,8 +634,7 @@ router.get('/stats/summary/all', auth, async(req,res)=>{
     slipRows.forEach(r=>{
       const w = map[r.userId];
       if(!w) return;
-      if(!w.slips) w.slips=[];
-      w.slips.push({ inspectionName: inspMap[r.inspectionId]||'', normal:0, defect:0, hold:0, firstScan:r.firstScan, lastScan:r.lastScan });
+      w.slips.push({ inspectionId:r.inspectionId, inspectionName: inspMap[r.inspectionId]||'', normal:0, defect:0, hold:0, firstScan:r.firstScan, lastScan:r.lastScan });
     });
     // counts per slip result
     const slipCnts = await WorkerScan.findAll({
@@ -645,10 +644,9 @@ router.get('/stats/summary/all', auth, async(req,res)=>{
       raw:true
     });
     const slipKeyMap = {}; // workerId-inspectionId -> slip object
-    Object.values(map).forEach(w=>{ w.slips.forEach(s=>{ slipKeyMap[`${w.workerId}-${s.inspectionName}`]=s; }); });
+    Object.values(map).forEach(w=>{ w.slips.forEach(s=>{ slipKeyMap[`${w.workerId}-${s.inspectionId}`]=s; }); });
     slipCnts.forEach(c=>{
-      const inspName = inspMap[c.inspectionId]||'';
-      const key = `${c.userId}-${inspName}`;
+      const key = `${c.userId}-${c.inspectionId}`;
       const s = slipKeyMap[key]; if(!s) return;
       if(c.result==='normal') s.normal=parseInt(c.cnt,10);
       else if(c.result==='defect') s.defect=parseInt(c.cnt,10);
