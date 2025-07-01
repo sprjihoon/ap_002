@@ -295,9 +295,11 @@ router.get('/recent-activity', auth, async (req, res) => {
 router.get('/history', auth, async (req, res) => {
   try {
     const where = {};
-    if (req.user.role !== 'admin') {
+    if (!['admin','inspector'].includes(req.user.role)) {
+      // worker/operator 등 자신 기록만
       where.userId = req.user.id;
     } else if (req.query.userId) {
+      // 관리자가 특정 작업자 기록만 조회하고 싶을 때 ?userId=
       where.userId = req.query.userId;
     }
 
@@ -399,8 +401,8 @@ router.get('/history/:id', auth, async (req, res) => {
     });
     if (!inspection) return res.status(404).json({ message: 'inspection not found' });
 
-    // 권한 체크: admin 또는 해당 작업자의 이력 포함 시 허용
-    if (req.user.role !== 'admin') {
+    // 권한 체크: admin 또는 inspector 또는 해당 작업자의 기록이 있을 때 허용
+    if (!['admin','inspector'].includes(req.user.role)) {
       const scanned = await WorkerScan.findOne({ where: { inspectionId: id, userId: req.user.id } });
       if (!scanned) return res.status(403).json({ message: '권한 없음' });
     }
