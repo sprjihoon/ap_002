@@ -468,4 +468,68 @@ router.put('/history/details/:detailId', auth, async (req,res)=>{
   }
 });
 
+// ================= DASHBOARD EXTRA ROUTES =================
+// 진행률 목록 – 확정(or 완료중) 전표의 처리건수를 퍼센트로 제공
+router.get('/progress', auth, async (req,res)=>{
+  try{
+    // 확정된 전표 중 작업 미완료건
+    const inspections = await Inspection.findAll({
+      where:{ status:{ [Op.in]:['approved','completed'] }, workStatus:{ [Op.in]:['pending','in_progress'] } },
+      attributes:['id','inspectionName','company','workStatus']
+    });
+    if(!inspections.length){ return res.json([]); }
+    const inspIds = inspections.map(i=>i.id);
+
+    // 수량 집계
+    const aggregates = await InspectionDetail.findAll({
+      attributes:[
+        'inspectionId',
+        [Sequelize.fn('SUM', Sequelize.col('totalQuantity')), 'totalQuantity'],
+        [Sequelize.literal('SUM(handledNormal + handledDefect + handledHold)'), 'handledCount']
+      ],
+      where:{ inspectionId:{ [Op.in]: inspIds } },
+      group:['inspectionId'],
+      raw:true
+    });
+
+    const aggMap = {}; aggregates.forEach(a=>{ aggMap[a.inspectionId]=a; });
+
+    const list = inspections.map(ins=>{
+      const a = aggMap[ins.id] || { totalQuantity:0, handledCount:0 };
+      const total = parseInt(a.totalQuantity||0,10);
+      const handled = parseInt(a.handledCount||0,10);
+      const percent = total? Math.floor((handled/total)*100) : 0;
+      return {
+        id: ins.id,
+        inspectionName: ins.inspectionName,
+        company: ins.company,
+        handledCount: handled,
+        totalQuantity: total,
+        percent,
+        workStatus: ins.workStatus
+      };
+    });
+    // 진행률 0% → 100 순으로 정렬
+    list.sort((a,b)=> a.percent - b.percent);
+    res.json(list);
+  }catch(err){
+    console.error('worker progress error', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 미확정 전표 – status pending/rejected
+router.get('/unconfirmed', auth, async (req,res)=>{
+  try{
+    const list = await Inspection.findAll({
+      where:{ status:{ [Op.in]:['pending','rejected'] } },
+      attributes:['id','inspectionName','company','status']
+    });
+    res.json(list);
+  }catch(err){
+    console.error('worker unconfirmed error', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
