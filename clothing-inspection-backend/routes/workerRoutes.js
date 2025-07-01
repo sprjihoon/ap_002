@@ -551,4 +551,117 @@ router.get('/unconfirmed', auth, async (req,res)=>{
   }
 });
 
+// -------- 개인 작업 통계 (/worker/stats/summary) --------
+router.get('/stats/summary', auth, async(req,res)=>{
+  try{
+    const { start, end } = req.query;
+    const startDate = start? new Date(start) : new Date('1970-01-01');
+    const endDate = end? new Date(end+'T23:59:59') : new Date();
+    const userId = req.user.id;
+    const scans = await WorkerScan.findAll({
+      where:{ userId, createdAt:{ [Op.between]:[startDate,endDate] }},
+      attributes:[
+        [Sequelize.fn('DATE', Sequelize.col('createdAt')), 'date'],
+        'result',
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'cnt']
+      ],
+      group:['date','result'],
+      raw:true
+    });
+
+    const dailyMap = {};
+    scans.forEach(s=>{
+      const d = s.date;
+      if(!dailyMap[d]) dailyMap[d]={ date:d, normal:0, defect:0, hold:0, slips:0 };
+      if(s.result==='normal') dailyMap[d].normal += parseInt(s.cnt,10);
+      else if(s.result==='defect') dailyMap[d].defect += parseInt(s.cnt,10);
+      else dailyMap[d].hold += parseInt(s.cnt,10);
+    });
+    // distinct slips per day
+    const slipRows = await WorkerScan.findAll({
+      where:{ userId, createdAt:{ [Op.between]:[startDate,endDate] }},
+      attributes:[[Sequelize.fn('DATE', Sequelize.col('createdAt')),'date'],'inspectionId'],
+      group:['date','inspectionId'],
+      raw:true
+    });
+    slipRows.forEach(r=>{ if(dailyMap[r.date]) dailyMap[r.date].slips +=1; });
+
+    const daily = Object.values(dailyMap).sort((a,b)=>a.date.localeCompare(b.date));
+    const totalNormal = daily.reduce((sum,r)=>sum+r.normal,0);
+    const totalDefect = daily.reduce((sum,r)=>sum+r.defect,0);
+    const totalHold = daily.reduce((sum,r)=>sum+r.hold,0);
+    const totalSlips = daily.reduce((sum,r)=>sum+r.slips,0);
+
+    res.json({ totalNormal, totalDefect, totalHold, totalSlips, daily });
+  }catch(err){ console.error('stats summary error', err); res.status(500).json({ message:err.message }); }
+});
+
+// -------- 전체 작업자 통계 (/worker/stats/summary/all) --------
+router.get('/stats/summary/all', auth, async(req,res)=>{
+  try{
+    if(!['admin','inspector'].includes(req.user.role)) return res.status(403).json({ message:'권한 없음'});
+    const { start, end } = req.query;
+    const startDate = start? new Date(start) : new Date('1970-01-01');
+    const endDate = end? new Date(end+'T23:59:59') : new Date();
+
+    // aggregate counts per worker/result
+    const agg = await WorkerScan.findAll({
+      where:{ createdAt:{ [Op.between]:[startDate,endDate] }},
+      attributes:['userId','result', [Sequelize.fn('COUNT',Sequelize.col('id')),'cnt']],
+      include:[{ model: User, as:'worker', attributes:['username'] }],
+      group:['userId','result','worker.id','worker.username'],
+      raw:true
+    });
+    const map = {};
+    agg.forEach(a=>{
+      if(!map[a.userId]) map[a.userId]={ workerId:a.userId, workerName:a['worker.username'], totalNormal:0, totalDefect:0, totalHold:0, slips:new Map() };
+      if(a.result==='normal') map[a.userId].totalNormal += parseInt(a.cnt,10);
+      else if(a.result==='defect') map[a.userId].totalDefect += parseInt(a.cnt,10);
+      else map[a.userId].totalHold += parseInt(a.cnt,10);
+    });
+    // slips details per worker
+    const slipRows = await WorkerScan.findAll({
+      where:{ createdAt:{ [Op.between]:[startDate,endDate] }},
+      attributes:['userId','inspectionId', [Sequelize.fn('MIN',Sequelize.col('createdAt')),'firstScan'], [Sequelize.fn('MAX',Sequelize.col('createdAt')),'lastScan']],
+      group:['userId','inspectionId'],
+      raw:true
+    });
+    // need inspectionName
+    const inspIds = [...new Set(slipRows.map(r=>r.inspectionId))];
+    const inspRows = await Inspection.findAll({ where:{ id:{ [Op.in]: inspIds } }, attributes:['id','inspectionName'], raw:true });
+    const inspMap = {}; inspRows.forEach(i=>{ inspMap[i.id]=i.inspectionName; });
+
+    slipRows.forEach(r=>{
+      const w = map[r.userId];
+      if(!w) return;
+      if(!w.slips) w.slips=[];
+      w.slips.push({ inspectionName: inspMap[r.inspectionId]||'', normal:0, defect:0, hold:0, firstScan:r.firstScan, lastScan:r.lastScan });
+    });
+    // counts per slip result
+    const slipCnts = await WorkerScan.findAll({
+      where:{ createdAt:{ [Op.between]:[startDate,endDate] }},
+      attributes:['userId','inspectionId','result',[Sequelize.fn('COUNT',Sequelize.col('id')),'cnt']],
+      group:['userId','inspectionId','result'],
+      raw:true
+    });
+    const slipKeyMap = {}; // workerId-inspectionId -> slip object
+    Object.values(map).forEach(w=>{ w.slips.forEach(s=>{ slipKeyMap[`${w.workerId}-${s.inspectionName}`]=s; }); });
+    slipCnts.forEach(c=>{
+      const inspName = inspMap[c.inspectionId]||'';
+      const key = `${c.userId}-${inspName}`;
+      const s = slipKeyMap[key]; if(!s) return;
+      if(c.result==='normal') s.normal=parseInt(c.cnt,10);
+      else if(c.result==='defect') s.defect=parseInt(c.cnt,10);
+      else s.hold=parseInt(c.cnt,10);
+    });
+
+    const list = Object.values(map);
+    list.forEach(w=>{ w.rank=0; });
+    list.sort((a,b)=> (b.totalNormal+b.totalDefect+b.totalHold)-(a.totalNormal+a.totalDefect+a.totalHold));
+    list.forEach((w,idx)=>{ w.rank=idx+1; });
+
+    res.json(list);
+  }catch(err){ console.error('stats summary all error', err); res.status(500).json({ message:err.message }); }
+});
+
 module.exports = router;
