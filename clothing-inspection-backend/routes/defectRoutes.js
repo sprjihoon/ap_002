@@ -52,7 +52,7 @@ router.get('/', auth, async (req, res)=>{
     const list = await InspectionDetail.findAll({
       where,
       include:[
-        { model: Inspection, attributes:['id','inspectionName','company','inspector_id','assignedWorkerId'],
+        { model: Inspection, as: 'Inspection', attributes:['id','inspectionName','company','inspector_id','assignedWorkerId'],
           include:[{ model: User, as:'inspector', attributes:['id','username','company'] }] },
         { model: ProductVariant, as:'ProductVariant', attributes:['id','barcode'], include:[{ model: Product, as:'product', attributes:['productName','wholesaler'] }] }
       ],

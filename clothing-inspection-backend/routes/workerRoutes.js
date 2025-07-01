@@ -114,7 +114,7 @@ router.get('/inspections', auth, async (req, res) => {
   try {
     const list = await Inspection.findAll({
       where:{ status:'approved', workStatus:{ [Op.ne]:'completed' } },
-      include:[{ model:User, as:'inspector', attributes:['id','username','name'] }],
+      include:[{ model:User, as:'inspector', attributes:['id','username'] }],
       order:[[Sequelize.col('Inspection.updatedAt'),'DESC']]
     });
     res.json(list);
@@ -309,7 +309,7 @@ router.get('/history', auth, async (req, res) => {
           as: 'detail',
           include: [{ model: ProductVariant, as: 'ProductVariant' }]
         },
-        { model: User, as: 'worker', attributes: ['id', 'username', 'name'] },
+        { model: User, as: 'worker', attributes: ['id', 'username'] },
         { model: Inspection, as: 'Inspection', required: false, attributes: ['inspectionName', 'company'] }
       ],
       order: [['createdAt', 'DESC']]
@@ -394,7 +394,7 @@ router.get('/history/:id', auth, async (req, res) => {
           include: [{ model: ProductVariant, as: 'ProductVariant' }],
           order: [['createdAt', 'ASC']]
         },
-        { model: User, as: 'inspector', attributes: ['id', 'username', 'name'] }
+        { model: User, as: 'inspector', attributes: ['id', 'username'] }
       ]
     });
     if (!inspection) return res.status(404).json({ message: 'inspection not found' });
@@ -408,7 +408,7 @@ router.get('/history/:id', auth, async (req, res) => {
     // 작업자 정보(최초 스캔자) 첨부 – history 화면 호환용
     const firstScan = await WorkerScan.findOne({
       where: { inspectionId: id },
-      include: [{ model: User, as: 'worker', attributes: ['id', 'username', 'name'] }],
+      include: [{ model: User, as: 'worker', attributes: ['id', 'username'] }],
       order: [['createdAt', 'ASC']]
     });
     const json = inspection.toJSON();
