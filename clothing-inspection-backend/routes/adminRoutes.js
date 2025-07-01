@@ -34,6 +34,7 @@ router.get('/stats/overview', auth, async (req, res) => {
         include: [{ model: Product, as: 'product', attributes: [] }]
       }, {
         model: Inspection,
+        as: 'Inspection',
         attributes: [],
         where: inspWhere
       }],
@@ -59,7 +60,7 @@ router.get('/stats/overview', auth, async (req, res) => {
 
     // 운영자(업체)별 집계
     const operatorRows = await InspectionDetail.findAll({
-      include: [{ model: Inspection, attributes: ['company'], where: inspWhere }],
+      include: [{ model: Inspection, as:'Inspection', attributes: ['company'], where: inspWhere }],
       attributes: [
         [Sequelize.col('Inspection.company'), 'company'],
         [Sequelize.fn('SUM', Sequelize.col('InspectionDetail.totalQuantity')), 'inbound'],
