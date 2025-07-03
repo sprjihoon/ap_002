@@ -95,6 +95,7 @@ function Register() {
               >
                 <MenuItem value="inspector">검수자</MenuItem>
                 <MenuItem value="admin">관리자</MenuItem>
+                <MenuItem value="display">대시보드</MenuItem>
               </Select>
             </FormControl>
             <Button

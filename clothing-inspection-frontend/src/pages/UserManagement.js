@@ -226,7 +226,7 @@ function UserManagement() {
               >
                 <MenuItem value="">전체</MenuItem>
                 {roleList.map(r => (
-                  <MenuItem key={r} value={r}>{r === 'admin' ? '관리자' : r === 'inspector' ? '검수자' : r === 'operator' ? '운영자' : '작업자'}</MenuItem>
+                  <MenuItem key={r} value={r}>{r === 'admin' ? '관리자' : r === 'inspector' ? '검수자' : r === 'operator' ? '운영자' : r === 'display' ? '대시보드' : '작업자'}</MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -263,7 +263,9 @@ function UserManagement() {
                   <TableCell>{user.company || '-'}</TableCell>
                   <TableCell>{user.role === 'admin' ? '관리자' : 
                     user.role === 'inspector' ? '검수자' :
-                    user.role === 'operator' ? '운영자' : '작업자'}</TableCell>
+                    user.role === 'operator' ? '운영자' :
+                    user.role === 'display' ? '대시보드' :
+                    '작업자'}</TableCell>
                   <TableCell>{user.createdAt ? formatDate(user.createdAt) : '-'}</TableCell>
                   <TableCell>
                     <IconButton
@@ -310,6 +312,7 @@ function UserManagement() {
                 <MenuItem value="inspector">검수자</MenuItem>
                 <MenuItem value="operator">운영자</MenuItem>
                 <MenuItem value="worker">작업자</MenuItem>
+                <MenuItem value="display">대시보드</MenuItem>
               </Select>
             </FormControl>
           </DialogContent>
@@ -376,6 +379,7 @@ function UserManagement() {
                 <MenuItem value="inspector">검수자</MenuItem>
                 <MenuItem value="operator">운영자</MenuItem>
                 <MenuItem value="worker">작업자</MenuItem>
+                <MenuItem value="display">대시보드</MenuItem>
               </Select>
             </FormControl>
           </DialogContent>
@@ -424,6 +428,7 @@ function UserManagement() {
                 <MenuItem value="inspector">검수자</MenuItem>
                 <MenuItem value="operator">운영자</MenuItem>
                 <MenuItem value="worker">작업자</MenuItem>
+                <MenuItem value="display">대시보드</MenuItem>
               </Select>
             </FormControl>
 

@@ -16,8 +16,9 @@ function Login() {
     setError('');
     
     try {
-      await login(username, password);
-      navigate('/dashboard');
+      const data = await login(username, password);
+      const role = (data.user.role || '').toLowerCase();
+      navigate(role==='display' ? '/tv/dashboard' : '/dashboard');
     } catch (error) {
       setError(error.message);
     }

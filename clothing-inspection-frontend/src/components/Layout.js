@@ -70,7 +70,7 @@ function Layout({ children }) {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            {user.username} ({user.role === 'admin' ? '관리자' : user.role === 'operator' ? '운영자' : user.role === 'worker' ? '작업자' : '검수자'})
+            {user.username} ({user.role === 'admin' ? '관리자' : user.role === 'operator' ? '운영자' : user.role === 'worker' ? '작업자' : user.role === 'display' ? '대시보드' : '검수자'})
           </Typography>
         </Toolbar>
       </AppBar>
