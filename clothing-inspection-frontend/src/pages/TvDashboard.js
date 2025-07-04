@@ -14,6 +14,7 @@ const TvDashboard = () => {
   // 완료 효과음을 위해 이전 완료 전표를 저장
   const prevPercentRef = useRef({});
   const soundUrlRef = useRef(null);
+  const firstPlayRef = useRef(false);
 
   const playCompleteSound = ()=>{
     try{
@@ -43,13 +44,30 @@ const TvDashboard = () => {
           soundUrlRef.current = d.completeSoundUrl||'';
         }).catch(()=>{});
       }
-      // 완료 검사: 이전 퍼센트 <100 → 이번에 100 이 된 전표 탐색
-      p.forEach(it=>{
+      // 첫 로드 시 효과음 1회 재생
+      if(!firstPlayRef.current){
+        playCompleteSound();
+        firstPlayRef.current = true;
+      }
+
+      // 완료 검사
+      const currentIds = new Set(p.map(it=>it.id));
+
+      // 1) 이전 <100 → 이번 =100 (여전히 리스트에 존재)
+      p.forEach(it => {
         const prev = prevPercentRef.current[it.id] ?? 0;
-        if(prev < 100 && it.percent === 100){
+        if (prev < 100 && it.percent === 100) {
           playCompleteSound();
         }
         prevPercentRef.current[it.id] = it.percent;
+      });
+
+      // 2) 이전 <100이었던 항목이 리스트에서 사라진 경우 → 완료된 것으로 간주하고 1회 재생
+      Object.entries(prevPercentRef.current).forEach(([id, prevPercent]) => {
+        if (prevPercent < 100 && !currentIds.has(Number(id))) {
+          playCompleteSound();
+          prevPercentRef.current[id] = 100; // 중복 재생 방지
+        }
       });
 
       setStats(s); setProgressList(p); setUnconfirmedList(u);
