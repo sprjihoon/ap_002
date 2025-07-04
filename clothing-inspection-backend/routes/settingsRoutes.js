@@ -6,8 +6,9 @@ const fs      = require('fs');
 const { auth } = require('../middleware/auth');
 const { getSetting, setSetting } = require('../utils/settings');
 
-// 저장 경로 /uploads/settings
-const UPLOAD_DIR = path.join(__dirname, '..', '..', 'uploads', 'settings');
+// 저장 경로 (Persistent disk 지원)
+const BASE = process.env.UPLOAD_BASE || path.join(__dirname, '..', '..', 'uploads');
+const UPLOAD_DIR = path.join(BASE, 'settings');
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
