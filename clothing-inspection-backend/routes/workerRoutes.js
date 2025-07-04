@@ -168,7 +168,7 @@ router.post('/scan', auth, async (req, res) => {
     await detail.reload({ include:[{ model: Inspection, as:'Inspection' }] });
 
     const remaining = detail.totalQuantity - detail.handledNormal - detail.handledDefect - detail.handledHold;
-    
+
     // 전표 상태 업데이트
     const insp = detail.Inspection || await Inspection.findByPk(detail.inspectionId);
     if (insp.workStatus === 'pending') await insp.update({ workStatus:'in_progress', assignedWorkerId:req.user.id });
@@ -709,4 +709,4 @@ router.get('/stats/summary/all', auth, async(req,res)=>{
   }catch(err){ console.error('stats summary all error', err); res.status(500).json({ message:err.message }); }
 });
 
-module.exports = router;
+module.exports = router; 
