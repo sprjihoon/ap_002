@@ -208,7 +208,17 @@ const WorkerBarcodeScan=()=>{
     <Box sx={{p:3}}>
       <Typography variant="h5" gutterBottom>바코드 스캔</Typography>
       <Paper sx={{p:2, maxWidth:400}}>
-        <TextField id="barcode-input" fullWidth label="바코드" value={barcode} onChange={e=>setBarcode(e.target.value)} onKeyPress={e=>{if(e.key==='Enter'){lookup();}}} disabled={loading}/>
+        <TextField
+          id="barcode-input"
+          fullWidth
+          label="바코드"
+          value={barcode}
+          onChange={e=>setBarcode(e.target.value)}
+          onKeyPress={e=>{if(e.key==='Enter'){lookup();}}}
+          disabled={loading}
+          inputProps={{ inputMode:'none', style:{ imeMode:'disabled' } }}
+          autoComplete="off"
+        />
         <Grid container spacing={1} sx={{mt:1}}>
           <Grid item xs>
             <Button fullWidth variant="contained" onClick={lookup} disabled={loading}>{loading?<CircularProgress size={24}/>:'조회'}</Button>
