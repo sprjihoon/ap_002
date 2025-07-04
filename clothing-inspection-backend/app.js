@@ -23,9 +23,8 @@ const settingsRoutes    = require('./routes/settingsRoutes');
 
 const app = express();
 
-// 신뢰할 수 있는 프록시 설정 (Render, Nginx 등 프록시 뒤에서 실행 시 필요)
-// X-Forwarded-For 헤더를 인정하여 express-rate-limit 경고/오류를 방지
-app.set('trust proxy', true);
+// Render/Nginx → 앱까지 1단계 프록시만 신뢰 (loopback)
+app.set('trust proxy', ['loopback']);
 
 /*──────────────── CORS ────────────────*/
 const allowed = (process.env.CORS_ORIGIN || 'http://localhost:3000')
