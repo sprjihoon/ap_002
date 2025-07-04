@@ -64,7 +64,7 @@ function App() {
 
   return (
     <AuthProvider>
-      <SnackbarProvider maxSnack={3}>
+      <SnackbarProvider maxSnack={3} autoHideDuration={3000}>
         <ErrorBoundary>
           <Router>
             <Routes>

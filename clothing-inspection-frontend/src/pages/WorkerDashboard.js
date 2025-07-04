@@ -247,7 +247,7 @@ const WorkerDashboard = () => {
       </Grid>
 
       {error && (
-        <Snackbar open autoHideDuration={6000} onClose={() => setError('')}>
+        <Snackbar open autoHideDuration={3000} onClose={() => setError('')}>
           <Alert severity="error">{error}</Alert>
         </Snackbar>
       )}

@@ -202,7 +202,7 @@ const WorkerInspectionList = () => {
 
       <Snackbar
         open={!!success}
-        autoHideDuration={6000}
+        autoHideDuration={3000}
         onClose={() => setSuccess('')}
       >
         <Alert severity="success">{success}</Alert>
@@ -210,7 +210,7 @@ const WorkerInspectionList = () => {
 
       <Snackbar
         open={!!error}
-        autoHideDuration={6000}
+        autoHideDuration={3000}
         onClose={() => setError('')}
       >
         <Alert severity="error">{error}</Alert>

@@ -43,8 +43,8 @@ const SettingUpload = ({ label, accept, settingKey }) => {
         <TextField type="file" inputProps={{ accept }} onChange={e=>setFile(e.target.files?.[0]||null)} />
         <Button variant="contained" disabled={!file} onClick={handleUpload}>업로드</Button>
       </Box>
-      <Snackbar open={!!success} autoHideDuration={4000} onClose={()=>setSuccess('')}><Alert severity="success">{success}</Alert></Snackbar>
-      <Snackbar open={!!error} autoHideDuration={4000} onClose={()=>setError('')}><Alert severity="error">{error}</Alert></Snackbar>
+      <Snackbar open={!!success} autoHideDuration={3000} onClose={()=>setSuccess('')}><Alert severity="success">{success}</Alert></Snackbar>
+      <Snackbar open={!!error} autoHideDuration={3000} onClose={()=>setError('')}><Alert severity="error">{error}</Alert></Snackbar>
     </Paper>
   );
 };

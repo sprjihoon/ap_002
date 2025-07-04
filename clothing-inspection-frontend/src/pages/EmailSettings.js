@@ -44,8 +44,8 @@ const EmailSettings = () => {
         </Box>
       </Paper>
 
-      <Snackbar open={!!msg} autoHideDuration={4000} onClose={()=>setMsg('')}><Alert severity="success">{msg}</Alert></Snackbar>
-      <Snackbar open={!!error} autoHideDuration={4000} onClose={()=>setError('')}><Alert severity="error">{error}</Alert></Snackbar>
+      <Snackbar open={!!msg} autoHideDuration={3000} onClose={()=>setMsg('')}><Alert severity="success">{msg}</Alert></Snackbar>
+      <Snackbar open={!!error} autoHideDuration={3000} onClose={()=>setError('')}><Alert severity="error">{error}</Alert></Snackbar>
     </Box>
   );
 };

@@ -514,7 +514,7 @@ function ProductManagement() {
 
         <Snackbar
           open={!!error}
-          autoHideDuration={6000}
+          autoHideDuration={3000}
           onClose={() => setError('')}
         >
           <Alert severity="error" onClose={() => setError('')}>
@@ -524,7 +524,7 @@ function ProductManagement() {
 
         <Snackbar
           open={!!success}
-          autoHideDuration={6000}
+          autoHideDuration={3000}
           onClose={() => setSuccess('')}
         >
           <Alert severity="success" onClose={() => setSuccess('')}>
