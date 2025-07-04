@@ -41,7 +41,12 @@ const TvDashboard = () => {
       // 최초 한 번 UI 설정 가져오기
       if(soundUrlRef.current===null){
         fetch(`${API_URL}/settings/ui`).then(r=>r.json()).then(d=>{
-          soundUrlRef.current = d.completeSoundUrl||'';
+          let url = d.completeSoundUrl || '';
+          if(url && !url.startsWith('http')){
+            const base = API_URL.replace(/\/api$/, '');
+            url = base + url;
+          }
+          soundUrlRef.current = url;
         }).catch(()=>{});
       }
       // 첫 로드 시 효과음 1회 재생
