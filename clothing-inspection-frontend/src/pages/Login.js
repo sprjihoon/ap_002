@@ -16,8 +16,13 @@ function Login() {
     let prev='';
     fetch('/api/settings/ui').then(r=>r.json()).then(d=>{
       if(d.loginBgUrl){
+        let url = d.loginBgUrl;
+        if(!url.startsWith('http')){
+          const root = API_URL.replace(/\/api$/, '');
+          url = root + url;
+        }
         prev = document.body.style.backgroundImage;
-        document.body.style.background=`url(${d.loginBgUrl}) center/cover no-repeat fixed`;
+        document.body.style.background=`url(${url}) center/cover no-repeat fixed`;
       }
     });
     return ()=>{ document.body.style.backgroundImage = prev; };
