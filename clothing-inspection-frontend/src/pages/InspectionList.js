@@ -201,8 +201,8 @@ const InspectionList = () => {
       </Box>
 
       {/* 검수 목록 테이블 */}
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+        <Table sx={{ minWidth: 1100 }}>
           <TableHead>
             <TableRow>
               <TableCell>#</TableCell>

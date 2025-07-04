@@ -11,6 +11,8 @@ import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../utils/api';
 import { useRef } from 'react';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 // TODO: ReceiptPhotoUpload 컴포넌트 import 예정
 
@@ -347,8 +349,21 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
     }
   };
 
+  // 모바일(태블릿 포함)에서는 다이얼로그를 전체 화면으로 표시하여
+  // 가상 키보드가 입력창을 가리지 않도록 한다.
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      fullScreen={isSmallScreen}
+      scroll="body"
+      PaperProps={{ sx: { height: isSmallScreen ? '100%' : 'auto' } }}
+    >
       <DialogTitle>검수 등록</DialogTitle>
       <DialogContent>
         <Box sx={{ mb: 2 }}>

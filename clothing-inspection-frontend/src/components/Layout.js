@@ -19,7 +19,7 @@ const appBarHeight = 64; // px
 
 function Layout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const handleDrawerToggle = () => {

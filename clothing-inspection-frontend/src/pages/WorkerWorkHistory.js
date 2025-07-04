@@ -152,8 +152,8 @@ const WorkerWorkHistory = () => {
         <TextField type="date" size="small" label="종료일" InputLabelProps={{shrink:true}} value={endDate} onChange={e=>setEndDate(e.target.value)} />
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table size="small">
+      <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+        <Table size="small" sx={{ minWidth: 1200 }}>
           <TableHead>
             <TableRow>
               <TableCell>#</TableCell>

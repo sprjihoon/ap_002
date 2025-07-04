@@ -1,4 +1,4 @@
-import React,{ useState,useEffect } from 'react';
+import React,{ useState,useEffect, useRef } from 'react';
 import { Box, TextField, Button, Paper, Typography, CircularProgress, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, IconButton } from '@mui/material';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
@@ -14,6 +14,9 @@ const WorkerBarcodeScan=()=>{
   const { enqueueSnackbar } = useSnackbar();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // 첫 스캔 여부를 기억할 Set (barcode 단위)
+  const firstScanSet = useRef(new Set());
 
   useEffect(()=>{
     const el=document.getElementById('barcode-input');
@@ -48,19 +51,21 @@ const WorkerBarcodeScan=()=>{
 
     // 이미 전표가 로드되어 있는 경우 -> 정상 1개 처리
     if(inspections.length>0){
-      // 현재 로드된 전표(가장 먼저 로드된 것)에서 바코드 매칭
+      // 현재 로드된 전표들 중 바코드가 포함된 상세를 찾는다.
       const idx = inspections.findIndex(item=> item.remaining>0 && item.details.some(d=> d.ProductVariant?.barcode === bc));
       if(idx!==-1){
         const detail = inspections[idx].details.find(d=> d.ProductVariant?.barcode === bc);
         if(detail){
           if(detail.remaining===0){
             enqueueSnackbar('이미 처리 완료된 항목입니다.', { variant:'warning' });
-          }else if((detail.myCount||0)===0){
-            // 첫 스캔은 로드만 하고 처리하지 않음
+          }else if(!firstScanSet.current.has(bc)){
+            // 첫 스캔 : 전표만 로드 상태로 표시
+            firstScanSet.current.add(bc);
             enqueueSnackbar('첫 스캔: 전표 로드되었습니다. 다시 스캔하면 정상 처리됩니다.',{variant:'info'});
           }else{
-            // 두 번째 이후 스캔부터 자동 정상 처리
+            // 두 번째 스캔부터 자동 정상 처리
             await handleScan(idx, detail.id, 'normal');
+            firstScanSet.current.delete(bc);
           }
           setBarcode('');
           return;
@@ -81,16 +86,25 @@ const WorkerBarcodeScan=()=>{
       const existsIdx = inspections.findIndex(i=> i.inspection.id === res.data.inspection.id);
       if(existsIdx!==-1){
         const newList=[...inspections];
-        newList[existsIdx]={ ...newList[existsIdx], details: res.data.details, remaining: totalRemain, barcode: bc };
+        const prevItem = newList[existsIdx];
+        const mergedDetails = res.data.details.map(d=>{
+          const prev = prevItem.details.find(p=>p.id===d.id);
+          return { ...d, myCount: prev?.myCount || 0 };
+        });
+        newList[existsIdx]={ ...prevItem, details: mergedDetails, remaining: totalRemain, barcode: bc };
         setInspections(newList);
         sessionStorage.setItem('currentInspections', JSON.stringify(newList));
       }else{
         const newItem={ inspection: res.data.inspection,
-                       details: res.data.details.map(d=>({...d, myCount:0})),
+                       details: res.data.details.map(d=>({...d,myCount:0})),
                        remaining: totalRemain, myHandled:{}, barcode: bc };
         const newList=[...inspections, newItem];
         setInspections(newList);
         sessionStorage.setItem('currentInspections', JSON.stringify(newList));
+
+        // 첫 스캔으로 로드된 상태 표시
+        firstScanSet.current.add(bc);
+        enqueueSnackbar('전표가 로드되었습니다. 다시 스캔하면 정상 처리됩니다.', { variant:'info' });
       }
     }catch(err){
       enqueueSnackbar(err.response?.data?.message||'조회 실패', { variant:'error' });
@@ -164,6 +178,7 @@ const WorkerBarcodeScan=()=>{
   const handleReset = ()=>{
     setBarcode('');
     setInspections([]);
+    firstScanSet.current.clear();
     sessionStorage.removeItem('currentInspections');
     document.getElementById('barcode-input')?.focus();
   };
