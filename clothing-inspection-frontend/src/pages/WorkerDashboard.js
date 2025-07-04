@@ -53,6 +53,7 @@ const WorkerDashboard = () => {
         fetchWithAuth('/worker/progress'),
         fetchWithAuth('/worker/unconfirmed')
       ]);
+
       setStats(statsData);
       setProgressList(progressData);
       setUnconfirmedList(unconfData);
