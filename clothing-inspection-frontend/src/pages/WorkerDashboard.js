@@ -140,7 +140,12 @@ const WorkerDashboard = () => {
           전표별 진행률
         </Typography>
         <Grid container spacing={2}>
-          {progressList.map(p => (
+          {progressList.filter(p=>{
+            if(p.percent<100) return true;
+            // percent 100: show only if updated today
+            const today = new Date(); const upd=new Date(p.updatedAt);
+            return upd.getFullYear()===today.getFullYear() && upd.getMonth()===today.getMonth() && upd.getDate()===today.getDate();
+          }).map(p => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={p.id}>
               <Card onClick={()=>{ if(p.percent<100) navigate(`/worker/scan?inspectionId=${p.id}`); }} sx={{ cursor: p.percent<100?'pointer':'default', textAlign:'center', bgcolor: p.percent===100? 'success.light' : p.percent>=50 ? 'info.light' : 'warning.light' }}>
                 <CardContent>

@@ -536,7 +536,7 @@ router.get('/progress', auth, async (req,res)=>{
     // 확정된 전표 중 작업 미완료건
     const inspections = await Inspection.findAll({
       where:{ status:{ [Op.in]:['approved','completed'] }, workStatus:{ [Op.in]:['pending','in_progress','completed'] } },
-      attributes:['id','inspectionName','company','workStatus']
+      attributes:['id','inspectionName','company','workStatus','createdAt','updatedAt']
     });
     if(!inspections.length){ return res.json([]); }
     const inspIds = inspections.map(i=>i.id);
@@ -567,7 +567,8 @@ router.get('/progress', auth, async (req,res)=>{
         handledCount: handled,
         totalQuantity: total,
         percent,
-        workStatus: ins.workStatus
+        workStatus: ins.workStatus,
+        updatedAt: ins.updatedAt
       };
     });
     // 미완료(퍼센트<100) 먼저, 완료(100) 뒤로 정렬, 그 안에서 오름차순
