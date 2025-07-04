@@ -82,7 +82,11 @@ const TvDashboard = () => {
       <Divider sx={{ my:2, bgcolor:'#555' }} />
       <Typography variant="h4" gutterBottom>전표별 진행률</Typography>
       <Grid container spacing={2}>
-        {progressList.map(p=>(
+        {progressList.filter(p=>{
+          if(p.percent<100) return true;
+          const today=new Date(); const crt=new Date(p.createdAt);
+          return crt.getFullYear()===today.getFullYear() && crt.getMonth()===today.getMonth() && crt.getDate()===today.getDate();
+        }).map(p=>(
           <Grid item xs={12} sm={6} md={4} lg={3} key={p.id}>
             <Card sx={{ bgcolor:p.percent===100?'#2e7d32':'#1565c0', color:'#fff' }}>
               <CardContent sx={{ textAlign:'center' }}>
