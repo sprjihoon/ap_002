@@ -16,19 +16,28 @@ const TvDashboard = () => {
   const soundUrlRef = useRef(null);
   const firstPlayRef = useRef(false);
 
-  const playCompleteSound = ()=>{
-    try{
-      if(soundUrlRef.current){
-        const audio = new Audio(soundUrlRef.current);
-        audio.play().catch(()=>{});
-      }else{
-        const ctx = new (window.AudioContext||window.webkitAudioContext)();
+  const playCompleteSound = () => {
+    try {
+      if (soundUrlRef.current) {
+        const audio = new Audio();
+        audio.crossOrigin = 'anonymous';
+        audio.src = soundUrlRef.current;
+        audio.play().catch(err => {
+          console.warn('audio play failed', err);
+        });
+      } else {
+        // fallback beep
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
-        osc.type='sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
         osc.connect(ctx.destination);
-        osc.start(); osc.stop(ctx.currentTime+0.3);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
       }
-    }catch(e){ console.warn('audio error',e); }
+    } catch (e) {
+      console.warn('audio error', e);
+    }
   };
 
   const load = async()=>{
@@ -50,7 +59,7 @@ const TvDashboard = () => {
           }
           soundUrlRef.current = url;
 
-          // 최초 로드 직후 mp3 재생
+          // 최초 로드 직후 mp3 재생 (url 유효 시)
           if (!firstPlayRef.current && url) {
             playCompleteSound();
             firstPlayRef.current = true;
