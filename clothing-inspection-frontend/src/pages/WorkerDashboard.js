@@ -9,7 +9,9 @@ import {
   LinearProgress,
   Alert,
   Snackbar,
-  Divider
+  Divider,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import { fetchWithAuth } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
@@ -32,6 +34,8 @@ const WorkerDashboard = () => {
   const [error, setError] = useState('');
   const [unconfirmedList, setUnconfirmedList] = useState([]);
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canEdit = ['inspector','admin'].includes((user.role||'').toLowerCase());
 
@@ -91,8 +95,8 @@ const WorkerDashboard = () => {
 
       {/* 상단: 오늘 전표 통계 */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs="auto">
-          <Card sx={{ width:170, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+        <Grid item xs={12} sm={6} md="auto">
+          <Card sx={{ width:{ xs:'100%', sm:170 }, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
                 오늘 전체 전표
@@ -104,8 +108,8 @@ const WorkerDashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs="auto">
-          <Card sx={{ width:170, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+        <Grid item xs={12} sm={6} md="auto">
+          <Card sx={{ width:{ xs:'100%', sm:170 }, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
                 오늘 완료 전표
@@ -117,8 +121,8 @@ const WorkerDashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs="auto">
-          <Card sx={{ width:170, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+        <Grid item xs={12} sm={6} md="auto">
+          <Card sx={{ width:{ xs:'100%', sm:170 }, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
                 지난 미완료 전표
@@ -188,8 +192,8 @@ const WorkerDashboard = () => {
 
       {/* 오늘/지난 작업량 카드 행 */}
       <Grid container spacing={3}>
-        <Grid item xs="auto">
-          <Card sx={{ width:170, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+        <Grid item xs={12} sm={6} md="auto">
+          <Card sx={{ width:{ xs:'100%', sm:170 }, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
                 오늘 전체 작업 수량
@@ -201,8 +205,8 @@ const WorkerDashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs="auto">
-          <Card sx={{ width:170, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+        <Grid item xs={12} sm={6} md="auto">
+          <Card sx={{ width:{ xs:'100%', sm:170 }, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
                 오늘 완료 수량
@@ -214,8 +218,8 @@ const WorkerDashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs="auto">
-          <Card sx={{ width:170, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+        <Grid item xs={12} sm={6} md="auto">
+          <Card sx={{ width:{ xs:'100%', sm:170 }, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
                 오늘 미완료 수량
@@ -227,8 +231,8 @@ const WorkerDashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs="auto">
-          <Card sx={{ width:170, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+        <Grid item xs={12} sm={6} md="auto">
+          <Card sx={{ width:{ xs:'100%', sm:170 }, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
                 지난 미완료 수량

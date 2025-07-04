@@ -1,5 +1,5 @@
 import React,{ useState,useEffect, useRef } from 'react';
-import { Box, TextField, Button, Paper, Typography, CircularProgress, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, IconButton } from '@mui/material';
+import { Box, TextField, Button, Paper, Typography, CircularProgress, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, IconButton, useTheme, useMediaQuery } from '@mui/material';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -14,6 +14,8 @@ const WorkerBarcodeScan=()=>{
   const { enqueueSnackbar } = useSnackbar();
   const location = useLocation();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // 첫 스캔 여부를 기억할 Set (barcode 단위)
   const firstScanSet = useRef(new Set());
@@ -223,7 +225,7 @@ const WorkerBarcodeScan=()=>{
   return (
     <Box sx={{p:3}}>
       <Typography variant="h5" gutterBottom>바코드 스캔</Typography>
-      <Paper sx={{p:2, maxWidth:400}}>
+      <Paper sx={{ p:2, width:'100%', maxWidth: isMobile ? '100%' : 400 }}>
         <TextField
           id="barcode-input"
           fullWidth
@@ -255,7 +257,7 @@ const WorkerBarcodeScan=()=>{
           <Typography>전표ID: {item.inspection.id}</Typography>
           <Typography sx={{ mt:1 }}>전표 남은수량: <b>{item.remaining}</b></Typography>
 
-          <TableContainer component={Paper} sx={{ mt:2 }}>
+          <TableContainer component={Paper} sx={{ mt:2, overflowX:'auto' }}>
             <Table size="small">
               <TableHead>
                 <TableRow>

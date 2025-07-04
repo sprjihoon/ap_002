@@ -18,7 +18,10 @@ import {
   Select,
   MenuItem,
   Button,
-  TablePagination
+  TablePagination,
+  useTheme,
+  useMediaQuery,
+  Grid
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Visibility, Search, Delete, Edit, SpeakerNotes } from '@mui/icons-material';
@@ -39,6 +42,8 @@ const InspectionList = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // 검수 목록 조회
   const fetchInspections = async () => {
@@ -137,13 +142,13 @@ const InspectionList = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display:'flex', alignItems:'center', justifyContent:'space-between', mb:3, gap:2 }}>
-        <Typography variant="h5" sx={{ m:0 }}>검수 목록</Typography>
+      <Box sx={{ display:'flex', alignItems:'center', gap:2, flexWrap:'wrap', mb:3, justifyContent:{ xs:'flex-start', md:'space-between' } }}>
         {user.role !== 'operator' && (
-          <Button variant="contained" onClick={() => navigate('/inspections/register')}>
+          <Button variant="contained" onClick={() => navigate('/inspections/register')} sx={{ order:{ xs:-1, md:0 } }}>
             검수 등록
           </Button>
         )}
+        <Typography variant="h5" sx={{ m:0, flexGrow:1 }}>검수 목록</Typography>
       </Box>
       
       {/* 필터 및 검색 */}
@@ -199,80 +204,113 @@ const InspectionList = () => {
       </Box>
 
       {/* 검수 목록 테이블 */}
-      <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-        <Table sx={{ minWidth: 1100 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>#</TableCell>
-              <TableCell>검수전표명</TableCell>
-              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>업체</TableCell>
-              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>검수자</TableCell>
-              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>검수일시</TableCell>
-              <TableCell>상태</TableCell>
-              <TableCell>작업</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedInspections.map((inspection, idx) => (
-              <TableRow key={inspection.id}>
-                <TableCell>{filteredInspections.length - (page * rowsPerPage + idx)}</TableCell>
-                <TableCell
-                  sx={{ cursor:'pointer', textDecoration:'underline' }}
-                  onClick={() => navigate(`/inspections/${inspection.id}`)}
-                >
-                  {inspection.inspectionName || inspection.inspectionSlipName}
-                  {inspection.hasNew && (
-                    <Chip
-                      size="small"
-                      color="error"
-                      icon={<SpeakerNotes fontSize="small" />}
-                      label="새 댓글"
-                      sx={{ ml:0.5 }}
-                      onClick={() => {}}
-                    />
-                  )}
-                  {inspection.hasNewComment && (
-                    <Chip
-                      size="small"
-                      color="warning"
-                      icon={<SpeakerNotes fontSize="small" />}
-                      label="새 코멘트"
-                      sx={{ ml:0.5 }}
-                      onClick={() => {}}
-                    />
-                  )}
-                </TableCell>
-                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inspection.company}</TableCell>
-                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inspection.inspector?.name || inspection.inspector?.username || '-'}</TableCell>
-                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{new Date(inspection.createdAt).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={getStatusLabel(inspection.status, inspection.workStatus)}
-                    color={getStatusColor(inspection.status, inspection.workStatus)}
-                    size="small"
-                    onClick={() => {}}
-                  />
-                </TableCell>
-                <TableCell>
+      {isMobile ? (
+        <Grid container spacing={2}>
+          {paginatedInspections.map((inspection, idx)=>(
+            <Grid item xs={12} key={inspection.id}>
+              <Paper sx={{ p:2 }}>
+                <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <Box onClick={()=>navigate(`/inspections/${inspection.id}`)} sx={{ cursor:'pointer' }}>
+                    <Typography variant="subtitle2">{inspection.inspectionName || inspection.inspectionSlipName}</Typography>
+                    <Typography variant="body2" color="text.secondary">{new Date(inspection.createdAt).toLocaleString()}</Typography>
+                  </Box>
+                  <Chip label={getStatusLabel(inspection.status, inspection.workStatus)} color={getStatusColor(inspection.status, inspection.workStatus)} size="small" />
+                </Box>
+                <Box sx={{ mt:1, display:'flex', gap:1 }}>
                   <IconButton size="small" onClick={() => navigate(`/inspections/${inspection.id}`)}>
-                    <Visibility />
+                    <Visibility fontSize="small" />
                   </IconButton>
                   {user.role !== 'operator' && (
                     <>
                       <IconButton size="small" onClick={() => navigate(`/inspections/${inspection.id}?edit=1`)}>
-                        <Edit />
+                        <Edit fontSize="small" />
                       </IconButton>
                       <IconButton size="small" color="error" onClick={() => handleDelete(inspection.id)}>
-                        <Delete />
+                        <Delete fontSize="small" />
                       </IconButton>
                     </>
                   )}
-                </TableCell>
+                </Box>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+          <Table sx={{ minWidth: 1100 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell>#</TableCell>
+                <TableCell>검수전표명</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>업체</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>검수자</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>검수일시</TableCell>
+                <TableCell>상태</TableCell>
+                <TableCell>작업</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {paginatedInspections.map((inspection, idx) => (
+                <TableRow key={inspection.id}>
+                  <TableCell>{filteredInspections.length - (page * rowsPerPage + idx)}</TableCell>
+                  <TableCell
+                    sx={{ cursor:'pointer', textDecoration:'underline' }}
+                    onClick={() => navigate(`/inspections/${inspection.id}`)}
+                  >
+                    {inspection.inspectionName || inspection.inspectionSlipName}
+                    {inspection.hasNew && (
+                      <Chip
+                        size="small"
+                        color="error"
+                        icon={<SpeakerNotes fontSize="small" />}
+                        label="새 댓글"
+                        sx={{ ml:0.5 }}
+                        onClick={() => {}}
+                      />
+                    )}
+                    {inspection.hasNewComment && (
+                      <Chip
+                        size="small"
+                        color="warning"
+                        icon={<SpeakerNotes fontSize="small" />}
+                        label="새 코멘트"
+                        sx={{ ml:0.5 }}
+                        onClick={() => {}}
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inspection.company}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inspection.inspector?.name || inspection.inspector?.username || '-'}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{new Date(inspection.createdAt).toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={getStatusLabel(inspection.status, inspection.workStatus)}
+                      color={getStatusColor(inspection.status, inspection.workStatus)}
+                      size="small"
+                      onClick={() => {}}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <IconButton size="small" onClick={() => navigate(`/inspections/${inspection.id}`)}>
+                      <Visibility />
+                    </IconButton>
+                    {user.role !== 'operator' && (
+                      <>
+                        <IconButton size="small" onClick={() => navigate(`/inspections/${inspection.id}?edit=1`)}>
+                          <Edit />
+                        </IconButton>
+                        <IconButton size="small" color="error" onClick={() => handleDelete(inspection.id)}>
+                          <Delete />
+                        </IconButton>
+                      </>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       {/* 페이징 */}
       <Box sx={{ display:'flex', justifyContent:'center', mt:2 }}>
