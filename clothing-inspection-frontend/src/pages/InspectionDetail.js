@@ -266,27 +266,6 @@ const InspectionDetail = () => {
     }
   };
 
-  const handleDownloadPDF = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/inspections/${id}/pdf`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('fail');
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${inspection?.inspectionName || 'inspection'}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      enqueueSnackbar('PDF 다운로드 실패', { variant:'error' });
-    }
-  };
-
   const handleDownloadEZExcel = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -482,9 +461,6 @@ const InspectionDetail = () => {
           목록으로
         </Button>
         <Typography variant="h5">검수 상세</Typography>
-        <Button variant="outlined" size="small" startIcon={<FileDownload />} onClick={handleDownloadPDF}>
-          PDF
-        </Button>
         <Button variant="outlined" size="small" startIcon={<FileDownload />} onClick={handleDownloadEZExcel}>
           양식
         </Button>
