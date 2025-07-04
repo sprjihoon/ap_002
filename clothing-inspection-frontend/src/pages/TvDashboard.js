@@ -12,7 +12,7 @@ const TvDashboard = () => {
   const [unconfirmedList,setUnconfirmedList]=useState([]);
 
   // 완료 효과음을 위해 이전 완료 전표를 저장
-  const completedSetRef = useRef(new Set());
+  const prevPercentRef = useRef({});
   const soundUrlRef = useRef(null);
 
   const playCompleteSound = ()=>{
@@ -43,12 +43,13 @@ const TvDashboard = () => {
           soundUrlRef.current = d.completeSoundUrl||'';
         }).catch(()=>{});
       }
-      // 완료 검사: 새로 100% 된 전표 탐색
+      // 완료 검사: 이전 퍼센트 <100 → 이번에 100 이 된 전표 탐색
       p.forEach(it=>{
-        if(it.percent===100 && !completedSetRef.current.has(it.id)){
-          completedSetRef.current.add(it.id);
+        const prev = prevPercentRef.current[it.id] ?? 0;
+        if(prev < 100 && it.percent === 100){
           playCompleteSound();
         }
+        prevPercentRef.current[it.id] = it.percent;
       });
 
       setStats(s); setProgressList(p); setUnconfirmedList(u);
