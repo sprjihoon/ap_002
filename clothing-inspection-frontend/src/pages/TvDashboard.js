@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Grid, Card, CardContent, Divider, Paper } from '@mui/material';
 import { fetchWithAuth } from '../utils/api';
 
@@ -11,6 +11,19 @@ const TvDashboard = () => {
   const [progressList,setProgressList]=useState([]);
   const [unconfirmedList,setUnconfirmedList]=useState([]);
 
+  // 완료 효과음을 위해 이전 완료 전표를 저장
+  const completedSetRef = useRef(new Set());
+
+  const playCompleteSound = ()=>{
+    try{
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      osc.type='sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime+0.3);
+    }catch(e){ console.warn('audio error',e); }
+  };
+
   const load = async()=>{
     try{
       const [s,p,u] = await Promise.all([
@@ -18,6 +31,14 @@ const TvDashboard = () => {
         fetchWithAuth('/worker/progress'),
         fetchWithAuth('/worker/unconfirmed')
       ]);
+      // 완료 검사: 새로 100% 된 전표 탐색
+      p.forEach(it=>{
+        if(it.percent===100 && !completedSetRef.current.has(it.id)){
+          completedSetRef.current.add(it.id);
+          playCompleteSound();
+        }
+      });
+
       setStats(s); setProgressList(p); setUnconfirmedList(u);
     }catch(err){ console.error(err); }
   };
