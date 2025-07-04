@@ -19,6 +19,7 @@ const workerRoutes      = require('./routes/workerRoutes');
 const labelRoutes       = require('./routes/labelRoutes');
 const adminRoutes       = require('./routes/adminRoutes');
 const defectRoutes      = require('./routes/defectRoutes');
+const settingsRoutes    = require('./routes/settingsRoutes');
 
 const app = express();
 
@@ -61,6 +62,7 @@ app.use('/api/worker',      workerRoutes);
 app.use('/api/labels',      labelRoutes);
 app.use('/api/admin',       adminRoutes);
 app.use('/api/defects',     defectRoutes);
+app.use('/api/settings',    settingsRoutes);
 
 /*────────────── 헬스체크 ───────────────*/
 app.get('/',           (_, res) => res.send('OK'));

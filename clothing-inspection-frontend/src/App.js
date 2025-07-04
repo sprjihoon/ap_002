@@ -27,6 +27,7 @@ import axios from 'axios';
 import DefectList from './pages/DefectList';
 import ErrorBoundary from './components/ErrorBoundary';
 import TvDashboard from './pages/TvDashboard';
+import UiSettings from './pages/UiSettings';
 
 // 관리자 권한 확인 컴포넌트
 const AdminRoute = ({ children }) => {
@@ -207,6 +208,16 @@ function App() {
                   <DisplayRoute>
                     <TvDashboard />
                   </DisplayRoute>
+                }
+              />
+              <Route
+                path="/settings/ui"
+                element={
+                  <Layout>
+                    <AdminRoute>
+                      <UiSettings />
+                    </AdminRoute>
+                  </Layout>
                 }
               />
             </Routes>

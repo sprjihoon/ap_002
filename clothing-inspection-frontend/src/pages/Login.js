@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Paper, TextField, Button, Typography, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../utils/api';
@@ -10,6 +10,18 @@ function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // 배경 이미지 적용
+  useEffect(()=>{
+    let prev='';
+    fetch('/api/settings/ui').then(r=>r.json()).then(d=>{
+      if(d.loginBgUrl){
+        prev = document.body.style.backgroundImage;
+        document.body.style.background=`url(${d.loginBgUrl}) center/cover no-repeat fixed`;
+      }
+    });
+    return ()=>{ document.body.style.backgroundImage = prev; };
+  },[]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

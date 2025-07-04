@@ -35,6 +35,7 @@ const Sidebar = () => {
     { key:'history', label:'작업내역', icon:<ListAltIcon />, to:'/worker/history', roles:['worker','inspector','admin'] },
     { key:'password', label:'비밀번호 변경', icon:<SettingsIcon />, to:'/change-password', roles:['worker','inspector','operator','admin'] },
     { key:'users', label:'사용자 관리', icon:<PeopleIcon />, to:'/users', roles:['admin'] },
+    { key:'uiSettings', label:'환경 설정', icon:<SettingsIcon />, to:'/settings/ui', roles:['admin'] },
   ];
 
   return (

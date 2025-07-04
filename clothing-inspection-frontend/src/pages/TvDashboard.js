@@ -13,14 +13,20 @@ const TvDashboard = () => {
 
   // 완료 효과음을 위해 이전 완료 전표를 저장
   const completedSetRef = useRef(new Set());
+  const soundUrlRef = useRef(null);
 
   const playCompleteSound = ()=>{
     try{
-      const ctx = new (window.AudioContext||window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      osc.type='sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.connect(ctx.destination);
-      osc.start(); osc.stop(ctx.currentTime+0.3);
+      if(soundUrlRef.current){
+        const audio = new Audio(soundUrlRef.current);
+        audio.play().catch(()=>{});
+      }else{
+        const ctx = new (window.AudioContext||window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        osc.type='sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime+0.3);
+      }
     }catch(e){ console.warn('audio error',e); }
   };
 
@@ -31,6 +37,12 @@ const TvDashboard = () => {
         fetchWithAuth('/worker/progress'),
         fetchWithAuth('/worker/unconfirmed')
       ]);
+      // 최초 한 번 UI 설정 가져오기
+      if(soundUrlRef.current===null){
+        fetch('/api/settings/ui').then(r=>r.json()).then(d=>{
+          soundUrlRef.current = d.completeSoundUrl||'';
+        }).catch(()=>{});
+      }
       // 완료 검사: 새로 100% 된 전표 탐색
       p.forEach(it=>{
         if(it.percent===100 && !completedSetRef.current.has(it.id)){
