@@ -42,15 +42,23 @@ const TvDashboard = () => {
       if(soundUrlRef.current===null){
         fetch(`${API_URL}/settings/ui`).then(r=>r.json()).then(d=>{
           let url = d.completeSoundUrl || '';
-          if(url && !url.startsWith('http')){
-            const base = API_URL.replace(/\/api$/, '');
+          if (url && !url.startsWith('http')) {
+            let base = API_URL;
+            if (base.endsWith('/api')) base = base.slice(0, -4);
+            if (!base.startsWith('http')) base = '';
             url = base + url;
           }
           soundUrlRef.current = url;
+
+          // 최초 로드 직후 mp3 재생
+          if (!firstPlayRef.current && url) {
+            playCompleteSound();
+            firstPlayRef.current = true;
+          }
         }).catch(()=>{});
       }
-      // 첫 로드 시 효과음 1회 재생
-      if(!firstPlayRef.current){
+      // 첫 로드 시 (URL이 이미 세팅된 경우) 1회 재생
+      if (!firstPlayRef.current && soundUrlRef.current) {
         playCompleteSound();
         firstPlayRef.current = true;
       }
