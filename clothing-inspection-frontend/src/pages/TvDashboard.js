@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Grid, Card, CardContent, Divider, Paper } from '@mui/material';
-import { fetchWithAuth } from '../utils/api';
+import { fetchWithAuth, API_URL } from '../utils/api';
 
 // 전광판용 대시보드 – 클릭 요소 제거, 글자 크게
 const TvDashboard = () => {
@@ -39,7 +39,7 @@ const TvDashboard = () => {
       ]);
       // 최초 한 번 UI 설정 가져오기
       if(soundUrlRef.current===null){
-        fetch('/api/settings/ui').then(r=>r.json()).then(d=>{
+        fetch(`${API_URL}/settings/ui`).then(r=>r.json()).then(d=>{
           soundUrlRef.current = d.completeSoundUrl||'';
         }).catch(()=>{});
       }

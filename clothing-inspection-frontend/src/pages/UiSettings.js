@@ -11,7 +11,7 @@ const SettingUpload = ({ label, accept, settingKey }) => {
 
   const load = async () => {
     try {
-      const res = await fetch('/api/settings/ui');
+      const res = await fetch(`${API_URL}/settings/ui`);
       const data = await res.json();
       setCurrentUrl(data[settingKey] || '');
     } catch (err) { console.error(err); }

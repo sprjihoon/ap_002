@@ -14,7 +14,7 @@ function Login() {
   // 배경 이미지 적용
   useEffect(()=>{
     let prev='';
-    fetch('/api/settings/ui').then(r=>r.json()).then(d=>{
+    fetch(`${API_URL}/settings/ui`).then(r=>r.json()).then(d=>{
       if(d.loginBgUrl){
         let url = d.loginBgUrl;
         if(!url.startsWith('http')){
