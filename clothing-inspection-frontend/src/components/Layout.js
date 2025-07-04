@@ -74,46 +74,45 @@ function Layout({ children }) {
           </Typography>
         </Toolbar>
       </AppBar>
-      {sidebarOpen && (
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-      >
+      <Box component="nav" sx={{ width:{ sm:drawerWidth }, flexShrink:{ sm:0 } }}>
+        {/* 모바일: 임시 Drawer – 항상 렌더 */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true
-          }}
+          ModalProps={{ keepMounted:true }}
           sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: drawerWidth,
-              top: `${appBarHeight}px`,
-              height: `calc(100% - ${appBarHeight}px)`
+            display:{ xs:'block', sm:'none' },
+            '& .MuiDrawer-paper':{
+              boxSizing:'border-box',
+              width:drawerWidth,
+              top:`${appBarHeight}px`,
+              height:`calc(100% - ${appBarHeight}px)`
             }
           }}
         >
           {drawer}
         </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: drawerWidth,
-              top: `${appBarHeight}px`,
-              height: `calc(100% - ${appBarHeight}px)`
-            }
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box> )}
+
+        {/* 데스크톱: 고정 Drawer – sidebarOpen 일때만 렌더 */}
+        {sidebarOpen && (
+          <Drawer
+            variant="permanent"
+            sx={{
+              display:{ xs:'none', sm:'block' },
+              '& .MuiDrawer-paper':{
+                boxSizing:'border-box',
+                width:drawerWidth,
+                top:`${appBarHeight}px`,
+                height:`calc(100% - ${appBarHeight}px)`
+              }
+            }}
+            open
+          >
+            {drawer}
+          </Drawer>
+        )}
+      </Box>
       <Box
         component="main"
         sx={{
