@@ -137,7 +137,14 @@ const InspectionList = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>검수 목록</Typography>
+      <Box sx={{ display:'flex', alignItems:'center', justifyContent:'space-between', mb:3, gap:2 }}>
+        <Typography variant="h5" sx={{ m:0 }}>검수 목록</Typography>
+        {user.role !== 'operator' && (
+          <Button variant="contained" onClick={() => navigate('/inspections/register')}>
+            검수 등록
+          </Button>
+        )}
+      </Box>
       
       {/* 필터 및 검색 */}
       <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -189,15 +196,6 @@ const InspectionList = () => {
         </FormControl>
         <TextField type="date" size="small" label="시작일" InputLabelProps={{shrink:true}} value={startDate} onChange={e=>setStartDate(e.target.value)} />
         <TextField type="date" size="small" label="종료일" InputLabelProps={{shrink:true}} value={endDate} onChange={e=>setEndDate(e.target.value)} />
-        {user.role !== 'operator' && (
-        <Button
-          variant="contained"
-          onClick={() => navigate('/inspections/register')}
-          sx={{ ml: 'auto' }}
-        >
-          검수 등록
-        </Button>
-        )}
       </Box>
 
       {/* 검수 목록 테이블 */}
@@ -207,9 +205,9 @@ const InspectionList = () => {
             <TableRow>
               <TableCell>#</TableCell>
               <TableCell>검수전표명</TableCell>
-              <TableCell>업체</TableCell>
-              <TableCell>검수자</TableCell>
-              <TableCell>검수일시</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>업체</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>검수자</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>검수일시</TableCell>
               <TableCell>상태</TableCell>
               <TableCell>작업</TableCell>
             </TableRow>
@@ -244,9 +242,9 @@ const InspectionList = () => {
                     />
                   )}
                 </TableCell>
-                <TableCell>{inspection.company}</TableCell>
-                <TableCell>{inspection.inspector?.name || inspection.inspector?.username || '-'}</TableCell>
-                <TableCell>{new Date(inspection.createdAt).toLocaleString()}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inspection.company}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inspection.inspector?.name || inspection.inspector?.username || '-'}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{new Date(inspection.createdAt).toLocaleString()}</TableCell>
                 <TableCell>
                   <Chip
                     label={getStatusLabel(inspection.status, inspection.workStatus)}

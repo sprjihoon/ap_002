@@ -23,14 +23,20 @@ const WorkerBarcodeScan=()=>{
     el&&el.focus();
   },[]);
 
+  // 대시보드 등에서 링크 클릭 시 ?inspectionId= 파라미터로 전표를 로드한다.
+  // location.search 가 변경될 때마다 확인해 여러 전표를 누적 로드할 수 있게 한다.
   useEffect(()=>{
     const params = new URLSearchParams(location.search);
     const inspId = params.get('inspectionId');
-    if(inspId && inspections.length===0){
-      preloadInspection(inspId);
-    }
+    if(!inspId) return;
+
+    // 이미 로드된 전표인지 확인
+    if(inspections.some(it=> String(it.inspection.id) === String(inspId))) return;
+
+    // 처음이든 이후든 추가로 로드
+    preloadInspection(inspId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[]);
+  },[location.search]);
 
   useEffect(()=>{
     setInspections(list=>{
@@ -158,9 +164,19 @@ const WorkerBarcodeScan=()=>{
     try{
       const res = await api.get(`/worker/inspection/${id}/details`);
       const totalRemain = res.data.details.reduce((t,d)=>t+d.remaining,0);
-      const newItem = { inspection: res.data.inspection, details: res.data.details.map(d=>({...d,myCount:0})), remaining: totalRemain, myHandled:{}, barcode:'' };
-      setInspections([newItem]);
-      sessionStorage.setItem('currentInspections', JSON.stringify([newItem]));
+      if(totalRemain===0){
+        enqueueSnackbar('이미 완료된 전표입니다.', { variant:'info' });
+        return;
+      }
+      setInspections(prev=>{
+        // 이미 동일 전표가 있으면 대체하지 않고 그대로 둔다.
+        if(prev.some(it=>it.inspection.id===res.data.inspection.id)) return prev;
+        const newItem = { inspection: res.data.inspection, details: res.data.details.map(d=>({...d,myCount:0})), remaining: totalRemain, myHandled:{}, barcode:'' };
+        const newList=[...prev, newItem];
+        sessionStorage.setItem('currentInspections', JSON.stringify(newList));
+        enqueueSnackbar('전표가 로드되었습니다. 바코드를 스캔하여 처리를 시작하세요.', { variant:'info' });
+        return newList;
+      });
     }catch(err){
       enqueueSnackbar(err.response?.data?.message||'전표 불러오기 실패', { variant:'error' });
     }finally{ setLoading(false); }
