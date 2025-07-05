@@ -15,95 +15,63 @@ const stripZero = code => code.replace(/^0+/, '');
 // 작업자 대시보드 통계
 router.get('/stats', auth, async (req, res) => {
   try {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const endOfToday = new Date();
-    endOfToday.setHours(23, 59, 59, 999);
+    const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+    const endOfToday = new Date(); endOfToday.setHours(23,59,59,999);
 
-    // MySQL CURDATE() 는 서버 시간대 기준 날짜를 반환하므로 타임존 문제를 피할 수 있다.
-    const todayDateLiteral = Sequelize.literal('CURDATE()');
-
-    // 확정(approved)된 전표만 대상으로 집계
-    const [
-      totalInspections,
-      completedInspections,
-      inProgressInspections,
-      errorInspections,
-      todayTotals,
-      pastRemainQty,
-      todayTotalInspections,
-      todayCompletedInspections,
-      todayInProgressInspections,
-      pastPendingInspections
-    ] = await Promise.all([
-      // 전체 확정 전표
-      Inspection.count({ where: { status: { [Op.in]: ['approved', 'completed'] } } }),
-      // 완료된 전표 (작업까지 완료)
-      Inspection.count({ where: { status: { [Op.in]: ['approved', 'completed'] }, workStatus: 'completed' } }),
-      // 바코드 스캔이 진행 중인 전표
-      Inspection.count({ where: { status: { [Op.in]: ['approved', 'completed'] }, workStatus: 'in_progress' } }),
-      // 오류 상태 전표
-      Inspection.count({ where: { status: { [Op.in]: ['approved', 'completed'] }, workStatus: 'error' } }),
-      // 오늘의 총 수량과 처리된 수량 (전표 생성일이 오늘인 경우)
-      InspectionDetail.findOne({
-        attributes:[
-          [Sequelize.fn('SUM', Sequelize.col('InspectionDetail.totalQuantity')), 'totalQuantity'],
-          [Sequelize.literal('SUM(InspectionDetail.handledNormal + InspectionDetail.handledDefect + InspectionDetail.handledHold)'), 'handledQuantity']
-        ],
-        include:[{
-          model: Inspection,
-          as: 'Inspection',
-          attributes:[],
-          where:{ status:{[Op.in]:['approved','completed']}, [Op.and]: Sequelize.where(Sequelize.fn('DATE', Sequelize.col('Inspection.createdAt')), todayDateLiteral) }
-        }],
-        raw:true
-      }),
-      // 지난 미완료 수량 (전일 이전 생성, 미완료 전표)
-      InspectionDetail.findOne({
-        attributes:[
-          [Sequelize.literal('SUM(InspectionDetail.totalQuantity - InspectionDetail.handledNormal - InspectionDetail.handledDefect - InspectionDetail.handledHold)'), 'remainingQuantity']
-        ],
-        include:[{
-          model: Inspection,
-          as: 'Inspection',
-          attributes:[],
-          where:{ status:{[Op.in]:['approved','completed']}, workStatus:{[Op.ne]:'completed'}, [Op.and]: Sequelize.literal('DATE(Inspection.createdAt) < CURDATE()') }
-        }],
-        raw:true
-      }),
-      // 오늘 전체 전표 수 (오늘 생성, 모든 status)
-      Inspection.count({ where: Sequelize.literal('DATE(Inspection.createdAt)=CURDATE()') }),
-      // 오늘 완료 전표 수 (오늘 생성 + 작업 완료)
-      Inspection.count({ where:{ status:{[Op.in]:['approved','completed']}, workStatus:'completed', [Op.and]: Sequelize.literal('DATE(Inspection.createdAt)=CURDATE()') } }),
-      // 오늘 진행중 전표 수 (오늘 생성 + 진행중)
-      Inspection.count({ where:{ status:{[Op.in]:['approved','completed']}, workStatus:'in_progress', [Op.and]: Sequelize.literal('DATE(Inspection.createdAt)=CURDATE()') } }),
-      // 지난 미완료 전표 수
-      Inspection.count({ where:{ status:{[Op.in]:['approved','completed']}, workStatus:{ [Op.ne]:'completed' }, [Op.and]: Sequelize.literal('DATE(Inspection.createdAt) < CURDATE()') } })
+    // 전체 통계 (전표 상태)
+    const [totalInspections, completedInspections, inProgressInspections, errorInspections] = await Promise.all([
+      Inspection.count({ where:{ status:{[Op.in]:['approved','completed']} } }),
+      Inspection.count({ where:{ status:{[Op.in]:['approved','completed']}, workStatus:'completed' } }),
+      Inspection.count({ where:{ status:{[Op.in]:['approved','completed']}, workStatus:'in_progress' } }),
+      Inspection.count({ where:{ status:{[Op.in]:['approved','completed']}, workStatus:'error' } })
     ]);
 
-    const todayTotalQty = todayTotals ? parseInt(todayTotals.totalQuantity || 0, 10) : 0;
-    const todayHandledQty = todayTotals ? parseInt(todayTotals.handledQuantity || 0, 10) : 0;
-    const todayRemainingQty = todayTotalQty - todayHandledQty;
+    // 오늘 스캔 건수 (완료 수량)
+    const todayCompletedQuantity = await WorkerScan.count({ where:{ createdAt:{ [Op.between]:[startOfToday,endOfToday] } } });
 
-    const pastRemainingQty = pastRemainQty ? parseInt(pastRemainQty.remainingQuantity || 0, 10) : 0;
+    // 오늘 스캔이 이뤄진 detail 들의 totalQuantity 합계 → 오늘 작업 대상 수량
+    const detailIdsToday = await WorkerScan.findAll({
+      attributes:['detailId'], where:{ createdAt:{ [Op.between]:[startOfToday,endOfToday] } }, raw:true
+    });
+    let todayTotalQuantity = 0;
+    if(detailIdsToday.length){
+      const ids = detailIdsToday.map(r=>r.detailId);
+      const agg = await InspectionDetail.findOne({ attributes:[[Sequelize.fn('SUM',Sequelize.col('totalQuantity')),'sum']], where:{ id:{[Op.in]:ids}}, raw:true });
+      todayTotalQuantity = parseInt(agg?.sum||0,10);
+    }
+
+    const todayRemainingQuantity = Math.max(0, todayTotalQuantity - todayCompletedQuantity);
+
+    // 오늘 전표 집계 (updatedAt 기준)
+    const todayTotalInspections = await Inspection.count({ where: Sequelize.where(Sequelize.fn('DATE', Sequelize.col('updatedAt')), Sequelize.literal('CURDATE()')) });
+    const todayCompletedInspections = await Inspection.count({ where:{ workStatus:'completed', [Op.and]: Sequelize.where(Sequelize.fn('DATE', Sequelize.col('updatedAt')), Sequelize.literal('CURDATE()')) } });
+    const todayInProgressInspections = await Inspection.count({ where:{ workStatus:'in_progress', [Op.and]: Sequelize.where(Sequelize.fn('DATE', Sequelize.col('updatedAt')), Sequelize.literal('CURDATE()')) } });
+
+    // 지난 미완료 (workStatus!=completed) 전표 수
+    const pastPendingInspections = await Inspection.count({ where:{ workStatus:{[Op.ne]:'completed'}, [Op.and]: Sequelize.literal('DATE(updatedAt) < CURDATE()') } });
+
+    // 지난 남은 수량 (workStatus!=completed)
+    const pastRemain = await InspectionDetail.findOne({
+      attributes:[[Sequelize.literal('SUM(totalQuantity - handledNormal - handledDefect - handledHold)'),'remain']],
+      include:[{ model: Inspection, as:'Inspection', attributes:[], where:{ workStatus:{[Op.ne]:'completed'} } }], raw:true
+    });
+    const pastRemainingQuantity = parseInt(pastRemain?.remain||0,10);
 
     res.json({
       totalInspections,
       completedInspections,
       inProgressInspections,
       errorInspections,
-      todayScans: 0,
-      todayErrors: 0,
-      todayTotalQuantity: todayTotalQty,
-      todayCompletedQuantity: todayHandledQty,
-      todayRemainingQuantity: todayRemainingQty,
-      pastRemainingQuantity: pastRemainingQty,
+      todayTotalQuantity,
+      todayCompletedQuantity,
+      todayRemainingQuantity,
+      pastRemainingQuantity,
       todayTotalInspections,
       todayCompletedInspections,
       todayInProgressInspections,
       pastPendingInspections
     });
-  } catch (err) {
+  } catch(err){
     console.error('worker stats error', err);
     res.status(500).json({ message: err.message });
   }
