@@ -25,6 +25,8 @@
     "react-dropzone": "^14.3.8",
     "react-konva": "^19.0.6",
     "react-router-dom": "^7.6.2",
+    "react-chartjs-2": "^5.2.0",
+    "chart.js": "^4.4.0",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
