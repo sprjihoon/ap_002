@@ -1,4 +1,4 @@
-import React,{ useState,useEffect, useRef } from 'react';
+import React,{ useState,useEffect, useRef, Fragment } from 'react';
 import { Box, TextField, Button, Paper, Typography, CircularProgress, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, IconButton, useTheme, useMediaQuery } from '@mui/material';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
@@ -270,33 +270,61 @@ const WorkerBarcodeScan=()=>{
                 </TableRow>
               </TableHead>
               <TableBody>
-                {item.details.map(det=>(
-                  <TableRow key={det.id}>
-                    <TableCell>{det.ProductVariant?.barcode}</TableCell>
-                    <TableCell align="right">{det.totalQuantity}</TableCell>
-                    <TableCell align="right">{det.remaining}</TableCell>
-                    <TableCell align="right">{det.totalQuantity - det.remaining - (det.myCount||0)}</TableCell>
-                    <TableCell align="right">{det.myCount||0}</TableCell>
-                    {['normal','defect','hold'].map(r=>(
-                      <TableCell key={r} align="center">
-                        <Button size="small" variant={r==='normal'?'contained':'outlined'} color={r==='defect'?'error':r==='hold'?'warning':'primary'} disabled={loading || det.remaining===0} onClick={()=>handleScan(idx, det.id, r)}>
-                          {r==='normal'?'정상':r==='defect'?'불량':'보류'}
-                        </Button>
-                        {det.myCount>0 && (
-                          <IconButton size="small" color="secondary" onClick={()=>handleUndo(idx, det.id, r)} disabled={loading} title="되돌리기">
-                            <Undo fontSize="small" />
-                          </IconButton>
-                        )}
-                      </TableCell>
-                    ))}
-                    <TableCell align="center">
-                      <Select size="small" value={det.qualityGrade || ''} onChange={e=>updateGrade(idx,det.id,e.target.value)} displayEmpty>
-                        <MenuItem value=""><em>없음</em></MenuItem>
+                {item.details.map(det=>{
+                  const actionButtons = (
+                    <Box sx={{ display:'flex', flexWrap:'wrap', gap:1, justifyContent:'center' }}>
+                      {['normal','defect','hold'].map(r=> (
+                        <Box key={r} sx={{ display:'flex', alignItems:'center' }}>
+                          <Button size="small" variant={r==='normal'?'contained':'outlined'} color={r==='defect'?'error':r==='hold'?'warning':'primary'} disabled={loading || det.remaining===0} onClick={()=>handleScan(idx, det.id, r)} sx={{ minWidth:64 }}>
+                            {r==='normal'?'정상':r==='defect'?'불량':'보류'}
+                          </Button>
+                          {det.myCount>0 && (
+                            <IconButton size="small" color="secondary" onClick={()=>handleUndo(idx, det.id, r)} disabled={loading} title="되돌리기">
+                              <Undo fontSize="small" />
+                            </IconButton>
+                          )}
+                        </Box>
+                      ))}
+                      <Select size="small" value={det.qualityGrade || ''} onChange={e=>updateGrade(idx,det.id,e.target.value)} displayEmpty sx={{ ml:1 }}>
+                        <MenuItem value=""><em>등급</em></MenuItem>
                         {['A','B','C','D','E'].map(g=>(<MenuItem key={g} value={g}>{g}</MenuItem>))}
                       </Select>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                    </Box>
+                  );
+
+                  if(isMobile){
+                    return (
+                      <Fragment key={det.id}>
+                        <TableRow>
+                          <TableCell>{det.ProductVariant?.barcode}</TableCell>
+                          <TableCell align="right">{det.totalQuantity}</TableCell>
+                          <TableCell align="right">{det.remaining}</TableCell>
+                          <TableCell align="right">{det.totalQuantity - det.remaining - (det.myCount||0)}</TableCell>
+                          <TableCell align="right">{det.myCount||0}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell colSpan={5} align="center">
+                            {actionButtons}
+                          </TableCell>
+                        </TableRow>
+                      </Fragment>
+                    );
+                  }
+
+                  // desktop default
+                  return (
+                    <TableRow key={det.id}>
+                      <TableCell>{det.ProductVariant?.barcode}</TableCell>
+                      <TableCell align="right">{det.totalQuantity}</TableCell>
+                      <TableCell align="right">{det.remaining}</TableCell>
+                      <TableCell align="right">{det.totalQuantity - det.remaining - (det.myCount||0)}</TableCell>
+                      <TableCell align="right">{det.myCount||0}</TableCell>
+                      <TableCell align="center" colSpan={3}>
+                        {actionButtons}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
