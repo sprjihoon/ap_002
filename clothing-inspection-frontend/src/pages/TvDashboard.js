@@ -48,18 +48,27 @@ const TvDashboard = () => {
         fetchWithAuth('/worker/unconfirmed')
       ]);
       // 최초 또는 사운드 URL이 비어 있을 때 설정값 다시 조회
-      if(soundUrlRef.current===null || soundUrlRef.current===''){
-        fetch(`${API_URL}/settings/ui`).then(r=>r.json()).then(d=>{
-          let url = d.completeSoundUrl || '';
-          if(url && url.startsWith('/')){
-            // 백엔드에서 "/uploads/..." 형태로 오면 API_URL 앞에 붙여 접근하도록 변환
-            url = `${API_URL}${url}`;
-          }
-          soundUrlRef.current = url;
-        }).catch(()=>{});
-      }
-      // 첫 로드 시 (URL이 이미 세팅된 경우) 1회 재생
-      if (!firstPlayRef.current && soundUrlRef.current) {
+      if (soundUrlRef.current === null || soundUrlRef.current === '') {
+        // 아직 URL 정보가 없으면 UI 설정 조회 후, URL을 받은 직후 1회 재생
+        fetch(`${API_URL}/settings/ui`)
+          .then(r => r.json())
+          .then(d => {
+            let url = d.completeSoundUrl || '';
+            if (url && url.startsWith('/')) {
+              // 백엔드에서 "/uploads/..." 형태로 오면 API_URL 앞에 붙여 접근하도록 변환
+              url = `${API_URL}${url}`;
+            }
+            soundUrlRef.current = url;
+
+            // URL을 정상적으로 수신한 뒤에만 최초 효과음 재생 (비프음 방지)
+            if (!firstPlayRef.current && url) {
+              playCompleteSound();
+              firstPlayRef.current = true;
+            }
+          })
+          .catch(() => {});
+      } else if (!firstPlayRef.current && soundUrlRef.current) {
+        // URL이 이미 존재하는 경우(재호출 등) 바로 1회 재생
         playCompleteSound();
         firstPlayRef.current = true;
       }
