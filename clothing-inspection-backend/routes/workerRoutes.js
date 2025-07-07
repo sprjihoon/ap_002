@@ -494,14 +494,60 @@ router.get('/history/:id', auth, async (req, res) => {
   }
 });
 
+// Delete all scans of a completed slip (inspection) and roll back to in_progress
 router.delete('/history/:id', auth, async (req,res)=>{
   try{
-    if(req.user.role!=='admin') return res.status(403).json({message:'삭제 권한이 없습니다.'});
-    const { id } = req.params; // id = WorkerScan record id
-    const scan = await WorkerScan.findByPk(id);
-    if(!scan) return res.status(404).json({ message:'기록을 찾을 수 없습니다.'});
-    await scan.destroy();
-    res.json({ success:true });
+    if(req.user.role!=='admin') return res.status(403).json({ message:'삭제 권한이 없습니다.' });
+
+    const inspectionId = req.params.id;
+
+    // 가져올 모든 스캔 기록 (result, detailId)
+    const scans = await WorkerScan.findAll({ where:{ inspectionId } });
+    if(!scans.length){
+      return res.status(404).json({ message:'삭제할 기록이 없습니다.' });
+    }
+
+    // 개별 detailId 별로 결과 count 집계하여 handled* 값 복구
+    const adjustMap = {}; // detailId -> { normal, defect, hold }
+    scans.forEach(s=>{
+      const d = adjustMap[s.detailId] || { normal:0, defect:0, hold:0 };
+      if(s.result==='normal') d.normal +=1;
+      else if(s.result==='defect') d.defect +=1;
+      else d.hold +=1;
+      adjustMap[s.detailId]=d;
+    });
+
+    // 트랜잭션 처리
+    const t = await WorkerScan.sequelize.transaction();
+    try{
+      // 1) delete scans
+      await WorkerScan.destroy({ where:{ inspectionId }, transaction:t });
+
+      // 2) decrement handled counts per InspectionDetail
+      const detailIds = Object.keys(adjustMap);
+      for(const detailId of detailIds){
+        const adj = adjustMap[detailId];
+        const detail = await InspectionDetail.findByPk(detailId, { transaction:t });
+        if(!detail) continue;
+        await detail.decrement({
+          handledNormal: adj.normal,
+          handledDefect: adj.defect,
+          handledHold  : adj.hold
+        }, { transaction:t });
+      }
+
+      // 3) revert inspection workStatus to in_progress
+      const insp = await Inspection.findByPk(inspectionId, { transaction:t });
+      if(insp && insp.workStatus==='completed'){
+        await insp.update({ workStatus:'in_progress' }, { transaction:t });
+      }
+
+      await t.commit();
+      return res.json({ success:true });
+    }catch(err){
+      await t.rollback();
+      throw err;
+    }
   }catch(err){
     console.error('history delete error', err);
     res.status(500).json({ message: err.message });
