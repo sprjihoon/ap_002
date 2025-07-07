@@ -74,7 +74,7 @@ function Layout({ children }) {
           </Typography>
         </Toolbar>
       </AppBar>
-      <Box component="nav" sx={{ width:{ sm: sidebarOpen ? drawerWidth : 0 }, flexShrink:{ sm:0 } }}>
+      <Box component="nav" sx={{ width:{ xs:0, sm: sidebarOpen ? drawerWidth : 0 }, flexShrink:{ sm:0 } }}>
         {/* 모바일: 임시 Drawer – 항상 렌더 */}
         <Drawer
           variant="temporary"
@@ -118,7 +118,10 @@ function Layout({ children }) {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: sidebarOpen ? `calc(100% - ${drawerWidth}px)` : '100%' },
+          width: {
+            xs: '100%',
+            sm: sidebarOpen ? `calc(100% - ${drawerWidth}px)` : '100%'
+          },
           mt: `${appBarHeight}px`
         }}
       >
