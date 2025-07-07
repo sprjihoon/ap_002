@@ -40,8 +40,9 @@ const WorkerWorkHistory = () => {
   const [detail,setDetail]=useState(null);
   const [saving,setSaving]=useState(false);
   const [companyFilter,setCompanyFilter] = useState('');
-  const [startDate,setStartDate] = useState('');
-  const [endDate,setEndDate] = useState('');
+  const todayStr = new Date().toISOString().slice(0,10);
+  const [startDate,setStartDate] = useState(todayStr);
+  const [endDate,setEndDate] = useState(todayStr);
 
   useEffect(() => {
     load();

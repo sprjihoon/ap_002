@@ -28,7 +28,6 @@ import DefectList from './pages/DefectList';
 import ErrorBoundary from './components/ErrorBoundary';
 import TvDashboard from './pages/TvDashboard';
 import UiSettings from './pages/UiSettings';
-import ReportDashboard from './pages/ReportDashboard';
 
 // 관리자 권한 확인 컴포넌트
 const AdminRoute = ({ children }) => {
@@ -221,7 +220,6 @@ function App() {
                   </Layout>
                 }
               />
-              <Route path="/reports/work" element={<Layout><AdminRoute><ReportDashboard/></AdminRoute></Layout>} />
             </Routes>
           </Router>
         </ErrorBoundary>

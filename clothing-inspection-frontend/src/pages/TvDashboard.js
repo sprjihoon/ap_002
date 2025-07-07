@@ -47,23 +47,15 @@ const TvDashboard = () => {
         fetchWithAuth('/worker/progress'),
         fetchWithAuth('/worker/unconfirmed')
       ]);
-      // 최초 한 번 UI 설정 가져오기
-      if(soundUrlRef.current===null){
+      // 최초 또는 사운드 URL이 비어 있을 때 설정값 다시 조회
+      if(soundUrlRef.current===null || soundUrlRef.current===''){
         fetch(`${API_URL}/settings/ui`).then(r=>r.json()).then(d=>{
           let url = d.completeSoundUrl || '';
-          if (url && !url.startsWith('http')) {
-            let base = API_URL;
-            if (base.endsWith('/api')) base = base.slice(0, -4);
-            if (!base.startsWith('http')) base = '';
-            url = base + url;
+          if(url && url.startsWith('/')){
+            // 백엔드에서 "/uploads/..." 형태로 오면 API_URL 앞에 붙여 접근하도록 변환
+            url = `${API_URL}${url}`;
           }
           soundUrlRef.current = url;
-
-          // 최초 로드 직후 mp3 재생 (url 유효 시)
-          if (!firstPlayRef.current && url) {
-            playCompleteSound();
-            firstPlayRef.current = true;
-          }
         }).catch(()=>{});
       }
       // 첫 로드 시 (URL이 이미 세팅된 경우) 1회 재생
