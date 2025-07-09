@@ -28,7 +28,10 @@ const WorkerDashboard = () => {
     todayTotalQuantity: 0,
     todayCompletedQuantity: 0,
     todayRemainingQuantity: 0,
-    pastRemainingQuantity: 0
+    pastRemainingQuantity: 0,
+    // 신규 통계
+    todayWorkQuantity: 0,
+    pastSlipTodayQuantity: 0
   });
   const [progressList, setProgressList] = useState([]);
   const [error, setError] = useState('');
@@ -197,10 +200,10 @@ const WorkerDashboard = () => {
           <Card sx={{ width:{ xs:'100%', sm:170 }, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                오늘 전체 작업 수량
+                오늘 총 작업량
               </Typography>
               <Typography variant="h4">
-                {stats.todayTotalQuantity ?? 0}
+                {stats.todayWorkQuantity ?? 0}
               </Typography>
             </CardContent>
           </Card>
@@ -210,7 +213,7 @@ const WorkerDashboard = () => {
           <Card sx={{ width:{ xs:'100%', sm:170 }, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                오늘 완료 수량
+                오늘 완료 수량 (전표 기준)
               </Typography>
               <Typography variant="h4" sx={{ color:'success.main' }}>
                 {stats.todayCompletedQuantity ?? 0}
@@ -227,6 +230,20 @@ const WorkerDashboard = () => {
               </Typography>
               <Typography variant="h4" sx={{ color:'warning.main' }}>
                 {stats.todayRemainingQuantity ?? 0}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* 지난 전표 오늘 작업량 */}
+        <Grid item xs={12} sm={6} md="auto">
+          <Card sx={{ width:{ xs:'100%', sm:170 }, height:120, textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                지난전표오늘작업
+              </Typography>
+              <Typography variant="h4" sx={{ color:'info.main' }}>
+                {stats.pastSlipTodayQuantity ?? 0}
               </Typography>
             </CardContent>
           </Card>

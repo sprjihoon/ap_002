@@ -44,7 +44,9 @@ router.get('/stats', auth, async (req, res) => {
       todayTotalInspections,
       todayCompletedInspections,
       todayInProgressInspections,
-      pastPendingInspections
+      pastPendingInspections,
+      todayScanCount,
+      pastSlipTodayScanCount
     ] = await Promise.all([
       // 전체 확정 전표
       Inspection.count({ where: { status: { [Op.in]: ['approved', 'completed'] } } }),
@@ -88,7 +90,21 @@ router.get('/stats', auth, async (req, res) => {
       // 오늘 진행중 전표 수 (오늘 생성 + 진행중)
       Inspection.count({ where:{ status:{[Op.in]:['approved','completed']}, workStatus:'in_progress', createdAt: todayRange } }),
       // 지난 미완료 전표 수
-      Inspection.count({ where:{ status:{[Op.in]:['approved','completed']}, workStatus:{ [Op.ne]:'completed' }, createdAt: pastRange } })
+      Inspection.count({ where:{ status:{[Op.in]:['approved','completed']}, workStatus:{ [Op.ne]:'completed' }, createdAt: pastRange } }),
+      // ----- 추가: 오늘 전체 스캔 수 -----
+      WorkerScan.count({ where:{ createdAt: todayRange } }),
+      // ----- 추가: 지난 전표에서 오늘 처리된 수량 -----
+      WorkerScan.count({
+        where:{ createdAt: todayRange },
+        include:[{
+          model: Inspection,
+          as:'Inspection',
+          attributes:[],
+          where:{ createdAt: pastRange }
+        }],
+        distinct:true,
+        col:'WorkerScan.id'
+      })
     ]);
 
     // ---------------------------------------------------------------------
@@ -113,7 +129,10 @@ router.get('/stats', auth, async (req, res) => {
       todayTotalInspections,
       todayCompletedInspections,
       todayInProgressInspections,
-      pastPendingInspections
+      pastPendingInspections,
+      // 신규 필드
+      todayWorkQuantity: todayScanCount,
+      pastSlipTodayQuantity: pastSlipTodayScanCount
     });
   } catch(err){
     console.error('worker stats error', err);

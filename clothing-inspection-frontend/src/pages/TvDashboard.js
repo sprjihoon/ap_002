@@ -6,7 +6,8 @@ import { fetchWithAuth, API_URL } from '../utils/api';
 const TvDashboard = () => {
   const [stats, setStats] = useState({
     todayTotalInspections:0, todayCompletedInspections:0, pastPendingInspections:0,
-    todayTotalQuantity:0, todayCompletedQuantity:0, todayRemainingQuantity:0, pastRemainingQuantity:0
+    todayTotalQuantity:0, todayCompletedQuantity:0, todayRemainingQuantity:0, pastRemainingQuantity:0,
+    todayWorkQuantity:0, pastSlipTodayQuantity:0
   });
   const [progressList,setProgressList]=useState([]);
   const [unconfirmedList,setUnconfirmedList]=useState([]);
@@ -163,9 +164,10 @@ const TvDashboard = () => {
       <Divider sx={{ my:2, bgcolor:'#555' }} />
       <Grid container spacing={2} justifyContent="center">
         {[
-          {label:'오늘 전체', val:stats.todayTotalQuantity},
+          {label:'오늘 총 작업', val:stats.todayWorkQuantity},
           {label:'오늘 완료', val:stats.todayCompletedQuantity},
           {label:'오늘 미완료', val:stats.todayRemainingQuantity},
+          {label:'지난전표오늘작업', val:stats.pastSlipTodayQuantity},
           {label:'지난 미완료', val:stats.pastRemainingQuantity}
         ].map(c=>(
           <Grid item xs="auto" key={c.label}>
