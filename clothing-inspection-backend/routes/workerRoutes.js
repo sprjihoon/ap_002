@@ -101,9 +101,7 @@ router.get('/stats', auth, async (req, res) => {
           as:'Inspection',
           attributes:[],
           where:{ createdAt: pastRange }
-        }],
-        distinct:true,
-        col:'id' // alias 충돌 방지
+        }]
       })
     ]);
 
