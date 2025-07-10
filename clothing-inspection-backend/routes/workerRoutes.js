@@ -645,6 +645,7 @@ router.get('/progress', auth, async (req,res)=>{
         totalQuantity: total,
         percent,
         workStatus: ins.workStatus,
+        createdAt: ins.createdAt, // 추가: 진행률 계산에 사용되는 생성 시각 전달
         updatedAt: ins.updatedAt
       };
     });
