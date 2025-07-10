@@ -27,7 +27,7 @@ const app = express();
 app.set('trust proxy', ['loopback']);
 
 /*──────────────── CORS ────────────────*/
-const allowed = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+const allowed = (process.env.CORS_ORIGIN || 'https://spring.io.kr,http://localhost:3000')
   .split(',')
   .map(o => o.trim());
 
