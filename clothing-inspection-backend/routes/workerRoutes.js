@@ -103,7 +103,7 @@ router.get('/stats', auth, async (req, res) => {
           where:{ createdAt: pastRange }
         }],
         distinct:true,
-        col:'WorkerScan.id'
+        col:'id' // alias 충돌 방지
       })
     ]);
 
