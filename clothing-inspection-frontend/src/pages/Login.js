@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Paper, TextField, Button, Typography, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../utils/api';
-
-export const API_URL = 'http://localhost:5000/api';
+import { login, API_URL } from '../utils/api';
 
 function Login() {
   const [username, setUsername] = useState('');
