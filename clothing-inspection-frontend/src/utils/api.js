@@ -7,7 +7,7 @@
  * 3) '/api'                                    – 로컬 dev 서버 프록시용
  */
 export const API_URL =
-  process.env.REACT_APP_API_URL ?? 'https://api.spring.io.kr' ?? '/api';
+  process.env.REACT_APP_API_URL || 'https://api.spring.io.kr/api';
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');
