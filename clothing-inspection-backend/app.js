@@ -47,6 +47,7 @@ const corsOptions = {
     return cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
