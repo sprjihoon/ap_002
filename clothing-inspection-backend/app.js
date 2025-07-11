@@ -83,6 +83,22 @@ app.use('/api/admin',       adminRoutes);
 app.use('/api/defects',     defectRoutes);
 app.use('/api/settings',    settingsRoutes);
 
+/*────────────── 정적 프론트엔드 ────────*/
+if (process.env.NODE_ENV === 'production') {
+  const clientBuildPath = path.join(__dirname, 'client', 'build');
+  // 정적 자산(css, js, 이미지 등) 서빙
+  app.use(express.static(clientBuildPath));
+
+  // SPA 라우팅: 위에서 매칭되지 않은 GET 요청은 모두 index.html 반환
+  app.get('*', (req, res) => {
+    if (req.originalUrl.startsWith('/api')) {
+      // API 경로는 여기서 처리하지 않음 (404 또는 상위 미들웨어로 전달)
+      return res.status(404).end();
+    }
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
+}
+
 /*────────────── 헬스체크 ───────────────*/
 app.get('/',           (_, res) => res.json({ status: 'ok' }));
 app.get('/api/healthz', (_, res) => res.json({ status: 'ok' }));
