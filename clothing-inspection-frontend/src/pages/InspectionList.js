@@ -49,7 +49,7 @@ const InspectionList = () => {
   // 검수 목록 조회
   const fetchInspections = async () => {
     try {
-      const data = await fetchWithAuth('/inspections');
+      const data = await fetchWithAuth('/api/inspections');
       setInspections(data);
     } catch (error) {
       console.error('검수 목록 조회 실패:', error);
@@ -130,7 +130,7 @@ const InspectionList = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('해당 검수 전표를 삭제하시겠습니까?')) return;
     try {
-      await fetchWithAuth(`/inspections/${id}`, { method: 'DELETE' });
+      await fetchWithAuth(`/api/inspections/${id}`, { method: 'DELETE' });
       enqueueSnackbar('검수 전표가 삭제되었습니다.', { variant: 'success' });
       fetchInspections();
     } catch (error) {
