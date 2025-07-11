@@ -11,7 +11,7 @@ const LabelDesigner = () => {
 
   useEffect(()=>{
     if(id){
-      fetchWithAuth(`/labels/templates/${id}`).then(t=>{
+      fetchWithAuth(`/api/labels/templates/${id}`).then(t=>{
         try{
           const spec = JSON.parse(t.jsonSpec);
           setTemplate({ ...t, ...spec });
@@ -29,7 +29,7 @@ const LabelDesigner = () => {
 
   const save = async()=>{
     const jsonSpec = JSON.stringify({ width:template.width, height:template.height, items:template.items });
-    await fetchWithAuth('/labels/templates',{ method:'POST', body:JSON.stringify({ id, name:template.name||'템플릿', width:template.width, height:template.height, jsonSpec }) });
+    await fetchWithAuth('/api/labels/templates',{ method:'POST', body:JSON.stringify({ id, name:template.name||'템플릿', width:template.width, height:template.height, jsonSpec }) });
     alert('저장됨');
   };
 
