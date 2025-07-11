@@ -1,95 +1,78 @@
-/**
- * API 엔드포인트 베이스 URL
- *
- * 1) REACT_APP_API_URL (배포 시 환경변수로 주입)
- * 2) Render 백엔드 기본 URL (하드코딩 ‑ 안전 fallback)
- * 3) '/api' – 로컬 dev 서버(proxy) 용
- */
-export const API_URL =
-  process.env.REACT_APP_API_URL || 'https://ap-002.onrender.com/api';
+ // utils/api.js  (전체 파일)
 
-/* ------------------------------------------------------------------ */
-/*  공통 유틸                                                          */
-/* ------------------------------------------------------------------ */
+ /**
+  * API 엔드포인트 베이스 URL
+  * 프런트 기본 백엔드 주소
+  * 모든 요청은 `${API_BASE}/api/...` 형식으로 호출한다.
+  */
+ export const API_BASE =
+   'https://ap-002.onrender.com';
+ export const API_URL = `${API_BASE}/api`;
 
-/** 토큰 + 공통 헤더 생성 */
-const getHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
-  };
-};
+ const getHeaders = () => {
+   const token = localStorage.getItem('token');
+   console.log('Current token:', token); // 토큰 확인용 로그
+   return {
+     'Content-Type': 'application/json',
+     'Authorization': token ? `Bearer ${token}` : '',
+   };
+ };
 
-/**
- * 인증 포함 fetch 래퍼
- * - credentials: 'include' 로 쿠키 유지
- * - res.ok 체크 후만 JSON 파싱
- * - 401 → 자동 로그아웃
- */
-export const fetchWithAuth = async (endpoint, options = {}) => {
-  const url = `${API_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+ export const fetchWithAuth = async (endpoint, options = {}) => {
+   const url = endpoint.startsWith('/api')
+     ? `${API_BASE}${endpoint}`
+     : `${API_BASE}/api${endpoint}`;
+   const response = await fetch(url, {
+     credentials: 'include',
+     ...options,
+     headers: {
+       ...getHeaders(),
+       ...options.headers,
+     },
+   });
 
-  const res = await fetch(url, {
-    credentials: 'include',
-    ...options,
-    headers: { ...getHeaders(), ...(options.headers || {}) }
-  });
+   if (response.status === 401) {
+     logout();
+     window.location.href = '/';
+     throw new Error('인증이 필요합니다.');
+   }
 
-  if (res.status === 401) {
-    logout();
-    window.location.href = '/';
-    throw new Error('인증이 필요합니다.');
-  }
+   if (!response.ok) {
+     let errorMsg = `HTTP ${response.status}`;
+     try {
+       const errJson = await response.json();
+       errorMsg = errJson.message || errorMsg;
+     } catch (_) {}
+     throw new Error(errorMsg);
+   }
 
-  if (!res.ok) {
-    let msg = `HTTP ${res.status}`;
-    try {
-      msg = (await res.json()).message || msg;
-    } catch (_) {
-      // body가 JSON이 아닐 때
-      msg = (await res.text()) || msg;
-    }
-    throw new Error(msg);
-  }
+   return response.json();
+ };
 
-  return res.json();
-};
+ export const login = async (username, password) => {
+   const response = await fetch(`${API_BASE}/api/users/login`, {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     credentials: 'include',
+     body: JSON.stringify({ username, password }),
+   });
 
-/* ------------------------------------------------------------------ */
-/*  개별 API 호출 함수                                                */
-/* ------------------------------------------------------------------ */
+   if (!response.ok) {
+     let errMsg = '로그인에 실패했습니다.';
+     try {
+       const errJson = await response.json();
+       errMsg = errJson.message || errMsg;
+     } catch (_) {}
+     throw new Error(errMsg);
+   }
 
-/** UI 설정(theme·logo·notice·loginBg) 가져오기 */
-export const getUiSettings = () => fetchWithAuth('/settings/ui');
+   const data = await response.json();
+   localStorage.setItem('token', data.token);
+   localStorage.setItem('user', JSON.stringify(data.user));
+   return data;
+ };
 
-/** 로그인 */
-export const login = async (username, password) => {
-  const res = await fetch(`${API_URL}/users/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ username, password })
-  });
-
-  if (!res.ok) {
-    let msg = '로그인에 실패했습니다.';
-    try {
-      msg = (await res.json()).message || msg;
-    } catch (_) {
-      msg = (await res.text()) || msg;
-    }
-    throw new Error(msg);
-  }
-
-  const data = await res.json();
-  localStorage.setItem('token', data.token);
-  localStorage.setItem('user', JSON.stringify(data.user));
-  return data;
-};
-
-/** 로그아웃 */
-export const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-};
+ export const logout = () => {
+   localStorage.removeItem('token');
+   localStorage.removeItem('user');
+ };
