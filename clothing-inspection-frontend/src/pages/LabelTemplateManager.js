@@ -7,19 +7,19 @@ const LabelTemplateManager = () => {
   const [form,setForm] = useState({ name:'', width:60, height:40, jsonSpec:'{"barcode":{}}' });
 
   const load = async ()=>{
-    const list = await fetchWithAuth('/labels/templates');
+    const list = await fetchWithAuth('/api/labels/templates');
     setTemplates(list);
   };
   useEffect(()=>{ load(); },[]);
 
   const save = async ()=>{
-    await fetchWithAuth('/labels/templates',{ method:'POST', body:JSON.stringify(form) });
+    await fetchWithAuth('/api/labels/templates',{ method:'POST', body:JSON.stringify(form) });
     setForm({ name:'', width:60, height:40, jsonSpec:'{"barcode":{}}' });
     load();
   };
 
   const del = async id=>{
-    await fetchWithAuth(`/labels/templates/${id}`,{ method:'DELETE' });
+    await fetchWithAuth(`/api/labels/templates/${id}`,{ method:'DELETE' });
     load();
   };
 
