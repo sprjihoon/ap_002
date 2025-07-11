@@ -29,7 +29,7 @@ import {
 import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon, PhotoCamera } from '@mui/icons-material';
 import DownloadIcon from '@mui/icons-material/Download';
 import axios from 'axios';
-import { fetchWithAuth, API_URL } from '../utils/api';
+import { fetchWithAuth, API_BASE } from '../utils/api';
 import ExcelUpload from '../components/ExcelUpload';
 
 function ClothesList() {
@@ -79,7 +79,7 @@ function ClothesList() {
 
   const fetchProducts = async () => {
     try {
-      const data = await fetchWithAuth('/products');
+      const data = await fetchWithAuth('/api/api/products');
       setProducts(data);
     } catch (error) {
       setError('제품 목록을 불러오는데 실패했습니다.');
@@ -88,7 +88,7 @@ function ClothesList() {
 
   const fetchCompanies = async () => {
     try {
-      const data = await fetchWithAuth('/products/companies');
+      const data = await fetchWithAuth('/api/api/products/companies');
       console.log('Fetched companies:', data);
       setCompanies(data);
     } catch (error) {
@@ -105,8 +105,8 @@ function ClothesList() {
   const handleSubmit = async () => {
     try {
       const url = (editingProduct && editingProduct.id)
-        ? `${API_URL}/products/${editingProduct.id}`
-        : `${API_URL}/products`;
+        ? `${API_BASE}/api/products/${editingProduct.id}`
+        : `${API_BASE}/api/products`;
       
       const response = await fetch(url, {
         method: editingProduct ? 'PUT' : 'POST',
@@ -114,6 +114,7 @@ function ClothesList() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
+        credentials: 'include',
         body: JSON.stringify(formData)
       });
 
@@ -149,7 +150,7 @@ function ClothesList() {
     }
 
     try {
-      await fetchWithAuth(`/products/${id}`, {
+      await fetchWithAuth(`/api/api/products/${id}`, {
         method: 'DELETE'
       });
       setSuccess('제품이 삭제되었습니다.');
@@ -269,9 +270,10 @@ function ClothesList() {
       if(search) params.append('search', search);
       if(user.role!=='operator' && companyFilter) params.append('company', companyFilter);
       if(wholesalerFilter) params.append('wholesaler', wholesalerFilter);
-      const response = await axios.get(`${API_URL}/products/export?${params.toString()}`, {
+      const response = await axios.get(`${API_BASE}/api/products/export?${params.toString()}`, {
         responseType:'blob',
-        headers:{ Authorization:`Bearer ${localStorage.getItem('token')}` }
+        headers:{ Authorization:`Bearer ${localStorage.getItem('token')}` },
+        withCredentials: true
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
