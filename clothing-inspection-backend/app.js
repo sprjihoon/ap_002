@@ -26,12 +26,27 @@ const app = express();
 // Render/Nginx → 앱까지 1단계 프록시만 신뢰 (loopback)
 app.set('trust proxy', ['loopback']);
 
+/*──────────── 요청 로그 ───────────────*/
+app.use((req, res, next) => {
+  console.log(req.method, req.originalUrl, req.headers.origin);
+  next();
+});
+
+/*─────── HTTP → HTTPS 리디렉트 ───────*/
+app.use((req, res, next) => {
+  // 이미 HTTPS이거나 프록시 헤더가 HTTPS인 경우 통과
+  if (req.secure || req.get('x-forwarded-proto') === 'https') {
+    return next();
+  }
+  return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
+});
+
 /*──────────────── CORS ────────────────*/
 const allowed = (process.env.CORS_ORIGIN || 'https://spring.io.kr,https://www.spring.io.kr,https://ap-002-frontend.onrender.com,http://localhost:3000')
   .split(',')
   .map(o => o.trim());
 
-app.use(cors({
+const corsOptions = {
   origin(origin, cb) {
     if (!origin || allowed.includes('*') || allowed.includes(origin)) {
       return cb(null, true);
@@ -39,7 +54,11 @@ app.use(cors({
     return cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
-}));
+};
+
+app.use(cors(corsOptions));
+// 프리플라이트 요청 처리
+app.options('*', cors(corsOptions));
 
 /*────────────── 미들웨어 ───────────────*/
 app.use(express.json());
@@ -64,7 +83,7 @@ app.use('/api/defects',     defectRoutes);
 app.use('/api/settings',    settingsRoutes);
 
 /*────────────── 헬스체크 ───────────────*/
-app.get('/',           (_, res) => res.send('OK'));
+app.get('/',           (_, res) => res.json({ status: 'ok' }));
 app.get('/api/healthz', (_, res) => res.json({ status: 'ok' }));
 
 /*──────────────── 서버 기동 ────────────*/
