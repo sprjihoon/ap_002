@@ -42,7 +42,7 @@ const BarcodeScanPage = () => {
 
     setLoading(true);
     try {
-      const data = await fetchWithAuth('/inspections/scan', {
+      const data = await fetchWithAuth('/api/inspections/scan', {
         method: 'POST',
         body: JSON.stringify({ barcode })
       });
