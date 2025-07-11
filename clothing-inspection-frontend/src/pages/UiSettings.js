@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Paper, Button, TextField, Snackbar, Alert } from '@mui/material';
-import { fetchWithAuth } from '../utils/api';
-import { API_URL } from '../utils/api';
+import { fetchWithAuth, API_BASE } from '../utils/api';
 
 const SettingUpload = ({ label, accept, settingKey }) => {
   const [file, setFile] = useState(null);
@@ -11,7 +10,7 @@ const SettingUpload = ({ label, accept, settingKey }) => {
 
   const load = async () => {
     try {
-      const res = await fetch(`${API_URL}/settings/ui`);
+      const res = await fetch(`${API_BASE}/api/settings/ui`, { credentials:'include' });
       const data = await res.json();
       setCurrentUrl(data[settingKey] || '');
     } catch (err) { console.error(err); }
@@ -25,7 +24,7 @@ const SettingUpload = ({ label, accept, settingKey }) => {
       form.append('file', file);
       form.append('type', settingKey === 'completeSoundUrl' ? 'sound' : 'loginBg');
       const token = localStorage.getItem('token');
-      await fetch(`${API_URL}/settings/upload`, { method:'POST', headers:{ Authorization:`Bearer ${token}` }, body: form });
+      await fetch(`${API_BASE}/api/settings/upload`, { method:'POST', headers:{ Authorization:`Bearer ${token}` }, credentials:'include', body: form });
       setSuccess('업로드 완료');
       setFile(null);
       load();
