@@ -44,9 +44,9 @@ const TvDashboard = () => {
   const load = async()=>{
     try{
       const [s,p,u] = await Promise.all([
-        fetchWithAuth('/api/api/worker/stats'),
-        fetchWithAuth('/api/api/worker/progress'),
-        fetchWithAuth('/api/api/worker/unconfirmed')
+        fetchWithAuth('/api/worker/stats'),
+        fetchWithAuth('/api/worker/progress'),
+        fetchWithAuth('/api/worker/unconfirmed')
       ]);
       // 최초 또는 사운드 URL이 비어 있을 때 설정값 다시 조회
       if (soundUrlRef.current === null || soundUrlRef.current === '') {
