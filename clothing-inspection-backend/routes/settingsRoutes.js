@@ -53,11 +53,11 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
 // GET /api/settings/ui   (public)
 router.get('/ui', async (_req, res) => {
   try {
-    const [sound, bg] = await Promise.all([
-      getSetting('completeSoundUrl'),
-      getSetting('loginBgUrl')
-    ]);
-    res.json({ completeSoundUrl: sound, loginBgUrl: bg });
+    res.json({
+      theme : 'light',
+      logo  : '/uploads/logo.png',
+      notice: '환영합니다!'
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
