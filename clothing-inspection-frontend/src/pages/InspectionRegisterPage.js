@@ -9,8 +9,8 @@ const InspectionRegisterPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const companies = await fetchWithAuth('/products/companies');
-        const products = await fetchWithAuth('/products');
+        const companies = await fetchWithAuth('/api/products/companies');
+        const products = await fetchWithAuth('/api/products');
         setCompanies(companies);
         setProducts(products);
       } catch (e) {
