@@ -94,16 +94,10 @@ if (process.env.NODE_ENV === 'production') {
   const clientBuildPath = candidatePaths.find(p => fs.existsSync(path.join(p, 'index.html')));
 
   if (clientBuildPath) {
-    console.log('💡 Serving React build from', clientBuildPath);
-    // 정적 자산(css, js, 이미지 등) 서빙
     app.use(express.static(clientBuildPath));
-
-    // SPA 라우팅: 위에서 매칭되지 않은 GET 요청은 모두 index.html 반환
-    app.get('*', (req, res) => {
-      if (req.originalUrl.startsWith('/api')) {
-        return res.status(404).end();
-      }
-      res.sendFile(path.join(clientBuildPath, 'index.html'));
+    app.get('*', (req,res)=>{
+      if (req.path.startsWith('/api')) return res.status(404).end();
+      res.sendFile(path.join(clientBuildPath,'index.html'));
     });
   } else {
     console.warn('⚠️  React build not found. Please run `npm run build` in client and include the build directory in deployment.');
