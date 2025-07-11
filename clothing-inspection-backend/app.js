@@ -85,10 +85,16 @@ app.use('/api/settings',    settingsRoutes);
 
 /*────────────── 정적 프론트엔드 ────────*/
 if (process.env.NODE_ENV === 'production') {
-  const clientBuildPath = path.join(__dirname, '..', 'clothing-inspection-frontend', 'build');
-  const buildExists = require('fs').existsSync(path.join(clientBuildPath, 'index.html'));
+  const fs = require('fs');
+  const candidatePaths = [
+    path.join(__dirname, '..', 'client', 'build'), // 표준 위치
+    path.join(__dirname, '..', 'clothing-inspection-frontend', 'build') // 현재 리포 구조
+  ];
 
-  if (buildExists) {
+  const clientBuildPath = candidatePaths.find(p => fs.existsSync(path.join(p, 'index.html')));
+
+  if (clientBuildPath) {
+    console.log('💡 Serving React build from', clientBuildPath);
     // 정적 자산(css, js, 이미지 등) 서빙
     app.use(express.static(clientBuildPath));
 
@@ -100,9 +106,7 @@ if (process.env.NODE_ENV === 'production') {
       res.sendFile(path.join(clientBuildPath, 'index.html'));
     });
   } else {
-    // 빌드가 아직 포함되지 않은 경우 헬스 체크 응답 유지
-    console.warn('⚠️  client/build not found, root path will return JSON OK');
-    app.get('/', (_req, res) => res.json({ status: 'ok', message: 'client build not found' }));
+    console.warn('⚠️  React build not found. Please run `npm run build` in client and include the build directory in deployment.');
   }
 } else {
   // 개발 환경: 루트 헬스체크 JSON
