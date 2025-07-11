@@ -27,7 +27,7 @@ const DefectList = () => {
       if(workerFilter) params.append('workerId', workerFilter);
       if(inspectorFilter) params.append('inspectorId', inspectorFilter);
       if(searchTerm) params.append('q', searchTerm);
-      const data = await fetchWithAuth(`/defects?${params.toString()}`);
+      const data = await fetchWithAuth(`/api/defects?${params.toString()}`);
       setRows(data);
     } catch (err) {
       alert(err.message);
