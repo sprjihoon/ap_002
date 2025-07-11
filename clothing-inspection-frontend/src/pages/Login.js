@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Paper, TextField, Button, Typography, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { login, API_URL } from '../utils/api';
+import { login, API_BASE } from '../utils/api';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -14,7 +14,7 @@ function Login() {
     let prevBg = '';
     const fetchUi = async () => {
       try {
-        const res = await fetch(`${API_URL}/settings/ui`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/api/settings/ui`, { credentials: 'include' });
         if (!res.ok) {
           const text = await res.text();
           console.error('[UI settings] non-200 response', res.status, text);
@@ -30,8 +30,7 @@ function Login() {
         if (d.loginBgUrl) {
           let url = d.loginBgUrl;
           if (!url.startsWith('http')) {
-            const root = API_URL.replace(/\/api$/, '');
-            url = root + url;
+            url = `${API_BASE}${url}`;
           }
           prevBg = document.body.style.backgroundImage;
           document.body.style.backgroundImage = `url(${url})`;
@@ -51,7 +50,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     try {
       const data = await login(username, password);
       const role = (data.user.role || '').toLowerCase();
@@ -107,4 +106,4 @@ function Login() {
   );
 }
 
-export default Login; 
+export default Login;
