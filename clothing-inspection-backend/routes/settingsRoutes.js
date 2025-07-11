@@ -53,13 +53,21 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
 // GET /api/settings/ui   (public)
 router.get('/ui', async (_req, res) => {
   try {
-    const theme  = await getSetting('theme')    || 'light';
-    const logo   = await getSetting('logoUrl')  || '/uploads/logo.png';
-    const notice = await getSetting('notice')   || '';
-    const loginBgUrl = await getSetting('loginBgUrl');
+    const [theme, logoUrl, notice, loginBgUrl] = await Promise.all([
+      getSetting('theme'),
+      getSetting('logoUrl'),
+      getSetting('notice'),
+      getSetting('loginBgUrl')
+    ]);
 
-    res.json({ theme, logo, notice, loginBgUrl });
+    res.json({
+      theme : theme  || 'light',
+      logo  : logoUrl || '/uploads/logo.png',
+      notice: notice || '',
+      loginBgUrl
+    });
   } catch (err) {
+    console.error('settings /ui error', err);
     res.status(500).json({ message: err.message });
   }
 });
