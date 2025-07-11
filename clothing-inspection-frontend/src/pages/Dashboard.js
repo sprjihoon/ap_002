@@ -34,8 +34,8 @@ function Dashboard() {
   const fetchData = async ()=>{
     try{
       const [statsRes, logRes] = await Promise.all([
-        fetchWithAuth(`/admin/stats/overview?start=${start}&end=${end}`),
-        fetchWithAuth(`/admin/activity?start=${start}&end=${end}`)
+        fetchWithAuth(`/api/admin/stats/overview?start=${start}&end=${end}`),
+        fetchWithAuth(`/api/admin/activity?start=${start}&end=${end}`)
       ]);
       setData(statsRes);
       setLogs(logRes);
