@@ -60,7 +60,7 @@ function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const users = await fetchWithAuth('/api/api/users/all');
+      const users = await fetchWithAuth('/api/users/all');
       setUsers(users);
     } catch (error) {
       setError('사용자 목록을 불러오는데 실패했습니다.');
@@ -73,7 +73,7 @@ function UserManagement() {
 
   const handleRoleChange = async () => {
     try {
-      const data = await fetchWithAuth(`/api/api/users/${selectedUser.id}/role`, {
+      const data = await fetchWithAuth(`/api/users/${selectedUser.id}/role`, {
         method: 'PUT',
         body: JSON.stringify({ role: newRole })
       });
@@ -91,7 +91,7 @@ function UserManagement() {
     }
 
     try {
-      const data = await fetchWithAuth(`/api/api/users/${userId}`, {
+      const data = await fetchWithAuth(`/api/users/${userId}`, {
         method: 'DELETE'
       });
       setSuccess(data.message || '사용자가 삭제되었습니다.');
@@ -108,7 +108,7 @@ function UserManagement() {
     }
 
     try {
-      const data = await fetchWithAuth('/api/api/users/register', {
+      const data = await fetchWithAuth('/api/users/register', {
         method: 'POST',
         body: JSON.stringify({
           username: newUser.username,
@@ -152,7 +152,7 @@ function UserManagement() {
       };
       if (editingUser.password) body.password = editingUser.password;
 
-      const data = await fetchWithAuth(`/api/api/users/${editingUser.id}`, {
+      const data = await fetchWithAuth(`/api/users/${editingUser.id}`, {
         method: 'PUT',
         body: JSON.stringify(body)
       });
