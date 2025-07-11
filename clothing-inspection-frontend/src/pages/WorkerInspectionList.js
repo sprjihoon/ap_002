@@ -41,7 +41,7 @@ const WorkerInspectionList = () => {
 
   const fetchInspections = async () => {
     try {
-      const data = await fetchWithAuth('/inspections/worker');
+      const data = await fetchWithAuth('/api/inspections/worker');
       setInspections(data);
     } catch (err) {
       setError('검수전표를 불러오는데 실패했습니다.');
@@ -57,7 +57,7 @@ const WorkerInspectionList = () => {
 
   const handleStatusChange = async () => {
     try {
-      await fetchWithAuth(`/inspections/${selectedInspection.id}/work-status`, {
+      await fetchWithAuth(`/api/inspections/${selectedInspection.id}/work-status`, {
         method: 'PUT',
         body: JSON.stringify({
           workStatus,
