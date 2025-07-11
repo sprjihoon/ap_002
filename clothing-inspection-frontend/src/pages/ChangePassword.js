@@ -24,7 +24,7 @@ function ChangePassword() {
     }
 
     try {
-      await fetchWithAuth('/users/change-password', {
+      await fetchWithAuth('/api/users/change-password', {
         method: 'PUT',
         body: JSON.stringify({
           currentPassword: formData.currentPassword,
