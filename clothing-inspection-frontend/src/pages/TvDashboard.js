@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Grid, Card, CardContent, Divider, Paper } from '@mui/material';
-import { fetchWithAuth, API_URL } from '../utils/api';
+import { fetchWithAuth, API_BASE } from '../utils/api';
 
 // 전광판용 대시보드 – 클릭 요소 제거, 글자 크게
 const TvDashboard = () => {
@@ -44,20 +44,20 @@ const TvDashboard = () => {
   const load = async()=>{
     try{
       const [s,p,u] = await Promise.all([
-        fetchWithAuth('/worker/stats'),
-        fetchWithAuth('/worker/progress'),
-        fetchWithAuth('/worker/unconfirmed')
+        fetchWithAuth('/api/api/worker/stats'),
+        fetchWithAuth('/api/api/worker/progress'),
+        fetchWithAuth('/api/api/worker/unconfirmed')
       ]);
       // 최초 또는 사운드 URL이 비어 있을 때 설정값 다시 조회
       if (soundUrlRef.current === null || soundUrlRef.current === '') {
         // 아직 URL 정보가 없으면 UI 설정 조회 후, URL을 받은 직후 1회 재생
-        fetch(`${API_URL}/settings/ui`)
+        fetch(`${API_BASE}/api/settings/ui`, { credentials:'include' })
           .then(r => r.json())
           .then(d => {
             let url = d.completeSoundUrl || '';
             if (url && url.startsWith('/')) {
               // 백엔드에서 "/uploads/..." 형태로 오면 API_URL 앞에 붙여 접근하도록 변환
-              url = `${API_URL}${url}`;
+              url = `${API_BASE}${url}`;
             }
             soundUrlRef.current = url;
 
