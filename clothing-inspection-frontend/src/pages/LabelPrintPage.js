@@ -10,14 +10,14 @@ const LabelPrintPage = () => {
 
   useEffect(()=>{
     const load = async ()=>{
-      const list = await fetchWithAuth('/labels/templates');
+      const list = await fetchWithAuth('/api/labels/templates');
       setTemplates(list);
     };
     load();
   },[]);
 
   const handlePrint = async ()=>{
-    const res = await fetchWithAuth('/labels/print',{ method:'POST', body:JSON.stringify({ inspectionId, templateId }) });
+    const res = await fetchWithAuth('/api/labels/print',{ method:'POST', body:JSON.stringify({ inspectionId, templateId }) });
     setMsg(res.message || '인쇄 요청 완료');
   };
 
