@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
-import { API_URL } from '../utils/api';
+import { API_BASE } from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (!token) { setLoading(false); return; }
 
-    axios.get(`${API_URL}/users/me`, { headers:{ Authorization:`Bearer ${token}` } })
+    axios.get(`${API_BASE}/api/users/me`, { headers:{ Authorization:`Bearer ${token}` }, withCredentials:true })
       .then(res=>{ setUser(res.data); })
       .catch(err=>{
         // 401 등의 경우에만 토큰 제거
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (username, password) => {
-    const response = await axios.post(`${API_URL}/users/login`, { username, password });
+    const response = await axios.post(`${API_BASE}/api/users/login`, { username, password }, { withCredentials:true });
     const { token, user } = response.data;
     localStorage.setItem('token', token);
     setUser(user);
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (userData) => {
-    const response = await axios.post(`${API_URL}/users/register`, userData);
+    const response = await axios.post(`${API_BASE}/api/users/register`, userData, { withCredentials:true });
     const { token, user } = response.data;
     localStorage.setItem('token', token);
     setUser(user);
