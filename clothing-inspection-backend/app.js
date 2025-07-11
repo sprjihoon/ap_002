@@ -33,13 +33,14 @@ app.use((req, res, next) => {
 });
 
 /*──────────────── CORS ────────────────*/
-const allowed = (process.env.CORS_ORIGIN || 'https://spring.io.kr,https://www.spring.io.kr,https://ap-002-frontend.onrender.com,http://localhost:3000')
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
-  .map(o => o.trim());
+  .map(o => o.trim())
+  .filter(Boolean);
 
 const corsOptions = {
   origin(origin, cb) {
-    if (!origin || allowed.includes('*') || allowed.includes(origin)) {
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
       return cb(null, true);
     }
     return cb(new Error('Not allowed by CORS'));
