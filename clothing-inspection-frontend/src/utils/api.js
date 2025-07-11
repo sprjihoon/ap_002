@@ -20,6 +20,7 @@ const getHeaders = () => {
 
 export const fetchWithAuth = async (endpoint, options = {}) => {
   const response = await fetch(`${API_URL}${endpoint}`, {
+    credentials: 'include',
     ...options,
     headers: {
       ...getHeaders(),
@@ -34,38 +35,38 @@ export const fetchWithAuth = async (endpoint, options = {}) => {
   }
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'API 요청에 실패했습니다.');
+    let errorMsg = `HTTP ${response.status}`;
+    try {
+      const errJson = await response.json();
+      errorMsg = errJson.message || errorMsg;
+    } catch (_) {}
+    throw new Error(errorMsg);
   }
 
   return response.json();
 };
 
 export const login = async (username, password) => {
-  try {
-    const response = await fetch(`${API_URL}/users/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ username, password }),
-    });
+  const response = await fetch(`${API_URL}/users/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ username, password }),
+  });
 
-    const data = await response.json().catch(() => null); // JSON 파싱 실패 방지
-
-    if (!response.ok) {
-      throw new Error(data?.message || '로그인에 실패했습니다.');
-    }
-    if (!data) {
-      throw new Error('서버 응답이 올바르지 않습니다.');
-    }
-
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    return data;
-  } catch (err) {
-    console.error('login fetch error', err);
-    throw err;
+  if (!response.ok) {
+    let errMsg = '로그인에 실패했습니다.';
+    try {
+      const errJson = await response.json();
+      errMsg = errJson.message || errMsg;
+    } catch (_) {}
+    throw new Error(errMsg);
   }
+
+  const data = await response.json();
+  localStorage.setItem('token', data.token);
+  localStorage.setItem('user', JSON.stringify(data.user));
+  return data;
 };
 
 export const logout = () => {
