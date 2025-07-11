@@ -9,7 +9,7 @@ const WorkersStats = () => {
   const [rows,setRows] = useState([]);
 
   const load = async ()=>{
-    const data = await fetchWithAuth(`/worker/stats/summary/all?start=${start}&end=${end}`);
+    const data = await fetchWithAuth(`/api/worker/stats/summary/all?start=${start}&end=${end}`);
     setRows(data);
   };
 
