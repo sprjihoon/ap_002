@@ -14,9 +14,19 @@ function Login() {
     let prevBg = '';
     const fetchUi = async () => {
       try {
-        const res = await fetch(`${API_URL}/settings/ui`);
-        if (!res.ok) throw new Error('failed');
-        const d = await res.json();
+        const res = await fetch(`${API_URL}/settings/ui`, { credentials: 'include' });
+        if (!res.ok) {
+          const text = await res.text();
+          console.error('[UI settings] non-200 response', res.status, text);
+          throw new Error(`settings/ui ${res.status}`);
+        }
+
+        const d = await res.json().catch(() => {
+          console.error('[UI settings] JSON parse error');
+          return null;
+        });
+        if (!d) return;
+
         if (d.loginBgUrl) {
           let url = d.loginBgUrl;
           if (!url.startsWith('http')) {
