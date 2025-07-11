@@ -27,7 +27,7 @@ import {
   Chip
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon, Upload as UploadIcon } from '@mui/icons-material';
-import { fetchWithAuth, API_URL } from '../utils/api';
+import { fetchWithAuth, API_BASE } from '../utils/api';
 import ExcelUpload from '../components/ExcelUpload';
 import _ from 'lodash';
 
@@ -55,7 +55,7 @@ function ProductManagement() {
 
   const fetchProducts = async () => {
     try {
-      const data = await fetchWithAuth('/products');
+      const data = await fetchWithAuth('/api/api/products');
       setProducts(data);
     } catch (error) {
       setError('제품 목록을 불러오는데 실패했습니다.');
@@ -64,7 +64,7 @@ function ProductManagement() {
 
   const fetchCompanies = async () => {
     try {
-      const data = await fetchWithAuth('/products/companies');
+      const data = await fetchWithAuth('/api/api/products/companies');
       setCompanies(data);
     } catch (error) {
       setError('업체 목록을 불러오는데 실패했습니다.');
@@ -159,9 +159,9 @@ function ProductManagement() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const url = editingProduct 
-        ? `${API_URL}/products/${editingProduct.id}`
-        : `${API_URL}/products`;
+      const url = editingProduct
+        ? `${API_BASE}/api/products/${editingProduct.id}`
+        : `${API_BASE}/api/products`;
       
       const response = await fetch(url, {
         method: editingProduct ? 'PUT' : 'POST',
@@ -204,7 +204,7 @@ function ProductManagement() {
     }
 
     try {
-      await fetchWithAuth(`/products/${id}`, {
+      await fetchWithAuth(`/api/api/products/${id}`, {
         method: 'DELETE'
       });
       setSuccess('제품이 삭제되었습니다.');
@@ -230,12 +230,12 @@ function ProductManagement() {
     const form = new FormData();
     form.append('file', file);
     try {
-      const res = await fetch(`${API_URL}/upload/excel`, {
+      const res = await fetch(`${API_BASE}/api/upload/excel`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: form
+        credentials: 'include',
       });
       const data = await res.json();
       alert(`${data.results.filter(r=>r.status==='ok').length} 건 성공 / ${data.results.filter(r=>r.status==='fail').length} 건 실패`);
