@@ -1,18 +1,19 @@
-# -------- Stage 1: React build --------
-FROM --platform=linux/amd64 node:18 AS react-build
+# -------- Stage 1 : Build React frontend --------
+FROM --platform=linux/amd64 node:18 AS frontend-build
 WORKDIR /frontend
 
-# Install dependencies & build
+# Install dependencies and build React app
 COPY clothing-inspection-frontend/package*.json ./
 RUN npm ci --omit=dev
-COPY clothing-inspection-frontend .
+
+COPY clothing-inspection-frontend ./
 RUN npm run build
 
-# -------- Stage 2: API + runtime --------
-FROM --platform=linux/amd64 node:18-slim
+# -------- Stage 2 : Build Express backend & runtime --------
+FROM --platform=linux/amd64 node:18-slim AS backend-runtime
 WORKDIR /app
 
-# Copy backend package files & install deps
+# Backend dependencies
 COPY clothing-inspection-backend/package*.json ./clothing-inspection-backend/
 RUN apt-get update \
  && apt-get install -y --no-install-recommends python3 make g++ \
@@ -23,16 +24,15 @@ RUN apt-get update \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
-# Copy backend source code
+# Copy backend source
 COPY clothing-inspection-backend ./clothing-inspection-backend
 
-# Copy React build into backend/client/build
-COPY --from=react-build /frontend/build ./clothing-inspection-backend/client/build
+# Copy React build into backend client folder
+COPY --from=frontend-build /frontend/build ./clothing-inspection-backend/client/build
 
-# Default environment
-ENV PORT=3000
-
+# Runtime configuration
 WORKDIR /app/clothing-inspection-backend
-
+ENV PORT=3000
 EXPOSE 3000
+
 CMD ["node", "app.js"]
