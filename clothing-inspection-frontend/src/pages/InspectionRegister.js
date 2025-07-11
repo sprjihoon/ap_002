@@ -9,7 +9,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
-import { API_URL } from '../utils/api';
+import { API_BASE } from '../utils/api';
 import { useRef } from 'react';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -120,8 +120,6 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
     return true;
   };
 
-  // API_URL = "https://.../api" | "/api" (dev proxy)
-  const API_BASE = API_URL; // includes trailing /api
 
   // 사진 업로드
   const uploadPhoto = async (file, barcode) => {
@@ -131,8 +129,9 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
       formData.append('barcodes[]', barcode);
     }
     try {
-      const response = await axios.post(`${API_BASE}/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const response = await axios.post(`${API_BASE}/api/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true
       });
       // 여러 개일 때와 단일일 때 모두 대응
       let url = '';
@@ -228,7 +227,8 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
           receiptPhotos: uploadedReceiptPhotos
         },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          withCredentials: true
         }
       );
       enqueueSnackbar('검수가 성공적으로 등록되었습니다.', { variant: 'success' });
@@ -304,10 +304,11 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
         formData.append('barcodes[]', barcode);
       });
 
-      const response = await axios.post(`${API_BASE}/upload`, formData, {
+           const response = await axios.post(`${API_BASE}/api/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        withCredentials: true
       });
 
       if (response.data.urls) {
