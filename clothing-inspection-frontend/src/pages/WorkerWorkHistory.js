@@ -59,7 +59,7 @@ const WorkerWorkHistory = () => {
 
   const viewDetail = async(id)=>{
     try{
-      const insp = await fetchWithAuth(`/worker/history/${id}`);
+      const insp = await fetchWithAuth(`/api/worker/history/${id}`);
       setDetail(insp);
       setOpenDetail(true);
     }catch(err){ setError(err.message); }
@@ -68,7 +68,7 @@ const WorkerWorkHistory = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('완료 내역을 삭제하여 전표를 다시 작업 상태로 돌리시겠습니까?')) return;
     try {
-      await fetchWithAuth(`/worker/history/${id}`, { method: 'DELETE' });
+      await fetchWithAuth(`/api/worker/history/${id}`, { method: 'DELETE' });
       load();
     } catch (err) {
       setError(err.message);
@@ -80,7 +80,7 @@ const WorkerWorkHistory = () => {
     setSaving(true);
     try{
       for(const d of detail.InspectionDetails){
-        await fetchWithAuth(`/worker/history/details/${d.id}`, {
+        await fetchWithAuth(`/api/worker/history/details/${d.id}`, {
           method:'PUT',
           body: JSON.stringify({ handledNormal:d.handledNormal, handledDefect:d.handledDefect, handledHold:d.handledHold, qualityGrade:d.qualityGrade||null })
         });
