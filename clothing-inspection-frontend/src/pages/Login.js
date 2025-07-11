@@ -11,7 +11,7 @@ function Login() {
 
   // 배경 이미지 적용
   useEffect(() => {
-    let prev = '';
+    let prevBg = '';
     const fetchUi = async () => {
       try {
         const res = await fetch(`${API_URL}/settings/ui`);
@@ -23,15 +23,19 @@ function Login() {
             const root = API_URL.replace(/\/api$/, '');
             url = root + url;
           }
-          prev = document.body.style.backgroundImage;
-          document.body.style.background = `url(${url}) center/cover no-repeat fixed`;
+          prevBg = document.body.style.backgroundImage;
+          document.body.style.backgroundImage = `url(${url})`;
+          document.body.style.backgroundSize = 'cover';
+          document.body.style.backgroundRepeat = 'no-repeat';
+          document.body.style.backgroundPosition = 'center';
+          document.body.style.backgroundAttachment = 'fixed';
         }
       } catch (err) {
         console.error('UI settings fetch error', err);
       }
     };
     fetchUi();
-    return () => { document.body.style.backgroundImage = prev; };
+    return () => { document.body.style.backgroundImage = prevBg; };
   }, []);
 
   const handleSubmit = async (e) => {
