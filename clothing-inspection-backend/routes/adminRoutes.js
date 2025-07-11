@@ -109,9 +109,26 @@ router.get('/stats/overview', auth, async (req, res) => {
 router.get('/activity', auth, async (req, res)=>{
   try{
     if(req.user.role!=='admin') return res.status(403).json({ message:'관리자 권한 필요' });
-    const { start, end, level } = req.query;
-    const startDate = start ? new Date(start) : new Date('1970-01-01');
-    const endDate = end ? new Date(end+'T23:59:59') : new Date();
+    let { start, end, date, level } = req.query;
+
+    // date 파라미터가 있으면 동일한 날짜로 start/end 설정
+    if (date && !start && !end) {
+      start = date;
+      end   = date;
+    }
+
+    // 기본값: 오늘 날짜
+    if (!start && !end) {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm   = String(today.getMonth()+1).padStart(2,'0');
+      const dd   = String(today.getDate()).padStart(2,'0');
+      start = `${yyyy}-${mm}-${dd}`;
+      end   = start;
+    }
+
+    const startDate = new Date(start);
+    const endDate   = new Date((end||start)+'T23:59:59');
 
     const where = { createdAt:{ [Op.between]:[startDate,endDate] } };
     if(level) where.level = level;
