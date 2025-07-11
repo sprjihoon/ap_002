@@ -100,7 +100,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 /*────────────── 헬스체크 ───────────────*/
-app.get('/',           (_, res) => res.json({ status: 'ok' }));
 app.get('/api/healthz', (_, res) => res.json({ status: 'ok' }));
 
 /*──────────────── 서버 기동 ────────────*/
