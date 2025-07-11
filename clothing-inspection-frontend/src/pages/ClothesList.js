@@ -79,7 +79,7 @@ function ClothesList() {
 
   const fetchProducts = async () => {
     try {
-      const data = await fetchWithAuth('/api/api/products');
+      const data = await fetchWithAuth('/api/products');
       setProducts(data);
     } catch (error) {
       setError('제품 목록을 불러오는데 실패했습니다.');
@@ -88,7 +88,7 @@ function ClothesList() {
 
   const fetchCompanies = async () => {
     try {
-      const data = await fetchWithAuth('/api/api/products/companies');
+      const data = await fetchWithAuth('/api/products/companies');
       console.log('Fetched companies:', data);
       setCompanies(data);
     } catch (error) {
@@ -150,7 +150,7 @@ function ClothesList() {
     }
 
     try {
-      await fetchWithAuth(`/api/api/products/${id}`, {
+      await fetchWithAuth(`/api/products/${id}`, {
         method: 'DELETE'
       });
       setSuccess('제품이 삭제되었습니다.');
