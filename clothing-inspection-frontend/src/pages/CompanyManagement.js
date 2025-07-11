@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE } from '../utils/api';
 import { Table, Button, Modal, Form, Alert } from 'react-bootstrap';
 
 const CompanyManagement = () => {
@@ -21,8 +22,9 @@ const CompanyManagement = () => {
 
   const fetchCompanies = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/companies', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      const response = await axios.get(`${API_BASE}/api/companies`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        withCredentials: true
       });
       setCompanies(response.data);
     } catch (err) {
@@ -34,13 +36,15 @@ const CompanyManagement = () => {
     e.preventDefault();
     try {
       if (editingCompany) {
-        await axios.put(`http://localhost:5000/api/companies/${editingCompany.id}`, formData, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        await axios.put(`${API_BASE}/api/companies/${editingCompany.id}`, formData, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          withCredentials: true
         });
         setSuccess('회사 정보가 수정되었습니다.');
       } else {
-        await axios.post('http://localhost:5000/api/companies', formData, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        await axios.post(`${API_BASE}/api/companies`, formData, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          withCredentials: true
         });
         setSuccess('새 회사가 등록되었습니다.');
       }
@@ -66,8 +70,9 @@ const CompanyManagement = () => {
   const handleDelete = async (id) => {
     if (window.confirm('정말로 이 회사를 삭제하시겠습니까?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/companies/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        await axios.delete(`${API_BASE}/api/companies/${id}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          withCredentials: true
         });
         setSuccess('회사가 삭제되었습니다.');
         fetchCompanies();
