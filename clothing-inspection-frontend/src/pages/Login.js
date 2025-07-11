@@ -10,21 +10,29 @@ function Login() {
   const navigate = useNavigate();
 
   // 배경 이미지 적용
-  useEffect(()=>{
-    let prev='';
-    fetch(`${API_URL}/settings/ui`).then(r=>r.json()).then(d=>{
-      if(d.loginBgUrl){
-        let url = d.loginBgUrl;
-        if(!url.startsWith('http')){
-          const root = API_URL.replace(/\/api$/, '');
-          url = root + url;
+  useEffect(() => {
+    let prev = '';
+    const fetchUi = async () => {
+      try {
+        const res = await fetch(`${API_URL}/settings/ui`);
+        if (!res.ok) throw new Error('failed');
+        const d = await res.json();
+        if (d.loginBgUrl) {
+          let url = d.loginBgUrl;
+          if (!url.startsWith('http')) {
+            const root = API_URL.replace(/\/api$/, '');
+            url = root + url;
+          }
+          prev = document.body.style.backgroundImage;
+          document.body.style.background = `url(${url}) center/cover no-repeat fixed`;
         }
-        prev = document.body.style.backgroundImage;
-        document.body.style.background=`url(${url}) center/cover no-repeat fixed`;
+      } catch (err) {
+        console.error('UI settings fetch error', err);
       }
-    });
-    return ()=>{ document.body.style.backgroundImage = prev; };
-  },[]);
+    };
+    fetchUi();
+    return () => { document.body.style.backgroundImage = prev; };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
