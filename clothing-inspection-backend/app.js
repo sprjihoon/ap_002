@@ -28,17 +28,8 @@ app.set('trust proxy', ['loopback']);
 
 /*──────────── 요청 로그 ───────────────*/
 app.use((req, res, next) => {
-  console.log(req.method, req.originalUrl, req.headers.origin);
+  console.log(`${req.method} ${req.originalUrl} origin=${req.headers.origin || 'none'}`);
   next();
-});
-
-/*─────── HTTP → HTTPS 리디렉트 ───────*/
-app.use((req, res, next) => {
-  // 이미 HTTPS이거나 프록시 헤더가 HTTPS인 경우 통과
-  if (req.secure || req.get('x-forwarded-proto') === 'https') {
-    return next();
-  }
-  return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
 });
 
 /*──────────────── CORS ────────────────*/
@@ -57,8 +48,15 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-// 프리플라이트 요청 처리
 app.options('*', cors(corsOptions));
+
+/*─────── HTTP → HTTPS 리디렉트 ───────*/
+app.use((req, res, next) => {
+  if (req.secure || req.get('x-forwarded-proto') === 'https') {
+    return next();
+  }
+  return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
+});
 
 /*────────────── 미들웨어 ───────────────*/
 app.use(express.json());
