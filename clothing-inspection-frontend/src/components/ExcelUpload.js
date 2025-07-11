@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
-import { API_URL } from '../utils/api';
+import { API_BASE } from '../utils/api';
 import { Button as BsButton, Alert, ProgressBar } from 'react-bootstrap';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
@@ -37,13 +37,13 @@ const ExcelUpload = ({ onSuccess }) => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const API_BASE = API_URL;
     try {
-      const response = await axios.post(`${API_BASE}/products/upload`, formData, {
+      const response = await axios.post(`${API_BASE}/api/products/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        },
+        withCredentials: true
       });
       setResult(response.data);
       setUploadResponse(response);
@@ -71,11 +71,12 @@ const ExcelUpload = ({ onSuccess }) => {
 
   const handleSampleDownload = async () => {
     try {
-      const response = await axios.get(`${API_URL}/products/sample`, {
+      const response = await axios.get(`${API_BASE}/api/products/sample`, {
         responseType: 'blob',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        },
+        withCredentials: true
       });
 
       // 파일 다운로드
@@ -95,8 +96,9 @@ const ExcelUpload = ({ onSuccess }) => {
     try{
       const token = localStorage.getItem('token');
       if(!uploadResponse) return;
-      await axios.put(`${API_URL}/inspections/${uploadResponse.data.data.inspectionId}`, editData,{
-        headers:{ Authorization:`Bearer ${token}` }
+       await axios.put(`${API_BASE}/api/inspections/${uploadResponse.data.data.inspectionId}`, editData,{
+        headers:{ Authorization:`Bearer ${token}` },
+        withCredentials: true
       });
       enqueueSnackbar('수정되었습니다.',{variant:'success'});
       setEditOpen(false);
