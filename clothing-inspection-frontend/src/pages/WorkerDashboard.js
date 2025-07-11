@@ -52,9 +52,9 @@ const WorkerDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [statsData, progressData, unconfData] = await Promise.all([
-        fetchWithAuth('/worker/stats'),
-        fetchWithAuth('/worker/progress'),
-        fetchWithAuth('/worker/unconfirmed')
+        fetchWithAuth('/api/worker/stats'),
+        fetchWithAuth('/api/worker/progress'),
+        fetchWithAuth('/api/worker/unconfirmed')
       ]);
 
       setStats(statsData);
