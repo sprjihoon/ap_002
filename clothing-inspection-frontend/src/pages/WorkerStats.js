@@ -9,7 +9,7 @@ const WorkerStats = () => {
   const [summary,setSummary] = useState(null);
 
   const load = async ()=>{
-    const data = await fetchWithAuth(`/worker/stats/summary?start=${start}&end=${end}`);
+    const data = await fetchWithAuth(`/api/worker/stats/summary?start=${start}&end=${end}`);
     setSummary(data);
   };
   useEffect(()=>{ load(); // eslint-disable-next-line
