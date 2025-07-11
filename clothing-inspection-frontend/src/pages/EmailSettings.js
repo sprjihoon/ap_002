@@ -10,7 +10,7 @@ const EmailSettings = () => {
 
   const load = async () => {
     try {
-      const res = await fetchWithAuth('/admin/settings/email-from');
+      const res = await fetchWithAuth('/api/admin/settings/email-from');
       setEmailFrom(res.emailFrom || '');
     } catch (err) {
       setError(err.message);
@@ -23,7 +23,7 @@ const EmailSettings = () => {
     if (!emailFrom) { setError('이메일 주소를 입력하세요'); return; }
     setLoading(true);
     try {
-      await fetchWithAuth('/admin/settings/email-from', {
+      await fetchWithAuth('/api/admin/settings/email-from', {
         method: 'PUT',
         body: JSON.stringify({ emailFrom })
       });
