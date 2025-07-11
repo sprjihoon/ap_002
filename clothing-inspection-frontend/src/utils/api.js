@@ -7,7 +7,7 @@
  * 3) '/api'                                    – 로컬 dev 서버 프록시용
  */
 export const API_URL =
-  process.env.REACT_APP_API_URL || '/api';
+  process.env.REACT_APP_API_URL || 'https://ap-002-frontend.onrender.com/api';
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');
