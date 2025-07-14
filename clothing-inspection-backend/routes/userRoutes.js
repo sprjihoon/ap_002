@@ -347,16 +347,37 @@ router.put('/history/details/:detailId', auth, async (req,res)=>{
   res.json({success:true, remaining});
 });
 
+router.post('/upload', auth, isAdmin, async (req,res)=>{
+  if (!req.file) {
+    return res.status(400).json({ message: '파일이 업로드되지 않았습니다.' });
+  }
+
+  const filePath = `/uploads/settings/${req.file.originalname}`;
+  const fullPath = path.join(__dirname, '../../public', filePath);
+
+  try {
+    await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
+    await fs.promises.rename(req.file.path, fullPath);
+
+    res.json({ url: filePath });
+  } catch (error) {
+    await fs.promises.unlink(req.file.path); // 업로드 실패 시 파일 삭제
+    res.status(500).json({ message: '파일 업로드 중 오류가 발생했습니다.', error: error.message });
+  }
+});
+
 router.get('/ui', async (_req,res)=>{
   const [theme,logoUrl,notice,loginBgUrl] = await Promise.all([
     getSetting('theme'), getSetting('logoUrl'),
     getSetting('notice'), getSetting('loginBgUrl')
   ]);
+  const completeSoundUrl = await getSetting('completeSoundUrl');
   res.json({
     theme : theme  || 'light',
     logo  : logoUrl|| '/uploads/logo.png',
     notice: notice || '',
-    loginBgUrl
+    loginBgUrl,
+    completeSoundUrl
   });
 });
 
@@ -366,6 +387,31 @@ router.get('/companies', auth, async (_req,res)=>{
   });
   const list = rows.map(r=>r.company).filter(Boolean);
   res.json(list);
+});
+
+router.get('/activity', auth, async (req,res)=>{
+  if (req.user.role !== 'admin') return res.sendStatus(403);
+
+  let { start, end, date, level } = req.query;
+
+  // ① 단일 date 파라미터 → 동일한 start·end 로 변환
+  if (date && !start && !end){
+    start = date;
+    end   = date;
+  }
+
+  // ② 아무것도 없으면 ‘오늘’ 자동 적용
+  if (!start && !end){
+    const today = new Date().toISOString().substring(0,10); // YYYY-MM-DD
+    start = end = today;
+  }
+
+  const startDate = new Date(`${start}T00:00:00`);
+  const endDate   = new Date(`${end}T23:59:59`);
+
+  const where = { createdAt:{ [Op.between]:[startDate,endDate] } };
+  if (level) where.level = level;
+  …
 });
 
 module.exports = router; 
