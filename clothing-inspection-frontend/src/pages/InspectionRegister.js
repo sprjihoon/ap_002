@@ -3,6 +3,8 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, FormControl, InputLabel, Select, MenuItem, Typography, Box, IconButton, Autocomplete, Checkbox
 } from '@mui/material';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ReceiptPhotoUpload from '../components/ReceiptPhotoUpload';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -366,7 +368,10 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
       PaperProps={{ sx: { height: isSmallScreen ? '100%' : 'auto' } }}
     >
       <DialogTitle>검수 등록</DialogTitle>
-      <DialogContent sx={{ overflowY:'auto', maxHeight: isSmallScreen ? 'calc(100vh - 160px)' : '70vh' }}>
+      <DialogContent
+        sx={{ overflowY:'auto', maxHeight: isSmallScreen ? 'calc(100vh - 100px)' : '75vh', pb:4 }}
+        onClick={(e)=>{ if(e.target===e.currentTarget) document.activeElement.blur(); }}
+      >
         <Box sx={{ mb: 2 }}>
           <FormControl fullWidth margin="normal">
             <InputLabel>업체명</InputLabel>
@@ -437,32 +442,44 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                     </IconButton>
                   </Box>
                   <Box sx={{ display:'flex', gap:1, flexWrap:'wrap' }}>
-                    <TextField
-                      label="전체수량"
-                      type="number"
-                      value={input.total || ''}
-                      onChange={e => handleOptionInput(variant.barcode, 'total', e.target.value)}
-                      sx={{ width: 90 }}
-                      inputProps={{ min: 0 }}
-                    />
-                    <TextField
-                      label="정상수량"
-                      type="number"
-                      value={input.normal || ''}
-                      onChange={e => handleOptionInput(variant.barcode, 'normal', e.target.value)}
-                      sx={{ width: 90 }}
-                      inputProps={{ min: 0 }}
-                      error={error}
-                    />
-                    <TextField
-                      label="불량수량"
-                      type="number"
-                      value={input.defect || ''}
-                      onChange={e => handleOptionInput(variant.barcode, 'defect', e.target.value)}
-                      sx={{ width: 90 }}
-                      inputProps={{ min: 0 }}
-                      error={error}
-                    />
+                    <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'total', (total||0)+1)}><ArrowDropUpIcon/></IconButton>
+                      <TextField
+                        label="전체수량"
+                        type="number"
+                        value={input.total || ''}
+                        onChange={e => handleOptionInput(variant.barcode, 'total', e.target.value)}
+                        sx={{ width: 90 }}
+                        inputProps={{ min: 0, inputMode:'numeric' }}
+                      />
+                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'total', Math.max(0,(total||0)-1))}><ArrowDropDownIcon/></IconButton>
+                    </Box>
+                    <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'normal', (normal||0)+1)}><ArrowDropUpIcon/></IconButton>
+                      <TextField
+                        label="정상수량"
+                        type="number"
+                        value={input.normal || ''}
+                        onChange={e => handleOptionInput(variant.barcode, 'normal', e.target.value)}
+                        sx={{ width: 90 }}
+                        inputProps={{ min: 0, inputMode:'numeric' }}
+                        error={error}
+                      />
+                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'normal', Math.max(0,(normal||0)-1))}><ArrowDropDownIcon/></IconButton>
+                    </Box>
+                    <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'defect', (defect||0)+1)}><ArrowDropUpIcon/></IconButton>
+                      <TextField
+                        label="불량수량"
+                        type="number"
+                        value={input.defect || ''}
+                        onChange={e => handleOptionInput(variant.barcode, 'defect', e.target.value)}
+                        sx={{ width: 90 }}
+                        inputProps={{ min: 0, inputMode:'numeric' }}
+                        error={error}
+                      />
+                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'defect', Math.max(0,(defect||0)-1))}><ArrowDropDownIcon/></IconButton>
+                    </Box>
                     <TextField
                       label="코멘트"
                       value={input.comment || ''}
@@ -517,6 +534,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
           <Typography variant="h6">전표별 영수증/증빙 사진 업로드</Typography>
           <ReceiptPhotoUpload photos={receiptPhotos} setPhotos={setReceiptPhotos} />
         </Box>
+        <Box sx={{ height: isSmallScreen ? 300 : 200 }} />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>취소</Button>
