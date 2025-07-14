@@ -5,7 +5,7 @@ const path    = require('path');
 const fs      = require('fs');
 const { auth } = require('../middleware/auth');
 const { getSetting, setSetting } = require('../utils/settings');
-const CompleteSound = require('../models/CompleteSound');
+const { CompleteSound } = require('../models');
 
 // 저장 경로 (Persistent disk 지원)
 const BASE = process.env.UPLOAD_BASE || path.join(__dirname, '..', '..', 'uploads');
