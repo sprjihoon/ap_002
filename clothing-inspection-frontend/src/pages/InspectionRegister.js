@@ -217,7 +217,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
       });
 
       const response = await axios.post(
-        `${API_BASE}/inspections`,
+        `${API_BASE}/api/inspections`,
         {
           inspectionName,
           company: selectedCompany,
