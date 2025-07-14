@@ -22,11 +22,14 @@ const UiSettings = () => {
   const [sounds, setSounds] = useState([]);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [playMode,setPlayMode]=useState('random');
 
   const loadSounds = async () => {
     try {
       const data = await fetchWithAuth('/settings/sounds'); // GET /api/settings/sounds
       setSounds(data);
+      // also load soundPlayMode
+      fetch(`${API_BASE}/api/settings/ui`,{credentials:'include'}).then(r=>r.json()).then(d=>setPlayMode(d.soundPlayMode||'random')).catch(()=>{});
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -70,6 +73,30 @@ const UiSettings = () => {
     }
   };
 
+  const moveItem = (index, direction) => {
+    const newArr=[...sounds];
+    const target=newArr.splice(index,1)[0];
+    newArr.splice(index+direction,0,target);
+    setSounds(newArr);
+  };
+
+  const saveOrder = async () => {
+    try{
+      const order = sounds.map(s=>s.id);
+      await fetchWithAuth('/settings/sounds/order',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({order})});
+      setSuccess('순서 저장 완료');
+    }catch(err){ setError(err.message);}  
+  };
+
+  const toggleMode = async () => {
+    try{
+      const newMode = playMode==='random'?'sequential':'random';
+      setPlayMode(newMode);
+      await fetchWithAuth('/settings/sound-mode',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:newMode})});
+      setSuccess('재생 방식 변경');
+    }catch(err){ setError(err.message);}  
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -98,15 +125,21 @@ const UiSettings = () => {
         <Typography variant="h6" gutterBottom>
           업로드된 효과음 목록
         </Typography>
+        <Box sx={{display:'flex',alignItems:'center',gap:2,mb:1}}>
+          <Typography>재생 방식:</Typography>
+          <Button variant="outlined" onClick={toggleMode}>{playMode==='random'?'랜덤':'순차'} 재생</Button>
+        </Box>
         {sounds.length === 0 ? (
           <Typography variant="body2">등록된 효과음이 없습니다.</Typography>
         ) : (
           <List>
-            {sounds.map((s) => (
+            {sounds.map((s,idx) => (
               <ListItem key={s.id} secondaryAction={
-                <IconButton edge="end" color="error" onClick={() => handleDelete(s.id)}>
-                  <DeleteIcon />
-                </IconButton>
+                <Box>
+                  <IconButton disabled={idx===0} onClick={()=>moveItem(idx,-1)}><span style={{fontSize:18}}>▲</span></IconButton>
+                  <IconButton disabled={idx===sounds.length-1} onClick={()=>moveItem(idx,1)}><span style={{fontSize:18}}>▼</span></IconButton>
+                  <IconButton edge="end" color="error" onClick={() => handleDelete(s.id)}><DeleteIcon /></IconButton>
+                </Box>
               }>
                 <audio controls src={`${API_BASE}${s.url}`} style={{ marginRight: 8 }} />
                 <ListItemText primary={s.url.split('/').pop()} />
@@ -114,6 +147,7 @@ const UiSettings = () => {
             ))}
           </List>
         )}
+        {sounds.length>1 && <Button variant="contained" onClick={saveOrder}>순서 저장</Button>}
       </Paper>
 
       <Snackbar

@@ -70,7 +70,9 @@ router.post('/sounds', auth, upload.single('file'), async (req,res)=>{
     if(req.user.role!=='admin') return res.sendStatus(403);
     if(!req.file) return res.status(400).json({ message:'file required' });
     const relUrl = `/uploads/settings/${req.file.filename}`;
-    await CompleteSound.create({ url: relUrl });
+    const max = await CompleteSound.max('order');
+    const nextOrder = Number.isInteger(max) ? max + 1 : 0;
+    await CompleteSound.create({ url: relUrl, order: nextOrder });
     res.json({ success:true });
   }catch(err){ res.status(500).json({ message:err.message }); }
 });
@@ -78,8 +80,24 @@ router.post('/sounds', auth, upload.single('file'), async (req,res)=>{
 // GET list
 router.get('/sounds', auth, async (req,res)=>{
   if(req.user.role!=='admin') return res.sendStatus(403);
-  const list = await CompleteSound.findAll({ order:[['createdAt','DESC']] });
+  const list = await CompleteSound.findAll({ order:[['order','ASC']] });
   res.json(list);
+});
+
+// PUT /api/settings/sounds/order   { order:[id1,id2,...] }
+router.put('/sounds/order', auth, async (req,res)=>{
+  try{
+    if(req.user.role!=='admin') return res.sendStatus(403);
+    const { order } = req.body;
+    if(!Array.isArray(order)) return res.status(400).json({ message:'order array required' });
+    // transaction update
+    await CompleteSound.sequelize.transaction(async t=>{
+      for(let i=0;i<order.length;i++){
+        await CompleteSound.update({ order:i }, { where:{ id:order[i] }, transaction:t });
+      }
+    });
+    res.json({ success:true });
+  }catch(err){ res.status(500).json({ message:err.message }); }
 });
 
 // DELETE sound by id
@@ -96,13 +114,25 @@ router.delete('/sounds/:id', auth, async (req,res)=>{
 // GET /api/settings/ui   (public)
 router.get('/ui', async (_req,res)=>{
   try{
-    const [theme,logoUrl,notice,loginBgUrl] = await Promise.all([
-      getSetting('theme'), getSetting('logoUrl'), getSetting('notice'), getSetting('loginBgUrl')
+    const [theme,logoUrl,notice,loginBgUrl,soundPlayMode] = await Promise.all([
+      getSetting('theme'), getSetting('logoUrl'), getSetting('notice'), getSetting('loginBgUrl'), getSetting('soundPlayMode')
     ]);
     // pick random sound
-    const sounds = await CompleteSound.findAll();
-    const randomSound = sounds.length ? sounds[Math.floor(Math.random()*sounds.length)].url : null;
-    res.json({ theme: theme||'light', logo: logoUrl||'/uploads/logo.png', notice: notice||'', loginBgUrl, completeSoundUrl: randomSound });
+    const sounds = await CompleteSound.findAll({ order:[['order','ASC']] });
+    const soundUrls = sounds.map(s=>s.url);
+    const randomSound = soundUrls.length ? soundUrls[Math.floor(Math.random()*soundUrls.length)] : null;
+    res.json({ theme: theme||'light', logo: logoUrl||'/uploads/logo.png', notice: notice||'', loginBgUrl, soundPlayMode: soundPlayMode||'random', completeSoundUrl: randomSound, sounds: soundUrls });
+  }catch(err){ res.status(500).json({ message:err.message }); }
+});
+
+// PUT /api/settings/sound-mode { mode: 'sequential'|'random' }
+router.put('/sound-mode', auth, async (req,res)=>{
+  try{
+    if(req.user.role!=='admin') return res.sendStatus(403);
+    const { mode }=req.body;
+    if(!['sequential','random'].includes(mode)) return res.status(400).json({ message:'invalid mode'});
+    await setSetting('soundPlayMode', mode);
+    res.json({ success:true });
   }catch(err){ res.status(500).json({ message:err.message }); }
 });
 
