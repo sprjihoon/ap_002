@@ -354,4 +354,12 @@ router.get('/ui', async (_req,res)=>{
   });
 });
 
+router.get('/companies', auth, async (_req,res)=>{
+  const rows = await User.findAll({
+    attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('company')), 'company']]
+  });
+  const list = rows.map(r=>r.company).filter(Boolean);
+  res.json(list);
+});
+
 module.exports = router; 
