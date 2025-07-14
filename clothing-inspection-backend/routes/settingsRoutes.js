@@ -5,6 +5,7 @@ const path    = require('path');
 const fs      = require('fs');
 const { auth } = require('../middleware/auth');
 const { getSetting, setSetting } = require('../utils/settings');
+const CompleteSound = require('../models/CompleteSound');
 
 // 저장 경로 (Persistent disk 지원)
 const BASE = process.env.UPLOAD_BASE || path.join(__dirname, '..', '..', 'uploads');
@@ -63,26 +64,46 @@ router.delete('/upload/:type', auth, async (req,res)=>{
   }catch(err){ res.status(500).json({ message:err.message }); }
 });
 
-// GET /api/settings/ui   (public)
-router.get('/ui', async (_req, res) => {
-  try {
-    const [theme, logoUrl, notice, loginBgUrl] = await Promise.all([
-      getSetting('theme'),
-      getSetting('logoUrl'),
-      getSetting('notice'),
-      getSetting('loginBgUrl')
-    ]);
+// POST /api/settings/sounds  (upload complete sound)
+router.post('/sounds', auth, upload.single('file'), async (req,res)=>{
+  try{
+    if(req.user.role!=='admin') return res.sendStatus(403);
+    if(!req.file) return res.status(400).json({ message:'file required' });
+    const relUrl = `/uploads/settings/${req.file.filename}`;
+    await CompleteSound.create({ url: relUrl });
+    res.json({ success:true });
+  }catch(err){ res.status(500).json({ message:err.message }); }
+});
 
-    res.json({
-      theme : theme  || 'light',
-      logo  : logoUrl || '/uploads/logo.png',
-      notice: notice || '',
-      loginBgUrl
-    });
-  } catch (err) {
-    console.error('settings /ui error', err);
-    res.status(500).json({ message: err.message });
-  }
+// GET list
+router.get('/sounds', auth, async (req,res)=>{
+  if(req.user.role!=='admin') return res.sendStatus(403);
+  const list = await CompleteSound.findAll({ order:[['createdAt','DESC']] });
+  res.json(list);
+});
+
+// DELETE sound by id
+router.delete('/sounds/:id', auth, async (req,res)=>{
+  try{
+    if(req.user.role!=='admin') return res.sendStatus(403);
+    const row = await CompleteSound.findByPk(req.params.id);
+    if(!row) return res.sendStatus(404);
+    await row.destroy();
+    res.json({ success:true });
+  }catch(err){ res.status(500).json({ message:err.message }); }
+});
+
+// GET /api/settings/ui   (public)
+router.get('/ui', async (_req,res)=>{
+  try{
+    const [theme,logoUrl,notice,loginBgUrl] = await Promise.all([
+      getSetting('theme'), getSetting('logoUrl'), getSetting('notice'), getSetting('loginBgUrl')
+    ]);
+    // pick random sound
+    const sounds = await CompleteSound.findAll();
+    const randomSound = sounds.length ? sounds[Math.floor(Math.random()*sounds.length)].url : null;
+    res.json({ theme: theme||'light', logo: logoUrl||'/uploads/logo.png', notice: notice||'', loginBgUrl, completeSoundUrl: randomSound });
+  }catch(err){ res.status(500).json({ message:err.message }); }
 });
 
 module.exports = router;
