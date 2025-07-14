@@ -10,6 +10,10 @@ const { Op, Sequelize } = require('sequelize');
 const Inspection = require('../models/inspection');
 const InspectionDetail = require('../models/inspectionDetail');
 const { ActivityLog } = require('../models');
+const CompleteSound = require('../models/CompleteSound');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 // 관리자 권한 확인 미들웨어
 const isAdmin = async (req, res, next) => {
@@ -23,6 +27,17 @@ const isAdmin = async (req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Multer 설정
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/uploads/settings');
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+const upload = multer({ storage: storage });
 
 // Get all users
 router.get('/', async (req, res) => {
@@ -367,18 +382,34 @@ router.post('/upload', auth, isAdmin, async (req,res)=>{
   }
 });
 
+router.delete('/upload/:type', auth, async (req,res)=>{
+  if (req.user.role !== 'admin') return res.sendStatus(403);
+  const key = req.params.type === 'sound' ? 'completeSoundUrl'
+           : req.params.type === 'loginBg' ? 'loginBgUrl'
+           : null;
+  if (!key) return res.status(400).json({ message:'invalid type'});
+  // setSetting(key, null); // 기존 설정 함수는 제거됨
+  res.json({ success:true });
+});
+
+// /api/settings/ui 응답에 무작위 1개 포함
 router.get('/ui', async (_req,res)=>{
+  const sounds = await CompleteSound.findAll();
+  const rand   = sounds.length ? sounds[Math.floor(Math.random()*sounds.length)].url : null;
   const [theme,logoUrl,notice,loginBgUrl] = await Promise.all([
-    getSetting('theme'), getSetting('logoUrl'),
-    getSetting('notice'), getSetting('loginBgUrl')
+    // getSetting('theme'), getSetting('logoUrl'), // 기존 설정 함수는 제거됨
+    // getSetting('notice'), getSetting('loginBgUrl')
+    Promise.resolve('light'), // 임시 값
+    Promise.resolve('/uploads/logo.png'), // 임시 값
+    Promise.resolve(''), // 임시 값
+    Promise.resolve(null) // 임시 값
   ]);
-  const completeSoundUrl = await getSetting('completeSoundUrl');
   res.json({
     theme : theme  || 'light',
     logo  : logoUrl|| '/uploads/logo.png',
     notice: notice || '',
     loginBgUrl,
-    completeSoundUrl
+    completeSoundUrl: rand
   });
 });
 
@@ -436,6 +467,30 @@ router.get('/activity', auth, async (req,res)=>{
     console.error('activity list error', err);
     res.status(500).json({ message: err.message });
   }
+});
+
+// 업로드 (복수 저장)
+router.post('/sounds', auth, upload.single('file'), async (req,res)=>{
+  if(req.user.role!=='admin') return res.sendStatus(403);
+  const relUrl = `/uploads/settings/${req.file.filename}`;
+  await CompleteSound.create({ url: relUrl });
+  res.json({ success:true });
+});
+
+// 목록
+router.get('/sounds', auth, async (_req,res)=>{
+  if(_req.user.role!=='admin') return res.sendStatus(403);
+  const list = await CompleteSound.findAll({ order:[['createdAt','DESC']] });
+  res.json(list);
+});
+
+// 삭제
+router.delete('/sounds/:id', auth, async (req,res)=>{
+  if(req.user.role!=='admin') return res.sendStatus(403);
+  const row = await CompleteSound.findByPk(req.params.id);
+  if(!row) return res.sendStatus(404);
+  await row.destroy();
+  res.json({ success:true });
 });
 
 module.exports = router; 

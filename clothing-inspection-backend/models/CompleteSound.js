@@ -1,9 +1,11 @@
-const { Model, DataTypes } = require('sequelize');
+const { DataTypes } = require('sequelize');
 
-module.exports = (sequelize)=>{
-  class CompleteSound extends Model {}
-  CompleteSound.init({
-    url:{ type:DataTypes.STRING, allowNull:false }
-  },{ sequelize, modelName:'CompleteSound' });
+module.exports = (sequelize) => {
+  const CompleteSound = sequelize.define('CompleteSound', {
+    url: {
+      type: DataTypes.STRING,
+      allowNull: false
+    }
+  });
   return CompleteSound;
 }; 

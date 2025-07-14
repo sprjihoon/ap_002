@@ -54,6 +54,7 @@ const ProductVariant    = get('ProductVariant');
 const InspectionDetail  = get('InspectionDetail');
 const InspectionReceiptPhoto = get('InspectionReceiptPhoto');
 const WorkerScan        = get('WorkerScan');
+const CompleteSound     = get('CompleteSound');
 
 // 3. Relations (all constraints:false to suppress FK creation)
 if (Inspection && InspectionComment) {
