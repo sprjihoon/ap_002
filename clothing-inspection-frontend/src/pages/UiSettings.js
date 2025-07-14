@@ -53,7 +53,6 @@ const UiSettings = () => {
     <Box sx={{ p:3 }}>
       <Typography variant="h4" gutterBottom>환경 설정</Typography>
       <SettingUpload label="작업 완료 효과음" accept="audio/*" settingKey="completeSoundUrl" />
-      <SettingUpload label="로그인 배경 이미지" accept="image/*" settingKey="loginBgUrl" />
     </Box>
   );
 };
