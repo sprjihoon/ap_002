@@ -98,6 +98,18 @@ const TvDashboard = () => {
   };
   useEffect(()=>{ load(); const id=setInterval(load,30000); return()=>clearInterval(id); },[]);
 
+  // startup sound
+  useEffect(()=>{
+    fetch(`${API_BASE}/api/settings/ui`,{credentials:'include'})
+      .then(r=>r.json())
+      .then(d=>{
+        if(d.startupSoundUrl){
+          const url=d.startupSoundUrl.startsWith('/')?`${API_BASE}${d.startupSoundUrl}`:d.startupSoundUrl;
+          const audio=new Audio(url); audio.play().catch(()=>{});
+        }
+      }).catch(()=>{});
+  },[]);
+
   return (
     <Box sx={{ p:2, bgcolor:'#000', minHeight:'100vh', color:'#fff' }}>
       <Typography variant="h3" align="center" gutterBottom>작업 현황</Typography>

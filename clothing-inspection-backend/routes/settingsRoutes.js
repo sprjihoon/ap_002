@@ -26,7 +26,8 @@ const upload = multer({ storage });
 
 const TYPE_TO_KEY = {
   sound: 'completeSoundUrl',
-  loginBg: 'loginBgUrl'
+  loginBg: 'loginBgUrl',
+  startup: 'startupSoundUrl'
 };
 
 // POST /api/settings/upload  (admin only)
@@ -72,7 +73,7 @@ router.post('/sounds', auth, upload.single('file'), async (req,res)=>{
     const relUrl = `/uploads/settings/${req.file.filename}`;
     const max = await CompleteSound.max('order');
     const nextOrder = Number.isInteger(max) ? max + 1 : 0;
-    await CompleteSound.create({ url: relUrl, order: nextOrder });
+    await CompleteSound.create({ url: relUrl, order: nextOrder, originalName: req.file.originalname });
     res.json({ success:true });
   }catch(err){ res.status(500).json({ message:err.message }); }
 });
@@ -114,14 +115,14 @@ router.delete('/sounds/:id', auth, async (req,res)=>{
 // GET /api/settings/ui   (public)
 router.get('/ui', async (_req,res)=>{
   try{
-    const [theme,logoUrl,notice,loginBgUrl,soundPlayMode] = await Promise.all([
-      getSetting('theme'), getSetting('logoUrl'), getSetting('notice'), getSetting('loginBgUrl'), getSetting('soundPlayMode')
+    const [theme,logoUrl,notice,loginBgUrl,soundPlayMode,startupSoundUrl] = await Promise.all([
+      getSetting('theme'), getSetting('logoUrl'), getSetting('notice'), getSetting('loginBgUrl'), getSetting('soundPlayMode'), getSetting('startupSoundUrl')
     ]);
     // pick random sound
     const sounds = await CompleteSound.findAll({ order:[['order','ASC']] });
     const soundUrls = sounds.map(s=>s.url);
     const randomSound = soundUrls.length ? soundUrls[Math.floor(Math.random()*soundUrls.length)] : null;
-    res.json({ theme: theme||'light', logo: logoUrl||'/uploads/logo.png', notice: notice||'', loginBgUrl, soundPlayMode: soundPlayMode||'random', completeSoundUrl: randomSound, sounds: soundUrls });
+    res.json({ theme: theme||'light', logo: logoUrl||'/uploads/logo.png', notice: notice||'', loginBgUrl, soundPlayMode: soundPlayMode||'random', completeSoundUrl: randomSound, sounds: soundUrls, startupSoundUrl });
   }catch(err){ res.status(500).json({ message:err.message }); }
 });
 

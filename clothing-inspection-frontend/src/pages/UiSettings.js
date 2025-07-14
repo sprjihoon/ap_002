@@ -17,6 +17,57 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import { fetchWithAuth, API_BASE } from '../utils/api';
 
+// 단일 파일 업로드(전광판 시작 음악)
+const SettingSingleUpload = () => {
+  const [currentUrl,setCurrentUrl]=useState('');
+  const [file,setFile]=useState(null);
+  const [success,setSuccess]=useState('');
+  const [error,setError]=useState('');
+
+  const load=()=>{
+    fetch(`${API_BASE}/api/settings/ui`,{credentials:'include'}).then(r=>r.json()).then(d=>setCurrentUrl(d.startupSoundUrl||'')).catch(()=>{});
+  };
+  useEffect(load,[]);
+
+  const upload=async()=>{
+    if(!file) return;
+    try{
+      const form=new FormData();
+      form.append('file',file);
+      form.append('type','startup');
+      const token=localStorage.getItem('token');
+      await fetch(`${API_BASE}/api/settings/upload`,{method:'POST',credentials:'include',headers:{Authorization:`Bearer ${token}`},body:form});
+      setSuccess('업로드 완료'); setFile(null); load();
+    }catch(err){ setError(err.message);}  
+  };
+
+  const del=async()=>{
+    if(!window.confirm('삭제합니까?')) return;
+    try{
+      const token=localStorage.getItem('token');
+      await fetch(`${API_BASE}/api/settings/upload/startup`,{method:'DELETE',credentials:'include',headers:{Authorization:`Bearer ${token}`}});
+      setCurrentUrl(''); setSuccess('삭제 완료');
+    }catch(err){ setError(err.message);}  
+  };
+
+  return (
+    <Box sx={{display:'flex',flexDirection:'column',gap:2}}>
+      {currentUrl && (
+        <Box sx={{display:'flex',alignItems:'center',gap:1}}>
+          <audio controls src={`${API_BASE}${currentUrl}`} />
+          <Button size="small" color="error" onClick={del}>삭제</Button>
+        </Box>
+      )}
+      <Box sx={{display:'flex',gap:2,alignItems:'center'}}>
+        <TextField type="file" inputProps={{accept:'audio/*'}} onChange={e=>setFile(e.target.files?.[0]||null)}/>
+        <Button variant="contained" disabled={!file} onClick={upload}>업로드</Button>
+      </Box>
+      <Snackbar open={!!success} autoHideDuration={3000} onClose={()=>setSuccess('')}><Alert severity="success">{success}</Alert></Snackbar>
+      <Snackbar open={!!error} autoHideDuration={3000} onClose={()=>setError('')}><Alert severity="error">{error}</Alert></Snackbar>
+    </Box>
+  );
+};
+
 const UiSettings = () => {
   const [file, setFile] = useState(null);
   const [sounds, setSounds] = useState([]);
@@ -142,12 +193,18 @@ const UiSettings = () => {
                 </Box>
               }>
                 <audio controls src={`${API_BASE}${s.url}`} style={{ marginRight: 8 }} />
-                <ListItemText primary={s.url.split('/').pop()} />
+                <ListItemText primary={s.originalName || s.url.split('/').pop()} />
               </ListItem>
             ))}
           </List>
         )}
         {sounds.length>1 && <Button variant="contained" onClick={saveOrder}>순서 저장</Button>}
+      </Paper>
+
+      {/* 전광판 시작 음악 업로드 */}
+      <Paper sx={{ p: 2, mt:3 }}>
+        <Typography variant="h6" gutterBottom>전광판 시작 음악</Typography>
+        <SettingSingleUpload />
       </Paper>
 
       <Snackbar

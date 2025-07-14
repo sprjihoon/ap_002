@@ -10,6 +10,10 @@ module.exports = (sequelize) => {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0
+    },
+    originalName: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
   });
   return CompleteSound;
