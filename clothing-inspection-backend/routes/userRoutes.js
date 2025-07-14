@@ -9,6 +9,7 @@ const { WorkerScan } = require('../models');
 const { Op, Sequelize } = require('sequelize');
 const Inspection = require('../models/inspection');
 const InspectionDetail = require('../models/inspectionDetail');
+const ActivityLog = require('../models/activityLog'); // Added missing import
 
 // 관리자 권한 확인 미들웨어
 const isAdmin = async (req, res, next) => {
@@ -411,7 +412,30 @@ router.get('/activity', auth, async (req,res)=>{
 
   const where = { createdAt:{ [Op.between]:[startDate,endDate] } };
   if (level) where.level = level;
-  …
+
+  try {
+    const logs = await ActivityLog.findAll({
+      where,
+      include:[
+        { model:Inspection, attributes:['inspectionName'] },
+        { model:User, attributes:['id','username'] }
+      ],
+      order:[['createdAt','DESC']]
+    });
+
+    res.json(logs.map(l=>({
+      id:l.id,
+      createdAt:l.createdAt,
+      level:l.level,
+      type:l.type,
+      message:l.message,
+      inspectionName:l.Inspection?.inspectionName||null,
+      user:l.User?.username||null
+    })));
+  } catch(err){
+    console.error('activity list error', err);
+    res.status(500).json({ message: err.message });
+  }
 });
 
 module.exports = router; 
