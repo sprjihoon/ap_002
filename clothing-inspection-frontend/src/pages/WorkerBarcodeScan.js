@@ -53,6 +53,27 @@ const WorkerBarcodeScan=()=>{
   const token=localStorage.getItem('token');
   const api=axios.create({ baseURL: `${API_BASE}/api`, headers:{ Authorization:`Bearer ${token}` }, withCredentials: true });
 
+  // 간단한 비프음 재생 (normal: 삐, defect: 삐-삡)
+  const playBeep = (type) => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const beep = (freq, start, duration) => {
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+        osc.connect(ctx.destination);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + duration);
+      };
+      if (type === 'normal') {
+        beep(880, 0, 0.15); // 삐
+      } else if (type === 'defect') {
+        beep(880, 0, 0.12); // 삐
+        beep(660, 0.17, 0.15); // 삡
+      }
+    } catch (_) {}
+  };
+
   const lookup=async ()=>{
     const bc = barcode.trim();
     if(!bc) return;
@@ -144,6 +165,7 @@ const WorkerBarcodeScan=()=>{
       } else {
          sessionStorage.setItem('currentInspections', JSON.stringify(newList));
       }
+      playBeep(result);
       enqueueSnackbar(`${result==='normal'?'정상':'불량'} 처리 완료, 남은 수량 ${res.data.remaining}`, { variant:'success' });
     }catch(err){
       enqueueSnackbar(err.response?.data?.message||'스캔 실패', { variant:'error' });
