@@ -341,4 +341,17 @@ router.put('/history/details/:detailId', auth, async (req,res)=>{
   res.json({success:true, remaining});
 });
 
+router.get('/ui', async (_req,res)=>{
+  const [theme,logoUrl,notice,loginBgUrl] = await Promise.all([
+    getSetting('theme'), getSetting('logoUrl'),
+    getSetting('notice'), getSetting('loginBgUrl')
+  ]);
+  res.json({
+    theme : theme  || 'light',
+    logo  : logoUrl|| '/uploads/logo.png',
+    notice: notice || '',
+    loginBgUrl
+  });
+});
+
 module.exports = router; 
