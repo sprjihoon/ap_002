@@ -83,6 +83,9 @@ app.use('/api/admin',       adminRoutes);
 app.use('/api/defects',     defectRoutes);
 app.use('/api/settings',    settingsRoutes);
 
+/*────────── 헬스체크 루트 ──────────*/
+app.get('/', (_req, res) => res.json({ status: 'ok' }));
+
 /*────────────── 정적 프론트엔드 ────────*/
 if (process.env.NODE_ENV === 'production') {
   const fs = require('fs');
