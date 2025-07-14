@@ -50,6 +50,19 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
   }
 });
 
+// DELETE /api/settings/upload/:type  (admin only)
+router.delete('/upload/:type', auth, async (req,res)=>{
+  try{
+    if(req.user.role!=='admin') return res.sendStatus(403);
+    const type=req.params.type;
+    const key = type==='sound' ? 'completeSoundUrl'
+              : type==='loginBg' ? 'loginBgUrl' : null;
+    if(!key) return res.status(400).json({ message:'invalid type'});
+    await setSetting(key,null);
+    res.json({ success:true });
+  }catch(err){ res.status(500).json({ message:err.message }); }
+});
+
 // GET /api/settings/ui   (public)
 router.get('/ui', async (_req, res) => {
   try {

@@ -30,13 +30,29 @@ const SettingUpload = ({ label, accept, settingKey }) => {
       load();
     } catch (err) { setError(err.message); }
   };
+
+  const handleDelete = async () => {
+    if (!currentUrl) return;
+    if (!window.confirm('삭제하시겠습니까?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const type = settingKey === 'completeSoundUrl' ? 'sound' : 'loginBg';
+      const res = await fetch(`${API_BASE}/api/settings/upload/${type}`, {
+        method:'DELETE', credentials:'include', headers:{ Authorization:`Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('삭제 실패');
+      setCurrentUrl('');
+      setSuccess('삭제 완료');
+    } catch(err){ setError(err.message); }
+  };
   return (
     <Paper sx={{ p:2, mb:3 }}>
       <Typography variant="h6" gutterBottom>{label}</Typography>
       {currentUrl && (
-        <Typography variant="body2" sx={{ mb:1 }}>
-          현재 파일: {currentUrl.split('/').pop()}
-        </Typography>
+        <Box sx={{ display:'flex', alignItems:'center', gap:1, mb:1 }}>
+          <Typography variant="body2">현재 파일: {currentUrl.split('/').pop()}</Typography>
+          <Button size="small" color="error" onClick={handleDelete}>삭제</Button>
+        </Box>
       )}
       <Box sx={{ display:'flex', gap:2, alignItems:'center' }}>
         <TextField type="file" inputProps={{ accept }} onChange={e=>setFile(e.target.files?.[0]||null)} />
