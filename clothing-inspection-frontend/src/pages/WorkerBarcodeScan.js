@@ -3,7 +3,7 @@ import { Box, TextField, Button, Paper, Typography, CircularProgress, Grid, Tabl
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { API_URL } from '../utils/api';
+import { API_BASE } from '../utils/api';
 import { Close, Undo } from '@mui/icons-material';
 
 const WorkerBarcodeScan=()=>{
@@ -51,7 +51,7 @@ const WorkerBarcodeScan=()=>{
   },[]);
 
   const token=localStorage.getItem('token');
-  const api=axios.create({ baseURL: `${API_BASE}/api`, headers:{ Authorization:`Bearer ${token}` }, withCredentials:true });
+  const api=axios.create({ baseURL: `${API_BASE}/api`, headers:{ Authorization:`Bearer ${token}` }, withCredentials: true });
 
   const lookup=async ()=>{
     const bc = barcode.trim();

@@ -306,7 +306,6 @@ const InspectionDetail = () => {
       const res = await axios.post(`${API_BASE}/api/inspections/${id}/comments`, { content:newComment }, {
         headers:{ Authorization:`Bearer ${token}` },
         withCredentials: true
-        headers:{ Authorization:`Bearer ${token}` }
       });
       if (res.data.success) {
         setCommentThread(prev=>[...prev, res.data.comment]);
