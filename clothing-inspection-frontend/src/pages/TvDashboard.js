@@ -35,15 +35,6 @@ const TvDashboard = () => {
         audio.crossOrigin = 'anonymous';
         audio.src = urlToPlay;
         audio.play().catch(err=>console.warn('audio play failed',err));
-      } else {
-        // fallback beep
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        osc.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.3);
       }
     } catch (e) {
       console.warn('audio error', e);
@@ -111,18 +102,18 @@ const TvDashboard = () => {
   },[]);
 
   return (
-    <Box sx={{ p:2, bgcolor:'#000', minHeight:'100vh', color:'#fff' }}>
+    <Box sx={{ p:1, bgcolor:'#000', height:'100vh', color:'#fff', overflow:'hidden', display:'flex', flexDirection:'column' }}>
       <Typography variant="h3" align="center" gutterBottom>작업 현황</Typography>
 
       {/* 상단 카드 */}
-      <Grid container spacing={2} justifyContent="center" sx={{ mb:2 }}>
+      <Grid container spacing={1} justifyContent="center" sx={{ mb:1, flexShrink:0 }}>
         {[
           {label:'오늘 전표',value:stats.todayTotalInspections,color:'primary'},
           {label:'오늘 완료',value:stats.todayCompletedInspections,color:'success'},
           {label:'지난 미완료',value:stats.pastPendingInspections,color:'warning'}
         ].map(c=>(
           <Grid item key={c.label} xs="auto">
-            <Card sx={{ bgcolor:`${c.color}.dark`, color:'#fff', width:180, height:110 }}>
+            <Card sx={{ bgcolor:`${c.color}.dark`, color:'#fff', width:140, height:90 }}>
               <CardContent sx={{ textAlign:'center' }}>
                 <Typography variant="h6">{c.label}</Typography>
                 <Typography variant="h3">{c.value}</Typography>
@@ -133,7 +124,7 @@ const TvDashboard = () => {
       </Grid>
 
       {/* 진행률 */}
-      <Divider sx={{ my:2, bgcolor:'#555' }} />
+      <Divider sx={{ my:1, bgcolor:'#555' }} />
       <Typography variant="h4" gutterBottom>전표별 진행률</Typography>
       <Grid container spacing={2}>
         {progressList.filter(p=>{
@@ -141,12 +132,12 @@ const TvDashboard = () => {
           const today=new Date(); const crt=new Date(p.createdAt);
           return crt.getFullYear()===today.getFullYear() && crt.getMonth()===today.getMonth() && crt.getDate()===today.getDate();
         }).map(p=>(
-          <Grid item xs={12} sm={6} md={4} lg={3} key={p.id}>
+          <Grid item xs={12} sm={6} md={4} lg={3} key={p.id} sx={{ maxWidth:260 }}>
             <Card sx={{ bgcolor:p.percent===100?'#2e7d32':'#1565c0', color:'#fff' }}>
               <CardContent sx={{ textAlign:'center' }}>
                 <Typography variant="subtitle1">{p.company}</Typography>
                 <Typography variant="h5" gutterBottom>{p.inspectionName}</Typography>
-                <Typography variant="h2">{p.percent}%</Typography>
+                <Typography variant="h3">{p.percent}%</Typography>
                 <Typography variant="body2">{p.handledCount}/{p.totalQuantity}</Typography>
               </CardContent>
             </Card>
@@ -155,7 +146,7 @@ const TvDashboard = () => {
       </Grid>
 
       {unconfirmedList.length>0 && <>
-        <Divider sx={{ my:2, bgcolor:'#555' }} />
+        <Divider sx={{ my:1, bgcolor:'#555' }} />
         <Typography variant="h4" gutterBottom>미확정 전표</Typography>
         <Grid container spacing={2}>
           {unconfirmedList.map(u=>(
@@ -172,7 +163,7 @@ const TvDashboard = () => {
         </Grid>
       </>}
 
-      <Divider sx={{ my:2, bgcolor:'#555' }} />
+      <Divider sx={{ my:1, bgcolor:'#555' }} />
       <Grid container spacing={2} justifyContent="center">
         {[
           {label:'오늘 총 작업', val:stats.todayWorkQuantity},
@@ -182,7 +173,7 @@ const TvDashboard = () => {
           {label:'지난 미완료', val:stats.pastRemainingQuantity}
         ].map(c=>(
           <Grid item xs="auto" key={c.label}>
-            <Card sx={{ bgcolor:'#424242', color:'#fff', width:180, height:110 }}>
+            <Card sx={{ bgcolor:'#424242', color:'#fff', width:140, height:90 }}>
               <CardContent sx={{ textAlign:'center' }}>
                 <Typography variant="h6" gutterBottom>{c.label}</Typography>
                 <Typography variant="h3">{c.val}</Typography>

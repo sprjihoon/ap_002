@@ -362,11 +362,11 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
       maxWidth="md"
       fullWidth
       fullScreen={isSmallScreen}
-      scroll="body"
+      scroll="paper"
       PaperProps={{ sx: { height: isSmallScreen ? '100%' : 'auto' } }}
     >
       <DialogTitle>검수 등록</DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ overflowY:'auto', maxHeight: isSmallScreen ? 'calc(100vh - 160px)' : '70vh' }}>
         <Box sx={{ mb: 2 }}>
           <FormControl fullWidth margin="normal">
             <InputLabel>업체명</InputLabel>
