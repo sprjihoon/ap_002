@@ -261,8 +261,14 @@ router.get('/history', auth, async (req,res)=>{
         SUM(CASE WHEN result IN ('normal','defect','hold') THEN 1 END)
       `),'myCount'],
       // othersCount = totalByDetail - myCount  (아래 after 처리)
-      [Sequelize.fn('MIN',Sequelize.col('createdAt')),'startedAt'],
-      [Sequelize.fn('MAX',Sequelize.col('createdAt')),'finishedAt']
+      [Sequelize.fn('MIN',Sequelize.col('WorkerScan.createdAt')),'startedAt'],
+      /* 전표 전체의 마지막 스캔 시각을 finishedAt 으로 */
+      [Sequelize.literal(`(
+        SELECT MAX(createdAt)
+        FROM   WorkerScans AS ws2
+        WHERE  ws2.inspectionId = WorkerScan.inspectionId
+          AND  ws2.result IN ('normal','defect','hold')
+      )`), 'finishedAt']
     ],
     include:[
       { model:Inspection,   as:'Inspection', required:false },
