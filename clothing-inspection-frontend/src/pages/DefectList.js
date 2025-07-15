@@ -3,6 +3,7 @@ import { Box, Typography, TextField, Paper, Table, TableHead, TableRow, TableCel
 import { fetchWithAuth } from '../utils/api';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
+import { TableContainer } from '@mui/material';
 
 const DefectList = () => {
   const today = new Date().toISOString().substring(0,10);
@@ -90,8 +91,8 @@ const DefectList = () => {
         />
       </Box>
 
-      <Paper>
-        <Table size="small">
+      <TableContainer component={Paper} sx={{ overflowX:'auto' }}>
+        <Table size="small" sx={{ minWidth: 1200 }}>
           <TableHead>
             <TableRow>
               <TableCell>전표명</TableCell>
@@ -126,7 +127,7 @@ const DefectList = () => {
             )}
           </TableBody>
         </Table>
-      </Paper>
+      </TableContainer>
     </Box>
   );
 };
