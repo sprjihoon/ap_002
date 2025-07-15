@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { keyframes } from '@emotion/react';
 import { Box, Typography, Grid, Card, CardContent, Divider, Paper } from '@mui/material';
 import { fetchWithAuth, API_BASE } from '../utils/api';
 
@@ -102,25 +103,13 @@ const TvDashboard = () => {
       }).catch(()=>{});
   },[]);
 
-  const [progressOffset,setProgressOffset]=useState(0);
-  const [unconfOffset,setUnconfOffset]=useState(0);
   const visibleCount = 6;
 
-  useEffect(()=>{
-    const id=setInterval(()=>{
-      setProgressOffset(prev=>{
-        const len=progressList.length;
-        if(len<=visibleCount) return 0;
-        return (prev+1)%(len+visibleCount);
-      });
-      setUnconfOffset(prev=>{
-        const len=unconfirmedList.length;
-        if(len<=visibleCount) return 0;
-        return (prev+1)%(len+visibleCount);
-      });
-    },2000); // 2초 간격
-    return ()=>clearInterval(id);
-  },[progressList,unconfirmedList]);
+  // marquee keyframes
+  const marqueeAnim = keyframes`
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  `;
 
   return (
     <Box sx={{ p:1, bgcolor:'#000', height:'100vh', color:'#fff', overflow:'hidden', display:'flex', flexDirection:'column' }}>
@@ -147,10 +136,10 @@ const TvDashboard = () => {
       {/* 진행률 */}
       <Divider sx={{ my:1, bgcolor:'#555' }} />
       <Typography variant="h5" gutterBottom>전표별 진행률</Typography>
-      {(()=>{const filtered=progressList.filter(p=>{if(p.percent<100) return true;const today=new Date();const crt=new Date(p.createdAt);return crt.getFullYear()===today.getFullYear()&&crt.getMonth()===today.getMonth()&&crt.getDate()===today.getDate();});const dup=[...filtered,...filtered.slice(0,visibleCount)];const len=dup.length;const cardWidth=100/visibleCount;const offset=progressOffset>=len?0:progressOffset;return (
-      <Grid container spacing={2} sx={{ transition:'transform 0.6s', transform:`translateX(-${offset*cardWidth}%)`, width:`${len*cardWidth}%`, flexWrap:'nowrap' }}>
-        {dup.map((p,idx)=>(
-          <Grid item xs={12} sm={6} md={4} lg={2} key={idx===dup.length-visibleCount?`dup-${p.id}`:p.id} sx={{ maxWidth:220 }}>
+      {(()=>{const filtered=progressList.filter(p=>{if(p.percent<100) return true;const today=new Date();const crt=new Date(p.createdAt);return crt.getFullYear()===today.getFullYear()&&crt.getMonth()===today.getMonth()&&crt.getDate()===today.getDate();});const slideNeeded = filtered.length>visibleCount;const list = slideNeeded?[...filtered,...filtered]:filtered;const duration=(filtered.length||1)*2;return (
+      <Grid container spacing={2} sx={{ width: slideNeeded?'200%':'100%', flexWrap:'nowrap', animation: slideNeeded?`${marqueeAnim} ${duration}s linear infinite`:'none', overflow:'hidden' }}>
+        {list.map((p,idx)=>(
+          <Grid item xs={12} sm={6} md={4} lg={2} key={idx} sx={{ maxWidth:220 }}>
             <Card sx={{ bgcolor:p.percent===100?'#2e7d32':'#1565c0', color:'#fff' }}>
               <CardContent sx={{ textAlign:'center', p:1 }}>
                 <Typography variant="body2">{p.company}</Typography>
@@ -166,10 +155,10 @@ const TvDashboard = () => {
       {unconfirmedList.length>0 && <>
         <Divider sx={{ my:1, bgcolor:'#555' }} />
         <Typography variant="h5" gutterBottom>미확정 전표</Typography>
-        {(()=>{const dup=[...unconfirmedList,...unconfirmedList.slice(0,visibleCount)];const len=dup.length;const cardWidth=100/visibleCount;const offset=unconfOffset>=len?0:unconfOffset;return (
-        <Grid container spacing={2} sx={{ transition:'transform 0.6s', transform:`translateX(-${offset*cardWidth}%)`, width:`${len*cardWidth}%`, flexWrap:'nowrap' }}>
-          {dup.map((u,idx)=>(
-            <Grid item xs={12} sm={6} md={4} lg={3} key={idx===dup.length-visibleCount?`dup-${u.id}`:u.id}>
+        {(()=>{const slideNeeded=unconfirmedList.length>visibleCount;const list=slideNeeded?[...unconfirmedList,...unconfirmedList]:unconfirmedList;const duration=(unconfirmedList.length||1)*2;return (
+        <Grid container spacing={2} sx={{ width: slideNeeded?'200%':'100%', flexWrap:'nowrap', animation: slideNeeded?`${marqueeAnim} ${duration}s linear infinite`:'none', overflow:'hidden' }}>
+          {list.map((u,idx)=>(
+            <Grid item xs={12} sm={6} md={4} lg={3} key={idx}>
               <Card sx={{ bgcolor:u.status==='pending'?'#f9a825':'#c62828', color:'#000', textAlign:'center' }}>
                 <CardContent>
                   <Typography variant="subtitle1">{u.company}</Typography>
