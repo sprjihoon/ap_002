@@ -104,20 +104,21 @@ const TvDashboard = () => {
 
   const [progressOffset,setProgressOffset]=useState(0);
   const [unconfOffset,setUnconfOffset]=useState(0);
+  const visibleCount = 6;
 
   useEffect(()=>{
     const id=setInterval(()=>{
-      setProgressOffset(o=>{
+      setProgressOffset(prev=>{
         const len=progressList.length;
-        if(len<=6) return 0;
-        return (o+1)%len;
+        if(len<=visibleCount) return 0;
+        return (prev+1)%(len+visibleCount);
       });
-      setUnconfOffset(o=>{
+      setUnconfOffset(prev=>{
         const len=unconfirmedList.length;
-        if(len<=6) return 0;
-        return (o+1)%len;
+        if(len<=visibleCount) return 0;
+        return (prev+1)%(len+visibleCount);
       });
-    },500);
+    },2000); // 2초 간격
     return ()=>clearInterval(id);
   },[progressList,unconfirmedList]);
 
@@ -146,10 +147,10 @@ const TvDashboard = () => {
       {/* 진행률 */}
       <Divider sx={{ my:1, bgcolor:'#555' }} />
       <Typography variant="h5" gutterBottom>전표별 진행률</Typography>
-      {(()=>{const visible=6;const filtered=progressList.filter(p=>{if(p.percent<100) return true;const today=new Date();const crt=new Date(p.createdAt);return crt.getFullYear()===today.getFullYear()&&crt.getMonth()===today.getMonth()&&crt.getDate()===today.getDate();});const len=filtered.length;const cardWidth=100/visible;return (
-      <Grid container spacing={2} sx={{ transition:'transform .5s', transform:`translateX(-${progressOffset*cardWidth}%)`, width:`${len*cardWidth}%`, flexWrap:'nowrap' }}>
-        {filtered.map(p=>(
-          <Grid item xs={12} sm={6} md={4} lg={2} key={p.id} sx={{ maxWidth:220 }}>
+      {(()=>{const filtered=progressList.filter(p=>{if(p.percent<100) return true;const today=new Date();const crt=new Date(p.createdAt);return crt.getFullYear()===today.getFullYear()&&crt.getMonth()===today.getMonth()&&crt.getDate()===today.getDate();});const dup=[...filtered,...filtered.slice(0,visibleCount)];const len=dup.length;const cardWidth=100/visibleCount;const offset=progressOffset>=len?0:progressOffset;return (
+      <Grid container spacing={2} sx={{ transition:'transform 0.6s', transform:`translateX(-${offset*cardWidth}%)`, width:`${len*cardWidth}%`, flexWrap:'nowrap' }}>
+        {dup.map((p,idx)=>(
+          <Grid item xs={12} sm={6} md={4} lg={2} key={idx===dup.length-visibleCount?`dup-${p.id}`:p.id} sx={{ maxWidth:220 }}>
             <Card sx={{ bgcolor:p.percent===100?'#2e7d32':'#1565c0', color:'#fff' }}>
               <CardContent sx={{ textAlign:'center', p:1 }}>
                 <Typography variant="body2">{p.company}</Typography>
@@ -165,10 +166,10 @@ const TvDashboard = () => {
       {unconfirmedList.length>0 && <>
         <Divider sx={{ my:1, bgcolor:'#555' }} />
         <Typography variant="h5" gutterBottom>미확정 전표</Typography>
-        {(()=>{const visible=6;const len=unconfirmedList.length;const cardWidth=100/visible;return (
-        <Grid container spacing={2} sx={{ transition:'transform .5s', transform:`translateX(-${unconfOffset*cardWidth}%)`, width:`${len*cardWidth}%`, flexWrap:'nowrap' }}>
-          {unconfirmedList.map(u=>(
-            <Grid item xs={12} sm={6} md={4} lg={3} key={u.id}>
+        {(()=>{const dup=[...unconfirmedList,...unconfirmedList.slice(0,visibleCount)];const len=dup.length;const cardWidth=100/visibleCount;const offset=unconfOffset>=len?0:unconfOffset;return (
+        <Grid container spacing={2} sx={{ transition:'transform 0.6s', transform:`translateX(-${offset*cardWidth}%)`, width:`${len*cardWidth}%`, flexWrap:'nowrap' }}>
+          {dup.map((u,idx)=>(
+            <Grid item xs={12} sm={6} md={4} lg={3} key={idx===dup.length-visibleCount?`dup-${u.id}`:u.id}>
               <Card sx={{ bgcolor:u.status==='pending'?'#f9a825':'#c62828', color:'#000', textAlign:'center' }}>
                 <CardContent>
                   <Typography variant="subtitle1">{u.company}</Typography>
