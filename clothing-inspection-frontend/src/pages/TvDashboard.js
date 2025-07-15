@@ -102,6 +102,32 @@ const TvDashboard = () => {
       }).catch(()=>{});
   },[]);
 
+  const chunkArray = (arr, size) => {
+    const res=[];
+    for(let i=0;i<arr.length;i+=size){ res.push(arr.slice(i,i+size)); }
+    return res;
+  };
+  const [progressPageIdx, setProgressPageIdx] = useState(0);
+  const [unconfPageIdx, setUnconfPageIdx] = useState(0);
+
+  useEffect(()=>{
+    const id=setInterval(()=>{
+      setProgressPageIdx(i=>{
+        const pages = chunkArray(progressList.filter(p=>{
+          if(p.percent<100) return true;
+          const today=new Date(); const crt=new Date(p.createdAt);
+          return crt.getFullYear()===today.getFullYear() && crt.getMonth()===today.getMonth() && crt.getDate()===today.getDate();
+        }),6).length || 1;
+        return (i+1)%pages;
+      });
+      setUnconfPageIdx(i=>{
+        const pages = chunkArray(unconfirmedList,6).length || 1;
+        return (i+1)%pages;
+      });
+    },6000);
+    return ()=>clearInterval(id);
+  },[progressList,unconfirmedList]);
+
   return (
     <Box sx={{ p:1, bgcolor:'#000', height:'100vh', color:'#fff', overflow:'hidden', display:'flex', flexDirection:'column' }}>
       <Typography variant="h3" align="center" gutterBottom>작업 현황</Typography>
@@ -127,12 +153,9 @@ const TvDashboard = () => {
       {/* 진행률 */}
       <Divider sx={{ my:1, bgcolor:'#555' }} />
       <Typography variant="h5" gutterBottom>전표별 진행률</Typography>
-      <Grid container spacing={2}>
-        {progressList.filter(p=>{
-          if(p.percent<100) return true;
-          const today=new Date(); const crt=new Date(p.createdAt);
-          return crt.getFullYear()===today.getFullYear() && crt.getMonth()===today.getMonth() && crt.getDate()===today.getDate();
-        }).map(p=>(
+      {(()=>{const filtered=progressList.filter(p=>{if(p.percent<100) return true;const today=new Date();const crt=new Date(p.createdAt);return crt.getFullYear()===today.getFullYear()&&crt.getMonth()===today.getMonth()&&crt.getDate()===today.getDate();});const pages=chunkArray(filtered,6);return (
+      <Grid container spacing={2} sx={{ transition:'transform .5s', transform:`translateX(-${progressPageIdx*100}%)`, width:`${pages.length*100}%`, flexWrap:'nowrap' }}>
+        {pages.flat().map(p=>(
           <Grid item xs={12} sm={6} md={4} lg={2} key={p.id} sx={{ maxWidth:220 }}>
             <Card sx={{ bgcolor:p.percent===100?'#2e7d32':'#1565c0', color:'#fff' }}>
               <CardContent sx={{ textAlign:'center', p:1 }}>
@@ -144,13 +167,14 @@ const TvDashboard = () => {
             </Card>
           </Grid>
         ))}
-      </Grid>
+      </Grid>) })()}
 
       {unconfirmedList.length>0 && <>
         <Divider sx={{ my:1, bgcolor:'#555' }} />
         <Typography variant="h5" gutterBottom>미확정 전표</Typography>
-        <Grid container spacing={2}>
-          {unconfirmedList.map(u=>(
+        {(()=>{const pages=chunkArray(unconfirmedList,6);return (
+        <Grid container spacing={2} sx={{ transition:'transform .5s', transform:`translateX(-${unconfPageIdx*100}%)`, width:`${pages.length*100}%`, flexWrap:'nowrap' }}>
+          {pages.flat().map(u=>(
             <Grid item xs={12} sm={6} md={4} lg={3} key={u.id}>
               <Card sx={{ bgcolor:u.status==='pending'?'#f9a825':'#c62828', color:'#000', textAlign:'center' }}>
                 <CardContent>
@@ -161,7 +185,7 @@ const TvDashboard = () => {
               </Card>
             </Grid>
           ))}
-        </Grid>
+        </Grid>)})()}
       </>}
 
       <Divider sx={{ my:1, bgcolor:'#555' }} />
