@@ -116,7 +116,7 @@ const TvDashboard = () => {
   100% { transform: translateY(-50%); }
 `;
 
-  const remainingCompanies = progressList.filter(p=>Number(p.percent)<100).map(p=>p.company);
+  const remainingCompanies = [...new Set(progressList.filter(p=>Number(p.percent)<100).map(p=>p.company))];
   const visibleComp = 5;
   const compSlideNeeded = remainingCompanies.length>visibleComp;
   const compList = compSlideNeeded ? [...remainingCompanies,...remainingCompanies] : remainingCompanies;
@@ -126,7 +126,7 @@ const TvDashboard = () => {
     <Box sx={{ p:1, bgcolor:'#000', height:'100vh', color:'#fff', overflow:'hidden', display:'flex', flexDirection:'column' }}>
       <Box sx={{ display:'flex', alignItems:'center', justifyContent:'center', gap:2 }}>
         {/* Remaining company list */}
-        <Box sx={{ width:200, overflow:'hidden', bgcolor:'#222', borderRadius:1, p:1 }}>
+        <Box sx={{ width:200, height:60, overflow:'hidden', bgcolor:'#222', borderRadius:1, p:1 }}>
           <Typography variant="h6" color="#fff">미완료 업체</Typography>
           <Box sx={{ mt:1, animation: compSlideNeeded?`${vMarquee} ${compDuration}s linear infinite`:'none' }}>
             {compList.map((c,idx)=>(
