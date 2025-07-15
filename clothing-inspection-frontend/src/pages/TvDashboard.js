@@ -15,7 +15,7 @@ const TvDashboard = () => {
   // 완료 효과음을 위해 이전 완료 전표를 저장
   const prevPercentRef = useRef({});
   const soundUrlRef = useRef(null);
-  const firstPlayRef = useRef(false);
+  // 제거: 최초 로딩 시 완료 음이 재생되는 문제 방지 (startup sound만 재생)
 
   const playCompleteSound = () => {
     try {
@@ -56,22 +56,19 @@ const TvDashboard = () => {
             const list = (d.sounds||[]).map(u=>u.startsWith('/')?`${API_BASE}${u}`:u);
             if(list.length===0) return;
             soundUrlRef.current={ mode, list, idx: {current:0} };
-            if(!firstPlayRef.current){ playCompleteSound(); firstPlayRef.current=true; }
           });
-      } else if (!firstPlayRef.current) {
-        // URL이 이미 존재하는 경우(재호출 등) 바로 1회 재생
-        playCompleteSound();
-        firstPlayRef.current = true;
       }
 
       // 완료 검사
       const currentIds = new Set(p.map(it=>it.id));
 
+      let shouldPlay = false; // 이번 주기 동안 1회만 재생 플래그
+
       // 1) 이전 <100 → 이번 =100 (여전히 리스트에 존재)
       p.forEach(it => {
         const prev = prevPercentRef.current[it.id] ?? 0;
         if (prev < 100 && it.percent === 100) {
-          playCompleteSound();
+          shouldPlay = true;
         }
         prevPercentRef.current[it.id] = it.percent;
       });
@@ -79,10 +76,14 @@ const TvDashboard = () => {
       // 2) 이전 <100이었던 항목이 리스트에서 사라진 경우 → 완료된 것으로 간주하고 1회 재생
       Object.entries(prevPercentRef.current).forEach(([id, prevPercent]) => {
         if (prevPercent < 100 && !currentIds.has(Number(id))) {
-          playCompleteSound();
+          shouldPlay = true;
           prevPercentRef.current[id] = 100; // 중복 재생 방지
         }
       });
+
+      if (shouldPlay) {
+        playCompleteSound();
+      }
 
       setStats(s); setProgressList(p); setUnconfirmedList(u);
     }catch(err){ console.error(err); }
@@ -105,7 +106,7 @@ const TvDashboard = () => {
     <Box sx={{ p:1, bgcolor:'#000', height:'100vh', color:'#fff', overflow:'hidden', display:'flex', flexDirection:'column' }}>
       <Typography variant="h3" align="center" gutterBottom>작업 현황</Typography>
 
-      {/* 상단 카드 */}
+      {/* 상단 카드 – 크기/폰트 축소 */}
       <Grid container spacing={1} justifyContent="center" sx={{ mb:1, flexShrink:0 }}>
         {[
           {label:'오늘 전표',value:stats.todayTotalInspections,color:'primary'},
@@ -113,10 +114,10 @@ const TvDashboard = () => {
           {label:'지난 미완료',value:stats.pastPendingInspections,color:'warning'}
         ].map(c=>(
           <Grid item key={c.label} xs="auto">
-            <Card sx={{ bgcolor:`${c.color}.dark`, color:'#fff', width:140, height:90 }}>
-              <CardContent sx={{ textAlign:'center' }}>
-                <Typography variant="h6">{c.label}</Typography>
-                <Typography variant="h3">{c.value}</Typography>
+            <Card sx={{ bgcolor:`${c.color}.dark`, color:'#fff', width:120, height:80 }}>
+              <CardContent sx={{ textAlign:'center', p:1 }}>
+                <Typography variant="subtitle2">{c.label}</Typography>
+                <Typography variant="h4">{c.value}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -125,20 +126,20 @@ const TvDashboard = () => {
 
       {/* 진행률 */}
       <Divider sx={{ my:1, bgcolor:'#555' }} />
-      <Typography variant="h4" gutterBottom>전표별 진행률</Typography>
+      <Typography variant="h5" gutterBottom>전표별 진행률</Typography>
       <Grid container spacing={2}>
         {progressList.filter(p=>{
           if(p.percent<100) return true;
           const today=new Date(); const crt=new Date(p.createdAt);
           return crt.getFullYear()===today.getFullYear() && crt.getMonth()===today.getMonth() && crt.getDate()===today.getDate();
         }).map(p=>(
-          <Grid item xs={12} sm={6} md={4} lg={3} key={p.id} sx={{ maxWidth:260 }}>
+          <Grid item xs={12} sm={6} md={4} lg={2} key={p.id} sx={{ maxWidth:220 }}>
             <Card sx={{ bgcolor:p.percent===100?'#2e7d32':'#1565c0', color:'#fff' }}>
-              <CardContent sx={{ textAlign:'center' }}>
-                <Typography variant="subtitle1">{p.company}</Typography>
-                <Typography variant="h5" gutterBottom>{p.inspectionName}</Typography>
-                <Typography variant="h3">{p.percent}%</Typography>
-                <Typography variant="body2">{p.handledCount}/{p.totalQuantity}</Typography>
+              <CardContent sx={{ textAlign:'center', p:1 }}>
+                <Typography variant="body2">{p.company}</Typography>
+                <Typography variant="subtitle2" gutterBottom>{p.inspectionName}</Typography>
+                <Typography variant="h4">{p.percent}%</Typography>
+                <Typography variant="caption">{p.handledCount}/{p.totalQuantity}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -147,7 +148,7 @@ const TvDashboard = () => {
 
       {unconfirmedList.length>0 && <>
         <Divider sx={{ my:1, bgcolor:'#555' }} />
-        <Typography variant="h4" gutterBottom>미확정 전표</Typography>
+        <Typography variant="h5" gutterBottom>미확정 전표</Typography>
         <Grid container spacing={2}>
           {unconfirmedList.map(u=>(
             <Grid item xs={12} sm={6} md={4} lg={3} key={u.id}>
@@ -164,7 +165,7 @@ const TvDashboard = () => {
       </>}
 
       <Divider sx={{ my:1, bgcolor:'#555' }} />
-      <Grid container spacing={2} justifyContent="center">
+      <Grid container spacing={1} justifyContent="center">
         {[
           {label:'오늘 총 작업', val:stats.todayWorkQuantity},
           {label:'오늘 완료', val:stats.todayCompletedQuantity},
@@ -173,10 +174,10 @@ const TvDashboard = () => {
           {label:'지난 미완료', val:stats.pastRemainingQuantity}
         ].map(c=>(
           <Grid item xs="auto" key={c.label}>
-            <Card sx={{ bgcolor:'#424242', color:'#fff', width:140, height:90 }}>
-              <CardContent sx={{ textAlign:'center' }}>
-                <Typography variant="h6" gutterBottom>{c.label}</Typography>
-                <Typography variant="h3">{c.val}</Typography>
+            <Card sx={{ bgcolor:'#424242', color:'#fff', width:120, height:80 }}>
+              <CardContent sx={{ textAlign:'center', p:1 }}>
+                <Typography variant="subtitle2" gutterBottom>{c.label}</Typography>
+                <Typography variant="h4">{c.val}</Typography>
               </CardContent>
             </Card>
           </Grid>

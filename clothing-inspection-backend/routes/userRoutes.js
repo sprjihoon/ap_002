@@ -386,7 +386,7 @@ router.delete('/upload/:type', auth, async (req,res)=>{
   if (req.user.role !== 'admin') return res.sendStatus(403);
   const key = req.params.type === 'sound' ? 'completeSoundUrl'
            : req.params.type === 'loginBg' ? 'loginBgUrl'
-           : null;
+           : req.params.type === 'startup' ? 'startupSoundUrl' : null;
   if (!key) return res.status(400).json({ message:'invalid type'});
   // setSetting(key, null); // 기존 설정 함수는 제거됨
   res.json({ success:true });

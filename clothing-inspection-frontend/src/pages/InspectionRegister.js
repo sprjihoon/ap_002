@@ -3,8 +3,8 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, FormControl, InputLabel, Select, MenuItem, Typography, Box, IconButton, Autocomplete, Checkbox
 } from '@mui/material';
-import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+// Icons removed from numeric input design; no longer needed here
+import NumberInputWithArrows from '../components/NumberInputWithArrows';
 import ReceiptPhotoUpload from '../components/ReceiptPhotoUpload';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -442,43 +442,40 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                     </IconButton>
                   </Box>
                   <Box sx={{ display:'flex', gap:1, flexWrap:'wrap' }}>
-                    <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
-                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'total', (total||0)+1)}><ArrowDropUpIcon/></IconButton>
-                      <TextField
-                        label="전체수량"
-                        type="number"
+                    {/* 전체수량 */}
+                    <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center', gap:0.5 }}>
+                      <NumberInputWithArrows
                         value={input.total || ''}
-                        onChange={e => handleOptionInput(variant.barcode, 'total', e.target.value)}
-                        sx={{ width: 90 }}
-                        inputProps={{ min: 0, inputMode:'numeric' }}
+                        onChange={(val)=>handleOptionInput(variant.barcode,'total', val)}
+                        width={120}
+                        height={64}
+                        fontSize={28}
                       />
-                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'total', Math.max(0,(total||0)-1))}><ArrowDropDownIcon/></IconButton>
+                      <Typography variant="caption">전체수량</Typography>
                     </Box>
-                    <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
-                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'normal', (normal||0)+1)}><ArrowDropUpIcon/></IconButton>
-                      <TextField
-                        label="정상수량"
-                        type="number"
+                    {/* 정상수량 */}
+                    <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center', gap:0.5 }}>
+                      <NumberInputWithArrows
                         value={input.normal || ''}
-                        onChange={e => handleOptionInput(variant.barcode, 'normal', e.target.value)}
-                        sx={{ width: 90 }}
-                        inputProps={{ min: 0, inputMode:'numeric' }}
+                        onChange={(val)=>handleOptionInput(variant.barcode,'normal', val)}
+                        width={120}
+                        height={64}
+                        fontSize={28}
                         error={error}
                       />
-                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'normal', Math.max(0,(normal||0)-1))}><ArrowDropDownIcon/></IconButton>
+                      <Typography variant="caption">정상수량</Typography>
                     </Box>
-                    <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
-                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'defect', (defect||0)+1)}><ArrowDropUpIcon/></IconButton>
-                      <TextField
-                        label="불량수량"
-                        type="number"
+                    {/* 불량수량 */}
+                    <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center', gap:0.5 }}>
+                      <NumberInputWithArrows
                         value={input.defect || ''}
-                        onChange={e => handleOptionInput(variant.barcode, 'defect', e.target.value)}
-                        sx={{ width: 90 }}
-                        inputProps={{ min: 0, inputMode:'numeric' }}
+                        onChange={(val)=>handleOptionInput(variant.barcode,'defect', val)}
+                        width={120}
+                        height={64}
+                        fontSize={28}
                         error={error}
                       />
-                      <IconButton size="small" onClick={()=>handleOptionInput(variant.barcode,'defect', Math.max(0,(defect||0)-1))}><ArrowDropDownIcon/></IconButton>
+                      <Typography variant="caption">불량수량</Typography>
                     </Box>
                     <TextField
                       label="코멘트"

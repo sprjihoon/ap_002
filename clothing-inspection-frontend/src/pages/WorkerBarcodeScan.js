@@ -300,11 +300,23 @@ const WorkerBarcodeScan=()=>{
                           <Button size="small" variant={r==='normal'?'contained':'outlined'} color={r==='defect'?'error':r==='hold'?'warning':'primary'} disabled={loading || det.remaining===0} onClick={()=>handleScan(idx, det.id, r)} sx={{ minWidth:64 }}>
                             {r==='normal'?'정상':r==='defect'?'불량':'보류'}
                           </Button>
-                          {det.myCount>0 && (
-                            <IconButton size="small" color="secondary" onClick={()=>handleUndo(idx, det.id, r)} disabled={loading} title="되돌리기">
-                              <Undo fontSize="small" />
-                            </IconButton>
-                          )}
+                          <IconButton
+                            size="small"
+                            color="secondary"
+                            onClick={()=>handleUndo(idx, det.id, r)}
+                            disabled={loading || det.myCount===0}
+                            title="되돌리기"
+                            sx={{
+                              bgcolor: det.myCount===0 ? 'grey.100' : 'transparent',
+                              border: '1px solid',
+                              borderColor: det.myCount===0 ? 'grey.300' : 'transparent',
+                              '&:disabled': {
+                                color: 'grey.400'
+                              }
+                            }}
+                          >
+                            <Undo fontSize="small" />
+                          </IconButton>
                         </Box>
                       ))}
                       <Select size="small" value={det.qualityGrade || ''} onChange={e=>updateGrade(idx,det.id,e.target.value)} displayEmpty sx={{ ml:1 }}>
