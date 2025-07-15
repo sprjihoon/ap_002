@@ -159,9 +159,9 @@ const TvDashboard = () => {
       <Divider sx={{ my:1, bgcolor:'#555' }} />
       <Typography variant="h5" gutterBottom>전표별 진행률</Typography>
       {(()=>{const filtered=progressList.filter(p=>Number(p.percent)<100);const slideNeeded = filtered.length>visibleCount;const list = slideNeeded?[...filtered,...filtered]:filtered;const duration=(filtered.length||1)*8;return (
-      <Grid container spacing={0} sx={{ width: slideNeeded?'200%':'100%', flexWrap:'nowrap', animation: slideNeeded?`${marqueeAnim} ${duration}s linear infinite`:'none', overflow:'hidden', gap:2, px:1 }}>
+      <Grid container spacing={0} sx={{ width: slideNeeded?'200%':'100%', flexWrap:'nowrap', animation: slideNeeded?`${marqueeAnim} ${duration}s linear infinite`:'none', overflow:'hidden', columnGap:2, px:1 }}>
         {list.map((p,idx)=>(
-          <Grid item key={idx} sx={{ width:160 }}>
+          <Grid item key={idx} sx={{ width:160, flexShrink:0, mr:2 }}>
             <Card sx={{ width:160, height:160, bgcolor:p.percent===100?'#2e7d32':'#1565c0', color:'#fff', display:'flex', flexDirection:'column', justifyContent:'center', p:1 }}>
               <Typography variant="body2" sx={{ fontSize:'clamp(10px,1.5vw,14px)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{p.company}</Typography>
               <Typography variant="subtitle2" gutterBottom sx={{ fontSize:'clamp(12px,2vw,16px)', textAlign:'center', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{p.inspectionName}</Typography>
@@ -176,9 +176,9 @@ const TvDashboard = () => {
         <Divider sx={{ my:1, bgcolor:'#555' }} />
         <Typography variant="h5" gutterBottom>미확정 전표</Typography>
         {(()=>{const slideNeeded=unconfirmedList.length>visibleCount;const list=slideNeeded?[...unconfirmedList,...unconfirmedList]:unconfirmedList;const duration=(unconfirmedList.length||1)*8;return (
-        <Grid container spacing={0} sx={{ width: slideNeeded?'200%':'100%', flexWrap:'nowrap', animation: slideNeeded?`${marqueeAnim} ${duration}s linear infinite`:'none', overflow:'hidden', gap:2, px:1 }}>
+        <Grid container spacing={0} sx={{ width: slideNeeded?'200%':'100%', flexWrap:'nowrap', animation: slideNeeded?`${marqueeAnim} ${duration}s linear infinite`:'none', overflow:'hidden', columnGap:2, px:1 }}>
           {list.map((u,idx)=>(
-            <Grid item key={idx} sx={{ width:160 }}>
+            <Grid item key={idx} sx={{ width:160, flexShrink:0, mr:2 }}>
               <Card sx={{ width:160, height:160, bgcolor:u.status==='pending'?'#f9a825':'#c62828', color:'#000', textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center', p:1 }}>
                 <Typography variant="body2" sx={{ fontSize:'clamp(10px,1.5vw,14px)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{u.company}</Typography>
                 <Typography variant="subtitle2" sx={{ fontSize:'clamp(12px,2vw,16px)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{u.inspectionName}</Typography>
