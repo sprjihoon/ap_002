@@ -19,7 +19,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 // TODO: ReceiptPhotoUpload 컴포넌트 import 예정
 
 // 이미지 리사이즈 (max 1200px) 후 Blob 반환
-const resizeImage = (file, maxSize = 1200, quality = 0.85) => new Promise((resolve, reject) => {
+const resizeImage = (file, maxSize = 960, quality = 0.8) => new Promise((resolve, reject) => {
   try {
     const img = new Image();
     img.onload = () => {
@@ -42,10 +42,12 @@ const resizeImage = (file, maxSize = 1200, quality = 0.85) => new Promise((resol
       ctx.drawImage(img, 0, 0, width, height);
       canvas.toBlob(blob => {
         if(blob){
-          const resizedFile = new File([blob], file.name, { type: blob.type });
+          const ext = 'webp';
+          const newName = file.name.replace(/\.[^.]+$/, '') + '.' + ext;
+          const resizedFile = new File([blob], newName, { type: blob.type });
           resolve(resizedFile);
         }else reject(new Error('resize error'));
-      }, 'image/jpeg', quality);
+      }, 'image/webp', quality);
     };
     img.onerror = reject;
     img.src = URL.createObjectURL(file);
@@ -578,7 +580,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
               선택된 바코드: {photoUploadDialog.selectedBarcodes.length}개
             </Typography>
             <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-              {selectedVariants.map((variant) => (
+              {selectedVariants.filter(v=>!(optionInputs[v.barcode]?.photoUrl)).map((variant) => (
                 <Box
                   key={variant.barcode}
                   sx={{
