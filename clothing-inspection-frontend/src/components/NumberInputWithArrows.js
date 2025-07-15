@@ -21,8 +21,8 @@ const NumberInputWithArrows = ({
   onChange,
   min = 0,
   max,
-  width = 90,
-  height = 56,
+  width = 110,
+  height = 48,
   fontSize = 22,
   error=false,
   ...rest
