@@ -296,32 +296,34 @@ const WorkerBarcodeScan=()=>{
                   const actionButtons = (
                     <Box sx={{ display:'flex', flexWrap:'wrap', gap:1, justifyContent:'center' }}>
                       {['normal','defect','hold'].map(r=> (
-                        <Box key={r} sx={{ display:'flex', alignItems:'center' }}>
-                          <Button size="small" variant={r==='normal'?'contained':'outlined'} color={r==='defect'?'error':r==='hold'?'warning':'primary'} disabled={loading || det.remaining===0} onClick={()=>handleScan(idx, det.id, r)} sx={{ minWidth:64 }}>
-                            {r==='normal'?'정상':r==='defect'?'불량':'보류'}
-                          </Button>
-                          <IconButton
-                            onClick={()=>handleUndo(idx, det.id, r)}
-                            disabled={loading || det.myCount===0}
-                            title="되돌리기"
-                            sx={{
-                              width: 48,
-                              height: 48,
-                              borderRadius: 2,
-                              border: '2px solid',
-                              borderColor: '#cfd2d9',
-                              bgcolor: 'transparent',
-                              color: det.myCount===0 ? 'grey.400' : 'grey.900',
-                              '& svg': { fontSize: 28 },
-                              '&:disabled': {
-                                color: 'grey.400'
-                              }
-                            }}
-                          >
-                            <span style={{fontSize:28, lineHeight:1}}>⟲</span>
-                          </IconButton>
-                        </Box>
+                        <Button key={r} size="small" variant={r==='normal'?'contained':'outlined'} color={r==='defect'?'error':r==='hold'?'warning':'primary'} disabled={loading || det.remaining===0} onClick={()=>handleScan(idx, det.id, r)} sx={{ minWidth:64 }}>
+                          {r==='normal'?'정상':r==='defect'?'불량':'보류'}
+                        </Button>
                       ))}
+                      {/* 단일 되돌리기 버튼 */}
+                      <IconButton
+                        onClick={()=>{
+                          const res = item.myHandled?.defect>0 ? 'defect' : item.myHandled?.hold>0 ? 'hold' : 'normal';
+                          handleUndo(idx, det.id, res);
+                        }}
+                        disabled={loading || det.myCount===0}
+                        title="되돌리기"
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 2,
+                          border: '1px solid',
+                          borderColor: '#cfd2d9',
+                          bgcolor: 'transparent',
+                          color: det.myCount===0 ? 'grey.400' : 'grey.900',
+                          '& span': { fontSize: 22, lineHeight:1 },
+                          '&:disabled': {
+                            color: 'grey.400'
+                          }
+                        }}
+                      >
+                        <span style={{fontSize:22, lineHeight:1}}>⟲</span>
+                      </IconButton>
                       <Select size="small" value={det.qualityGrade || ''} onChange={e=>updateGrade(idx,det.id,e.target.value)} displayEmpty sx={{ ml:1 }}>
                         <MenuItem value=""><em>등급</em></MenuItem>
                         {['A','B','C','D','E'].map(g=>(<MenuItem key={g} value={g}>{g}</MenuItem>))}
