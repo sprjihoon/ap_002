@@ -36,9 +36,8 @@ const InspectionList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const todayStr = new Date().toISOString().slice(0,10);
-  const [startDate, setStartDate] = useState(todayStr);
-  const [endDate, setEndDate] = useState(todayStr);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -200,8 +199,8 @@ const InspectionList = () => {
             <MenuItem value="error">오류</MenuItem>
           </Select>
         </FormControl>
-        <TextField type="date" size="small" label="시작일" InputLabelProps={{shrink:true}} value={startDate} onChange={e=>setStartDate(e.target.value)} />
-        <TextField type="date" size="small" label="종료일" InputLabelProps={{shrink:true}} value={endDate} onChange={e=>setEndDate(e.target.value)} />
+        <TextField type="date" size="small" label="시작일" InputLabelProps={{shrink:!!startDate}} value={startDate} onChange={e=>setStartDate(e.target.value)} />
+        <TextField type="date" size="small" label="종료일" InputLabelProps={{shrink:!!endDate}} value={endDate} onChange={e=>setEndDate(e.target.value)} />
       </Box>
 
       {/* 검수 목록 테이블 */}
