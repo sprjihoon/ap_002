@@ -117,7 +117,7 @@ const TvDashboard = () => {
 `;
 
   const remainingCompanies = [...new Set(progressList.filter(p=>Number(p.percent)<100).map(p=>p.company))];
-  const visibleComp = 5;
+  const visibleComp = 3; // lines visible within 60px height
   const compSlideNeeded = remainingCompanies.length>visibleComp;
   const compList = compSlideNeeded ? [...remainingCompanies,...remainingCompanies] : remainingCompanies;
   const compDuration = (remainingCompanies.length||1)*3; // 3s per item
@@ -127,8 +127,7 @@ const TvDashboard = () => {
       <Box sx={{ display:'flex', alignItems:'center', justifyContent:'center', gap:2 }}>
         {/* Remaining company list */}
         <Box sx={{ width:200, height:60, overflow:'hidden', bgcolor:'#222', borderRadius:1, p:1 }}>
-          <Typography variant="h6" color="#fff">미완료 업체</Typography>
-          <Box sx={{ mt:1, animation: compSlideNeeded?`${vMarquee} ${compDuration}s linear infinite`:'none' }}>
+          <Box sx={{ mt:0, animation: compSlideNeeded?`${vMarquee} ${compDuration}s linear infinite`:'none' }}>
             {compList.map((c,idx)=>(
               <Typography key={idx} variant="body2" color="#fff">{idx%remainingCompanies.length+1}. {c}</Typography>
             ))}
@@ -161,14 +160,11 @@ const TvDashboard = () => {
       {(()=>{const filtered=progressList.filter(p=>Number(p.percent)<100);const slideNeeded = filtered.length>visibleCount;const list = slideNeeded?[...filtered,...filtered]:filtered;const duration=(filtered.length||1)*8;return (
       <Grid container spacing={2} sx={{ width: slideNeeded?'200%':'100%', flexWrap:'nowrap', animation: slideNeeded?`${marqueeAnim} ${duration}s linear infinite`:'none', overflow:'hidden' }}>
         {list.map((p,idx)=>(
-          <Grid item xs={12} sm={6} md={4} lg={2} key={idx} sx={{ maxWidth:220 }}>
-            <Card sx={{ bgcolor:p.percent===100?'#2e7d32':'#1565c0', color:'#fff' }}>
-              <CardContent sx={{ textAlign:'center', p:1 }}>
-                <Typography variant="body2">{p.company}</Typography>
-                <Typography variant="subtitle2" gutterBottom>{p.inspectionName}</Typography>
-                <Typography variant="h4">{p.percent}%</Typography>
-                <Typography variant="caption">{p.handledCount}/{p.totalQuantity}</Typography>
-              </CardContent>
+          <Grid item key={idx} sx={{ width:160 }}>
+            <Card sx={{ width:160, height:160, bgcolor:p.percent===100?'#2e7d32':'#1565c0', color:'#fff', display:'flex', flexDirection:'column', justifyContent:'center', p:1 }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ fontSize:'clamp(12px,2vw,16px)', textAlign:'center', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{p.inspectionName}</Typography>
+              <Typography variant="h4">{p.percent}%</Typography>
+              <Typography variant="caption">{p.handledCount}/{p.totalQuantity}</Typography>
             </Card>
           </Grid>
         ))}
@@ -180,13 +176,10 @@ const TvDashboard = () => {
         {(()=>{const slideNeeded=unconfirmedList.length>visibleCount;const list=slideNeeded?[...unconfirmedList,...unconfirmedList]:unconfirmedList;const duration=(unconfirmedList.length||1)*8;return (
         <Grid container spacing={2} sx={{ width: slideNeeded?'200%':'100%', flexWrap:'nowrap', animation: slideNeeded?`${marqueeAnim} ${duration}s linear infinite`:'none', overflow:'hidden' }}>
           {list.map((u,idx)=>(
-            <Grid item xs={12} sm={6} md={4} lg={3} key={idx}>
-              <Card sx={{ bgcolor:u.status==='pending'?'#f9a825':'#c62828', color:'#000', textAlign:'center' }}>
-                <CardContent>
-                  <Typography variant="subtitle1">{u.company}</Typography>
-                  <Typography variant="h6">{u.inspectionName}</Typography>
-                  <Typography variant="body2">{u.status==='pending'?'대기중':'반려'}</Typography>
-                </CardContent>
+            <Grid item key={idx} sx={{ width:160 }}>
+              <Card sx={{ width:160, height:160, bgcolor:u.status==='pending'?'#f9a825':'#c62828', color:'#000', textAlign:'center', display:'flex', flexDirection:'column', justifyContent:'center', p:1 }}>
+                <Typography variant="subtitle2" sx={{ fontSize:'clamp(12px,2vw,16px)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{u.inspectionName}</Typography>
+                <Typography variant="body2">{u.status==='pending'?'대기중':'반려'}</Typography>
               </Card>
             </Grid>
           ))}
