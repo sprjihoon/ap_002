@@ -394,6 +394,8 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
 
+  const selectableVariants = selectedVariants.filter(v=>!(optionInputs[v.barcode]?.photoUrl));
+
   return (
     <Dialog
       open={open}
@@ -580,7 +582,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
               선택된 바코드: {photoUploadDialog.selectedBarcodes.length}개
             </Typography>
             <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-              {selectedVariants.filter(v=>!(optionInputs[v.barcode]?.photoUrl)).map((variant) => (
+              {selectableVariants.map((variant) => (
                 <Box
                   key={variant.barcode}
                   sx={{
