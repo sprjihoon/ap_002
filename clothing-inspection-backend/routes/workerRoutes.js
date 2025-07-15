@@ -7,6 +7,7 @@ const InspectionDetail = require('../models/inspectionDetail');
 const { ProductVariant, WorkerScan } = require('../models');
 const User = require('../models/user');
 const ActivityLog = require('../models/ActivityLog');
+const { logActivity } = require('../utils/activityLogger');
 const path = require('path');
 
 // 바코드 앞쪽 0 제거 (스캐너마다 0-padding 차이 대응)
@@ -189,6 +190,14 @@ router.post('/scan', auth, async (req, res) => {
     const field = result === 'normal' ? 'handledNormal' : result==='defect' ? 'handledDefect' : 'handledHold';
     await detail.increment(field, { by:1 });
 
+    // 활동 로그: 스캔 1건
+    await logActivity(req, {
+      inspectionId: detail.inspectionId,
+      type: 'scan',
+      message: `스캔 (${barcode || detailId}) – ${result}`,
+      level: 'info'
+    });
+
     // 품질등급 저장 요청이 있으면 업데이트
     if (qualityGrade) {
       await detail.update({ qualityGrade });
@@ -253,6 +262,14 @@ router.post('/scan/undo', auth, async (req,res)=>{
     await detail.decrement(field,{ by:1 });
 
     await scan.destroy();
+
+    // 활동 로그: 스캔 취소
+    await logActivity(req, {
+      inspectionId: detail.inspectionId,
+      type: 'scan_undo',
+      message: `스캔 취소 (detail ${detailId}) – ${result}`,
+      level: 'warn'
+    });
 
     const remaining = detail.totalQuantity - detail.handledNormal - detail.handledDefect - detail.handledHold + (field==='handledHold'?1:0); // but easier recalc after reload
     await detail.reload();
@@ -560,6 +577,14 @@ router.delete('/history/:id', auth, async (req,res)=>{
       }
 
       await t.commit();
+
+      // 로그: 작업 전체 롤백
+      await logActivity(req, {
+        inspectionId: inspectionId,
+        type: 'work_reset',
+        message: '완료 전표 작업 내역 초기화',
+        level: 'error'
+      });
       return res.json({ success:true });
     }catch(err){
       await t.rollback();
@@ -586,6 +611,14 @@ router.put('/history/details/:detailId', auth, async (req,res)=>{
     }
 
     await detail.update({ handledNormal, handledDefect, handledHold, qualityGrade });
+
+    // 로그: 상세 재조정
+    await logActivity(req, {
+      inspectionId: detail.inspectionId,
+      type: 'detail_adjust',
+      message: '상세 수량(완료 전표) 조정',
+      level: 'warn'
+    });
 
     const remaining = detail.totalQuantity - handledNormal - handledDefect - handledHold;
     // workStatus 복귀

@@ -15,6 +15,7 @@ const PDFDocument = require('pdfkit');
 const { InspectionComment } = require('../models');
 const InspectionRead = require('../models/inspectionRead');
 const ActivityLog = require('../models/ActivityLog');
+const { logActivity } = require('../utils/activityLogger');
 const { Op } = require('sequelize');
 const xlsx = require('xlsx');
 const WorkerScan = require('../models/WorkerScan');
@@ -183,6 +184,14 @@ router.put('/:id', auth, async (req, res) => {
       return res.status(403).json({ message:'수정 권한이 없습니다.' });
     }
     await inspection.update(req.body);
+
+    // 로그: 전표 수정
+    await logActivity(req, {
+      inspectionId: inspection.id,
+      type: 'update',
+      message: `전표 수정 (${inspection.inspectionName})`,
+      level: 'warn'
+    });
     res.json(inspection);
   } catch (error) {
     console.error('Inspection PUT error:', error);
@@ -305,6 +314,13 @@ router.post('/:inspectionId/receipt-photo', auth, upload.single('file'), async (
       inspectionId: inspection.id,
       photoUrl: `/uploads/images/${req.file.filename}`
     });
+
+    await logActivity(req, {
+      inspectionId: inspection.id,
+      type: 'receipt_create',
+      message: '영수증 사진 업로드',
+      level: 'info'
+    });
     res.json({
       message: '사진이 업로드되었습니다.',
       photo
@@ -332,6 +348,13 @@ router.patch('/receipt-photo/:photoId', auth, upload.single('file'), async (req,
     if (!req.file) return res.status(400).json({ message: '파일이 업로드되지 않았습니다.' });
 
     await photo.update({ photoUrl: `/uploads/inspection_receipts/${req.file.filename}` });
+
+    await logActivity(req, {
+      inspectionId: inspection.id,
+      type: 'receipt_update',
+      message: '영수증 사진 교체',
+      level: 'info'
+    });
     res.json({ message: '사진이 교체되었습니다.', photo });
   } catch (err) {
     console.error('Receipt photo replace error', err);
@@ -353,6 +376,13 @@ router.delete('/receipt-photo/:photoId', auth, async (req, res) => {
     }
 
     await photo.destroy();
+
+    await logActivity(req, {
+      inspectionId: inspection.id,
+      type: 'receipt_delete',
+      message: '영수증 사진 삭제',
+      level: 'warn'
+    });
     res.json({ success: true });
   } catch (err) {
     console.error('Receipt photo delete error', err);
@@ -387,6 +417,13 @@ router.put('/details/:detailId', auth, async (req, res) => {
       photoUrl: photoUrl === '' ? null : photoUrl
     });
 
+    // 로그: 상세 수정
+    await logActivity(req, {
+      inspectionId: detail.inspectionId,
+      type: 'detail_update',
+      message: '상세 항목 수정',
+      level: 'warn'
+    });
     res.json({ success: true, message: '검수 상세가 수정되었습니다.', detail });
   } catch (error) {
     console.error('Inspection detail update error:', error);
@@ -412,6 +449,13 @@ router.delete('/details/:detailId', auth, async (req, res) => {
     }
 
     await detail.destroy();
+
+    await logActivity(req, {
+      inspectionId: detail.inspectionId,
+      type: 'detail_delete',
+      message: '상세 항목 삭제',
+      level: 'warn'
+    });
     res.json({ success: true, message: '검수 상세 항목이 삭제되었습니다.' });
   } catch (error) {
     console.error('Inspection detail delete error:', error);
@@ -585,6 +629,19 @@ router.delete('/:id', auth, async (req, res) => {
 
     // 연관 스캔 로그도 함께 삭제
     await WorkerScan.destroy({ where:{ inspectionId: inspection.id } });
+
+    // 활동 로그 기록 – 전표 삭제
+    try {
+      await ActivityLog.create({
+        inspectionId: inspection.id,
+        userId:       req.user.id,
+        type:         'delete',
+        message:      `전표 삭제 (${inspection.inspectionName})`,
+        level:        'error'
+      });
+    } catch (logErr) {
+      console.error('ActivityLog create error (delete)', logErr);
+    }
 
     await inspection.destroy(); // cascade 로 상세/사진 함께 삭제
     res.json({ success: true, message: '검수 전표가 삭제되었습니다.' });

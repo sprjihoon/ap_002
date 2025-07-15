@@ -18,8 +18,8 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 
 // TODO: ReceiptPhotoUpload 컴포넌트 import 예정
 
-// 이미지 리사이즈 (max 1200px) 후 Blob 반환
-const resizeImage = (file, maxSize = 960, quality = 0.8) => new Promise((resolve, reject) => {
+// 이미지 리사이즈 (max 720px, 품질 0.75) 후 Blob 반환 → 업로드 속도 개선
+const resizeImage = (file, maxSize = 720, quality = 0.75) => new Promise((resolve, reject) => {
   try {
     const img = new Image();
     img.onload = () => {
@@ -484,7 +484,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                     {/* 전체수량 */}
                     <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center', gap:0.5 }}>
                       <NumberInputWithArrows
-                        value={input.total || ''}
+                      value={input.total || ''}
                         onChange={(val)=>handleOptionInput(variant.barcode,'total', val)}
                       />
                       <Typography variant="caption">전체수량</Typography>
@@ -492,19 +492,19 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                     {/* 정상수량 */}
                     <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center', gap:0.5 }}>
                       <NumberInputWithArrows
-                        value={input.normal || ''}
+                      value={input.normal || ''}
                         onChange={(val)=>handleOptionInput(variant.barcode,'normal', val)}
-                        error={error}
-                      />
+                      error={error}
+                    />
                       <Typography variant="caption">정상수량</Typography>
                     </Box>
                     {/* 불량수량 */}
                     <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center', gap:0.5 }}>
                       <NumberInputWithArrows
-                        value={input.defect || ''}
+                      value={input.defect || ''}
                         onChange={(val)=>handleOptionInput(variant.barcode,'defect', val)}
-                        error={error}
-                      />
+                      error={error}
+                    />
                       <Typography variant="caption">불량수량</Typography>
                     </Box>
                     <TextField
@@ -535,7 +535,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                         e.target.value='';
                       }}
                     />
-                    <label htmlFor={`option-photo-${variant.barcode}`}>
+                    <label htmlFor={`option-photo-${variant.barcode}`}> 
                       <Button variant="outlined" component="span" startIcon={<PhotoCamera />}>사진 업로드</Button>
                     </label>
                     {input.photoUrl && (

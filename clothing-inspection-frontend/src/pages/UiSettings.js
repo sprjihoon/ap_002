@@ -179,7 +179,7 @@ const UiSettings = () => {
         <Box sx={{display:'flex',alignItems:'center',gap:2,mb:1}}>
           <Typography>재생 방식:</Typography>
           <Button variant="outlined" onClick={toggleMode}>{playMode==='random'?'랜덤':'순차'} 재생</Button>
-        </Box>
+      </Box>
         {sounds.length === 0 ? (
           <Typography variant="body2">등록된 효과음이 없습니다.</Typography>
         ) : (
@@ -205,7 +205,7 @@ const UiSettings = () => {
       <Paper sx={{ p: 2, mt:3 }}>
         <Typography variant="h6" gutterBottom>전광판 시작 음악</Typography>
         <SettingSingleUpload />
-      </Paper>
+    </Paper>
 
       <Snackbar
         open={!!success}
