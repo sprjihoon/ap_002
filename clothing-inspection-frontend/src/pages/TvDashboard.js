@@ -111,9 +111,31 @@ const TvDashboard = () => {
     100% { transform: translateX(-50%); }
   `;
 
+  const vMarquee = keyframes`
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+`;
+
+  const remainingCompanies = progressList.filter(p=>Number(p.percent)<100).map(p=>p.company);
+  const visibleComp = 5;
+  const compSlideNeeded = remainingCompanies.length>visibleComp;
+  const compList = compSlideNeeded ? [...remainingCompanies,...remainingCompanies] : remainingCompanies;
+  const compDuration = (remainingCompanies.length||1)*3; // 3s per item
+
   return (
     <Box sx={{ p:1, bgcolor:'#000', height:'100vh', color:'#fff', overflow:'hidden', display:'flex', flexDirection:'column' }}>
-      <Typography variant="h3" align="center" gutterBottom>작업 현황</Typography>
+      <Box sx={{ display:'flex', alignItems:'center', justifyContent:'center', gap:2 }}>
+        {/* Remaining company list */}
+        <Box sx={{ width:200, overflow:'hidden', bgcolor:'#222', borderRadius:1, p:1 }}>
+          <Typography variant="h6" color="#fff">미완료 업체</Typography>
+          <Box sx={{ mt:1, animation: compSlideNeeded?`${vMarquee} ${compDuration}s linear infinite`:'none' }}>
+            {compList.map((c,idx)=>(
+              <Typography key={idx} variant="body2" color="#fff">{idx%remainingCompanies.length+1}. {c}</Typography>
+            ))}
+          </Box>
+        </Box>
+        <Typography variant="h3" align="center" gutterBottom sx={{ flexGrow:1 }}>작업 현황</Typography>
+      </Box>
 
       {/* 상단 카드 – 크기/폰트 축소 */}
       <Grid container spacing={1} justifyContent="center" sx={{ mb:1, flexShrink:0 }}>
@@ -136,7 +158,7 @@ const TvDashboard = () => {
       {/* 진행률 */}
       <Divider sx={{ my:1, bgcolor:'#555' }} />
       <Typography variant="h5" gutterBottom>전표별 진행률</Typography>
-      {(()=>{const filtered=progressList.filter(p=>{if(p.percent<100) return true;const today=new Date();const crt=new Date(p.createdAt);return crt.getFullYear()===today.getFullYear()&&crt.getMonth()===today.getMonth()&&crt.getDate()===today.getDate();});const slideNeeded = filtered.length>visibleCount;const list = slideNeeded?[...filtered,...filtered]:filtered;const duration=(filtered.length||1)*2;return (
+      {(()=>{const filtered=progressList.filter(p=>Number(p.percent)<100);const slideNeeded = filtered.length>visibleCount;const list = slideNeeded?[...filtered,...filtered]:filtered;const duration=(filtered.length||1)*8;return (
       <Grid container spacing={2} sx={{ width: slideNeeded?'200%':'100%', flexWrap:'nowrap', animation: slideNeeded?`${marqueeAnim} ${duration}s linear infinite`:'none', overflow:'hidden' }}>
         {list.map((p,idx)=>(
           <Grid item xs={12} sm={6} md={4} lg={2} key={idx} sx={{ maxWidth:220 }}>
@@ -155,7 +177,7 @@ const TvDashboard = () => {
       {unconfirmedList.length>0 && <>
         <Divider sx={{ my:1, bgcolor:'#555' }} />
         <Typography variant="h5" gutterBottom>미확정 전표</Typography>
-        {(()=>{const slideNeeded=unconfirmedList.length>visibleCount;const list=slideNeeded?[...unconfirmedList,...unconfirmedList]:unconfirmedList;const duration=(unconfirmedList.length||1)*2;return (
+        {(()=>{const slideNeeded=unconfirmedList.length>visibleCount;const list=slideNeeded?[...unconfirmedList,...unconfirmedList]:unconfirmedList;const duration=(unconfirmedList.length||1)*8;return (
         <Grid container spacing={2} sx={{ width: slideNeeded?'200%':'100%', flexWrap:'nowrap', animation: slideNeeded?`${marqueeAnim} ${duration}s linear infinite`:'none', overflow:'hidden' }}>
           {list.map((u,idx)=>(
             <Grid item xs={12} sm={6} md={4} lg={3} key={idx}>
