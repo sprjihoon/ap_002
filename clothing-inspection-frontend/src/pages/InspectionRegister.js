@@ -447,9 +447,6 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                       <NumberInputWithArrows
                         value={input.total || ''}
                         onChange={(val)=>handleOptionInput(variant.barcode,'total', val)}
-                        width={120}
-                        height={64}
-                        fontSize={28}
                       />
                       <Typography variant="caption">전체수량</Typography>
                     </Box>
@@ -458,9 +455,6 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                       <NumberInputWithArrows
                         value={input.normal || ''}
                         onChange={(val)=>handleOptionInput(variant.barcode,'normal', val)}
-                        width={120}
-                        height={64}
-                        fontSize={28}
                         error={error}
                       />
                       <Typography variant="caption">정상수량</Typography>
@@ -470,9 +464,6 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                       <NumberInputWithArrows
                         value={input.defect || ''}
                         onChange={(val)=>handleOptionInput(variant.barcode,'defect', val)}
-                        width={120}
-                        height={64}
-                        fontSize={28}
                         error={error}
                       />
                       <Typography variant="caption">불량수량</Typography>

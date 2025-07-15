@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { API_BASE } from '../utils/api';
-import { Close, Undo } from '@mui/icons-material';
+import { Close } from '@mui/icons-material';
 
 const WorkerBarcodeScan=()=>{
   const storedList = (JSON.parse(sessionStorage.getItem('currentInspections') || '[]')||[]).filter(it=>it.inspection && (it.remaining??1)>0);
@@ -301,21 +301,24 @@ const WorkerBarcodeScan=()=>{
                             {r==='normal'?'정상':r==='defect'?'불량':'보류'}
                           </Button>
                           <IconButton
-                            size="small"
-                            color="secondary"
                             onClick={()=>handleUndo(idx, det.id, r)}
                             disabled={loading || det.myCount===0}
                             title="되돌리기"
                             sx={{
-                              bgcolor: det.myCount===0 ? 'grey.100' : 'transparent',
-                              border: '1px solid',
-                              borderColor: det.myCount===0 ? 'grey.300' : 'transparent',
+                              width: 48,
+                              height: 48,
+                              borderRadius: 2,
+                              border: '2px solid',
+                              borderColor: '#cfd2d9',
+                              bgcolor: 'transparent',
+                              color: det.myCount===0 ? 'grey.400' : 'grey.900',
+                              '& svg': { fontSize: 28 },
                               '&:disabled': {
                                 color: 'grey.400'
                               }
                             }}
                           >
-                            <Undo fontSize="small" />
+                            <span style={{fontSize:28, lineHeight:1}}>⟲</span>
                           </IconButton>
                         </Box>
                       ))}
