@@ -117,7 +117,7 @@ const TvDashboard = () => {
 `;
 
   const remainingCompanies = [...new Set(progressList.filter(p=>Number(p.percent)<100).map(p=>p.company))];
-  const visibleComp = 3; // lines visible within 60px height
+  const visibleComp = 2; // lines visible within 60px height
   const compSlideNeeded = remainingCompanies.length>visibleComp;
   const compList = compSlideNeeded ? [...remainingCompanies,...remainingCompanies] : remainingCompanies;
   const compDuration = (remainingCompanies.length||1)*3; // 3s per item
