@@ -70,13 +70,13 @@ const NumberInputWithArrows = ({
           display: 'flex',
           flexDirection: 'column',
           borderLeft: '1px solid #c8c8c8',
-          width: 40
+          width: 32
         }}
       >
-        <IconButton onClick={handleInc} size="small" sx={{ flex: 1 }}>
+        <IconButton onClick={handleInc} sx={{ flex: 1, p:0, width:'100%', height:'100%', minWidth:0 }}>
           <ArrowDropUpIcon fontSize="small" />
         </IconButton>
-        <IconButton onClick={handleDec} size="small" sx={{ flex: 1 }}>
+        <IconButton onClick={handleDec} sx={{ flex: 1, p:0, width:'100%', height:'100%', minWidth:0 }}>
           <ArrowDropDownIcon fontSize="small" />
         </IconButton>
       </Box>

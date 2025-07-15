@@ -472,7 +472,8 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                       label="코멘트"
                       value={input.comment || ''}
                       onChange={e => handleOptionInput(variant.barcode, 'comment', e.target.value)}
-                      sx={{ width: 90 }}
+                      size="small"
+                      sx={{ width: 110, '& .MuiInputBase-root': { height: 48 } }}
                     />
                   </Box>
                   {/* 옵션별 사진 업로드 */}

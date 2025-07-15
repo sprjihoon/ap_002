@@ -294,7 +294,7 @@ const WorkerBarcodeScan=()=>{
               <TableBody>
                 {item.details.map(det=>{
                   const actionButtons = (
-                    <Box sx={{ display:'flex', flexWrap:'wrap', gap:1, justifyContent:'center' }}>
+                    <Box sx={{ display:'flex', flexWrap:'nowrap', gap:1, justifyContent:'center', overflowX:'auto', alignItems:'center' }}>
                       {['normal','defect','hold'].map(r=> (
                         <Button key={r} size="small" variant={r==='normal'?'contained':'outlined'} color={r==='defect'?'error':r==='hold'?'warning':'primary'} disabled={loading || det.remaining===0} onClick={()=>handleScan(idx, det.id, r)} sx={{ minWidth:64 }}>
                           {r==='normal'?'정상':r==='defect'?'불량':'보류'}
