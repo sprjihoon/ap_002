@@ -152,7 +152,9 @@ const WorkerBarcodeScan=()=>{
       // update matching detail
       const dIdx = item.details.findIndex(d=>d.id===detailId);
       if(dIdx!==-1){
-         item.details[dIdx] = { ...item.details[dIdx], ...res.data.detail, remaining: res.data.remaining, myCount:(item.details[dIdx].myCount||0)+1 };
+         const updatedDetail = { ...item.details[dIdx], ...res.data.detail, remaining: res.data.remaining, myCount:(item.details[dIdx].myCount||0)+1 };
+         updatedDetail.history = [...(item.details[dIdx].history||[]), result];
+         item.details[dIdx] = updatedDetail;
       }
       item.remaining = item.details.reduce((t,d)=>t+d.remaining,0);
       const prev = item.myHandled[result]||0;
@@ -234,6 +236,7 @@ const WorkerBarcodeScan=()=>{
         const det=item.details[dIdx];
         det.remaining = res.data.remaining;
         det.myCount = Math.max(0,(det.myCount||0)-1);
+        if(det.history && det.history.length>0){ det.history.pop(); }
         if(det.remaining>0){ // update totals
           item.remaining = item.details.reduce((t,d)=>t+d.remaining,0);
         }
@@ -303,10 +306,11 @@ const WorkerBarcodeScan=()=>{
                       {/* 단일 되돌리기 버튼 */}
                       <IconButton
                         onClick={()=>{
-                          const res = item.myHandled?.defect>0 ? 'defect' : item.myHandled?.hold>0 ? 'hold' : 'normal';
-                          handleUndo(idx, det.id, res);
+                          const last = det.history?.[det.history.length-1];
+                          if(!last){ enqueueSnackbar('되돌릴 항목이 없습니다',{variant:'info'}); return; }
+                          handleUndo(idx, det.id, last);
                         }}
-                        disabled={loading || det.myCount===0}
+                        disabled={loading || !(det.history?.length)}
                         title="되돌리기"
                         sx={{
                           width: 36,

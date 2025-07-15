@@ -18,6 +18,40 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 
 // TODO: ReceiptPhotoUpload 컴포넌트 import 예정
 
+// 이미지 리사이즈 (max 1200px) 후 Blob 반환
+const resizeImage = (file, maxSize = 1200, quality = 0.85) => new Promise((resolve, reject) => {
+  try {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+      if (width > height) {
+        if (width > maxSize) {
+          height *= maxSize / width;
+          width = maxSize;
+        }
+      } else {
+        if (height > maxSize) {
+          width *= maxSize / height;
+          height = maxSize;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        if(blob){
+          const resizedFile = new File([blob], file.name, { type: blob.type });
+          resolve(resizedFile);
+        }else reject(new Error('resize error'));
+      }, 'image/jpeg', quality);
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  } catch(e){ reject(e);}
+});
+
 const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) => {
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
@@ -126,7 +160,8 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
   // 사진 업로드
   const uploadPhoto = async (file, barcode) => {
     const formData = new FormData();
-    formData.append('photo', file);
+    const resized = await resizeImage(file);
+    formData.append('photo', resized);
     if (barcode) {
       formData.append('barcodes[]', barcode);
     }
@@ -496,7 +531,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                         e.target.value='';
                       }}
                     />
-                    <label htmlFor={`option-photo-${variant.barcode}`}> 
+                    <label htmlFor={`option-photo-${variant.barcode}`}>
                       <Button variant="outlined" component="span" startIcon={<PhotoCamera />}>사진 업로드</Button>
                     </label>
                     {input.photoUrl && (
