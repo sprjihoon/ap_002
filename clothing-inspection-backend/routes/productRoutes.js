@@ -68,41 +68,61 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
       errors: []
     };
 
+    // 필드 매핑 헬퍼: 여러 키 후보 중 먼저 매칭되는 값을 반환
+    const pick = (r, ...keys) => {
+      for (const k of keys) {
+        if (r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== '') {
+          return String(r[k]).trim();
+        }
+      }
+      return '';
+    };
+
     for (const row of data) {
       try {
+        // 컬럼별 값 추출 (영문/한글 헤더 모두 지원)
+        const company               = pick(row, 'company', '업체', '업체명');
+        const productName           = pick(row, 'productName', '제품명');
+        const sizeRaw               = pick(row, 'size', '사이즈');
+        const colorRaw              = pick(row, 'color', '컬러', '색상');
+        const barcode               = pick(row, 'barcode', '바코드');
+        const wholesaler            = pick(row, 'wholesaler', '도매처');
+        const wholesalerProductName = pick(row, 'wholesalerProductName', '도매처제품명', '도매처 상품명');
+        const location              = pick(row, 'location', '로케이션');
+
         // 필수 필드 검증
-        if (!row.company || !row.productName || !row.size || !row.color || !row.wholesaler || !row.wholesalerProductName) {
+        if (!company || !productName || !sizeRaw || !colorRaw || !wholesaler || !wholesalerProductName) {
           throw new Error('필수 필드가 누락되었습니다.');
         }
 
         // 업체명+제품명으로 기존 Product 찾기
         let product = await Product.findOne({
           where: {
-            company: row.company,
-            productName: row.productName
+            company: company,
+            productName: productName
           }
         });
 
         if (!product) {
           // 없으면 새 Product 생성
           product = await Product.create({
-            company: row.company,
-            productName: row.productName,
-            size: row.size.split(',').map(s => s.trim()),
-            color: row.color.split(',').map(c => c.trim()),
-            wholesaler: row.wholesaler,
-            wholesalerProductName: row.wholesalerProductName,
-            location: row.location || null
+            company,
+            productName,
+            size: sizeRaw.split(',').map(s => s.trim()),
+            color: colorRaw.split(',').map(c => c.trim()),
+            wholesaler,
+            wholesalerProductName,
+            location: location || null
           });
         }
 
         // 제품 변형(variant) 생성 (바코드가 있는 경우)
-        if (row.barcode) {
+        if (barcode) {
           await ProductVariant.create({
             productId: product.id,
-            size: row.size.split(',')[0].trim(),
-            color: row.color.split(',')[0].trim(),
-            barcode: row.barcode
+            size: sizeRaw.split(',')[0].trim(),
+            color: colorRaw.split(',')[0].trim(),
+            barcode
           });
         }
 
