@@ -144,6 +144,7 @@ function ProductManagement() {
   };
 
   const computeVariants = (sizeStr, colorStr, optionStr, prevVariants=[]) => {
+    if(!sizeStr.trim() && !colorStr.trim() && !optionStr.trim()) return [];
     const sizesArr = sizeStr.split(',').map(s=>s.trim()).filter(Boolean);
     const colorsArr = colorStr.split(',').map(c=>c.trim()).filter(Boolean);
     const optsArr  = optionStr.split(',').map(o=>o.trim()).filter(Boolean);
@@ -525,7 +526,10 @@ function ProductManagement() {
                   {formData.variants.map((variant, index) => (
                     <Grid item xs={12} sm={6} md={4} key={index}>
                       <Typography variant="subtitle2" gutterBottom>
-                        {`${formData.productName || ''} ${variant.size||''} / ${variant.color||''} / ${variant.extraOption||''}`}
+                        {(()=>{
+                          const parts=[variant.size, variant.color, variant.extraOption].filter(Boolean);
+                          return `${formData.productName||''} ${parts.join(' / ')}`.trim();
+                        })()}
                       </Typography>
                       <TextField
                         fullWidth
