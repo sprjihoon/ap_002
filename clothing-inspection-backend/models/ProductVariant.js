@@ -6,6 +6,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     size: DataTypes.STRING,
     color: DataTypes.STRING,
+    extraOption: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     barcode: {
       type: DataTypes.STRING,
       allowNull: false,

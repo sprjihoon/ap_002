@@ -30,8 +30,8 @@ router.get('/sample', auth, async (req, res) => {
       'productName',
       'size',
       'color',
-      'barcode',
       'extraOption',
+      'barcode',
       'wholesaler',
       'wholesalerProductName',
       'location'
@@ -70,10 +70,23 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
     };
 
     // 필드 매핑 헬퍼: 여러 키 후보 중 먼저 매칭되는 값을 반환
-    const pick = (r, ...keys) => {
-      for (const k of keys) {
-        if (r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== '') {
-          return String(r[k]).trim();
+    const normalizeKey = (k) => k.toString().toLowerCase().replace(/\s|\(|\)|_|-/g, '');
+    const pick = (rowObj, ...keys) => {
+      const normalizedRowKeys = Object.keys(rowObj).reduce((obj, k) => {
+        obj[normalizeKey(k)] = k;
+        return obj;
+      }, {});
+
+      for (const cand of keys) {
+        const nCand = normalizeKey(cand);
+        // exact or contains match
+        const matchKey = Object.keys(normalizedRowKeys).find(rk => rk === nCand || rk.includes(nCand));
+        if (matchKey) {
+          const origKey = normalizedRowKeys[matchKey];
+          const val = rowObj[origKey];
+          if (val !== undefined && val !== null && String(val).trim() !== '') {
+            return String(val).trim();
+          }
         }
       }
       return '';
