@@ -350,8 +350,8 @@ function ProductManagement() {
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>ID</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>업체명</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>제품명</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>사이즈</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>컬러</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>사이즈</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 180 }}>바코드</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>추가옵션</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>도매처명</TableCell>
@@ -380,8 +380,8 @@ function ProductManagement() {
                     <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>{first.id}</TableCell>
                     <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{first.company}</TableCell>
                     <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{first.productName}</TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>{Array.isArray(first.size) ? first.size.join(', ') : (first.size || '-')}</TableCell>
                     <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{Array.isArray(first.color) ? first.color.join(', ') : (first.color || '-')}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>{Array.isArray(first.size) ? first.size.join(', ') : (first.size || '-')}</TableCell>
                     <TableCell>
                       {(()=>{
                         const rows=[];
