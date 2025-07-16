@@ -18,7 +18,7 @@ const ActivityLog = require('../models/ActivityLog');
 const { logActivity } = require('../utils/activityLogger');
 const { Op } = require('sequelize');
 const xlsx = require('xlsx');
-const WorkerScan = require('../models/WorkerScan');
+const { WorkerScan } = require('../models');
 
 const UPLOAD_BASE = process.env.UPLOAD_BASE || path.join(__dirname, '..', 'uploads');
 const uploadDir   = path.join(UPLOAD_BASE, 'images');   // 또는 inspection_receipts
