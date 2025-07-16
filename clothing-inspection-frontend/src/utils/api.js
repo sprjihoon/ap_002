@@ -9,7 +9,7 @@
    'https://ap-002.onrender.com';
  export const API_URL = `${API_BASE}/api`;
 
- const buildHeaders = (method, hasBody, extraHeaders = {}) => {
+ const buildHeaders = (method = 'GET', hasBody, extraHeaders = {}) => {
    const token = localStorage.getItem('token');
    const headers = {
      'Authorization': token ? `Bearer ${token}` : '',
@@ -17,8 +17,11 @@
    };
 
    // JSON 바디가 있는 요청(POST/PUT/PATCH)만 Content-Type 설정
-   if (hasBody || ['POST', 'PUT', 'PATCH'].includes(method?.toUpperCase?.())) {
-     headers['Content-Type'] ||= 'application/json';
+   const upper = typeof method === 'string' ? method.toUpperCase() : 'GET';
+   if (hasBody || ['POST', 'PUT', 'PATCH'].includes(upper)) {
+     if (!headers['Content-Type']) {
+       headers['Content-Type'] = 'application/json';
+     }
    }
 
    return headers;
