@@ -80,12 +80,17 @@ function ProductManagement() {
   const handleOpen = (product = null) => {
     if (product) {
       setEditingProduct(product);
+
+      // distinct extraOption values from variants
+      const extraOptsSet = new Set((product.ProductVariants||[]).map(v=>v.extraOption).filter(Boolean));
+      const extraOptStr = Array.from(extraOptsSet).join(',');
+
       setFormData({
         company: product.company,
         productName: product.productName,
-        size: product.size.join(','),
-        color: product.color.join(','),
-        extraOption: product.extraOption.join(','),
+        size: Array.isArray(product.size) ? product.size.join(',') : (product.size || ''),
+        color: Array.isArray(product.color) ? product.color.join(',') : (product.color || ''),
+        extraOption: extraOptStr,
         wholesaler: product.wholesaler,
         wholesalerProductName: product.wholesalerProductName,
         location: product.location,
