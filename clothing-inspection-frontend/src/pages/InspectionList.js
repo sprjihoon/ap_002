@@ -27,7 +27,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Visibility, Search, Delete, Edit, SpeakerNotes } from '@mui/icons-material';
 import { fetchWithAuth } from '../utils/api';
 import { useSnackbar } from 'notistack';
-import path from 'path';
+// Node.js 전용 'path' 모듈은 브라우저 번들에서 필요하지 않으므로 제거했습니다.
 
 const InspectionList = () => {
   const navigate = useNavigate();
@@ -46,9 +46,6 @@ const InspectionList = () => {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const BASE = process.env.UPLOAD_BASE || path.join(__dirname, '..', '..', 'uploads');
-  const UPLOAD_DIR = path.join(BASE, 'settings');
 
   // 검수 목록 조회
   const fetchInspections = async () => {
