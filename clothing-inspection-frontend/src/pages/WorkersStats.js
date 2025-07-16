@@ -3,9 +3,9 @@ import { Box, Typography, TextField, Paper, Table, TableHead, TableRow, TableCel
 import { fetchWithAuth } from '../utils/api';
 
 const WorkersStats = () => {
-  const today = new Date().toISOString().substring(0,10);
-  const [start,setStart] = useState(today);
-  const [end,setEnd] = useState(today);
+  const todayStr = new Date().toISOString().slice(0,10);
+  const [start,setStart] = useState(todayStr);
+  const [end,setEnd] = useState(todayStr);
   const [rows,setRows] = useState([]);
 
   const load = async ()=>{

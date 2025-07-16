@@ -3,9 +3,9 @@ import { Box, Typography, Card, CardContent, Grid, TextField, Paper, Table, Tabl
 import { fetchWithAuth } from '../utils/api';
 
 const WorkerStats = () => {
-  const today = new Date().toISOString().substring(0,10);
-  const [start,setStart] = useState(today);
-  const [end,setEnd] = useState(today);
+  const todayStr = new Date().toISOString().slice(0,10);
+  const [start, setStart] = useState(todayStr);
+  const [end, setEnd] = useState(todayStr);
   const [summary,setSummary] = useState(null);
 
   const load = async ()=>{

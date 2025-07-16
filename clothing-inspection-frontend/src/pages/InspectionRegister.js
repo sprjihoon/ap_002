@@ -3,8 +3,12 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, FormControl, InputLabel, Select, MenuItem, Typography, Box, IconButton, Autocomplete, Checkbox
 } from '@mui/material';
+<<<<<<< Updated upstream
 // Icons removed from numeric input design; no longer needed here
 import NumberInputWithArrows from '../components/NumberInputWithArrows';
+=======
+import { ArrowDropUp, ArrowDropDown } from '@mui/icons-material';
+>>>>>>> Stashed changes
 import ReceiptPhotoUpload from '../components/ReceiptPhotoUpload';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -394,7 +398,16 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
 
+<<<<<<< Updated upstream
   const selectableVariants = selectedVariants.filter(v=>!(optionInputs[v.barcode]?.photoUrl));
+=======
+  // 숫자 증감 헬퍼
+  const adjustNumber = (barcode, field, delta) => {
+    const current = Number((optionInputs[barcode]?.[field])||0);
+    const next = Math.max(0, current + delta);
+    handleOptionInput(barcode, field, next);
+  };
+>>>>>>> Stashed changes
 
   return (
     <Dialog
@@ -485,6 +498,7 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                     <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center', gap:0.5 }}>
                       <NumberInputWithArrows
                       value={input.total || ''}
+<<<<<<< Updated upstream
                         onChange={(val)=>handleOptionInput(variant.barcode,'total', val)}
                       />
                       <Typography variant="caption">전체수량</Typography>
@@ -492,9 +506,34 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                     {/* 정상수량 */}
                     <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center', gap:0.5 }}>
                       <NumberInputWithArrows
+=======
+                      onChange={e => handleOptionInput(variant.barcode, 'total', e.target.value)}
+                      sx={{ width: 90 }}
+                      inputProps={{ min: 0 }}
+                      InputProps={{
+                        endAdornment: (
+                          <Box sx={{ display:'flex', flexDirection:'column' }}>
+                            <IconButton size="small" onClick={()=>adjustNumber(variant.barcode,'total',1)}><ArrowDropUp fontSize="small" /></IconButton>
+                            <IconButton size="small" onClick={()=>adjustNumber(variant.barcode,'total',-1)}><ArrowDropDown fontSize="small" /></IconButton>
+                          </Box>
+                        )
+                      }}
+                    />
+                    <TextField
+                      label="정상수량"
+                      type="number"
+>>>>>>> Stashed changes
                       value={input.normal || ''}
                         onChange={(val)=>handleOptionInput(variant.barcode,'normal', val)}
                       error={error}
+                      InputProps={{
+                        endAdornment: (
+                          <Box sx={{ display:'flex', flexDirection:'column' }}>
+                            <IconButton size="small" onClick={()=>adjustNumber(variant.barcode,'normal',1)}><ArrowDropUp fontSize="small" /></IconButton>
+                            <IconButton size="small" onClick={()=>adjustNumber(variant.barcode,'normal',-1)}><ArrowDropDown fontSize="small" /></IconButton>
+                          </Box>
+                        )
+                      }}
                     />
                       <Typography variant="caption">정상수량</Typography>
                     </Box>
@@ -504,6 +543,14 @@ const InspectionRegister = ({ open, onClose, companies, products, onSubmit }) =>
                       value={input.defect || ''}
                         onChange={(val)=>handleOptionInput(variant.barcode,'defect', val)}
                       error={error}
+                      InputProps={{
+                        endAdornment: (
+                          <Box sx={{ display:'flex', flexDirection:'column' }}>
+                            <IconButton size="small" onClick={()=>adjustNumber(variant.barcode,'defect',1)}><ArrowDropUp fontSize="small" /></IconButton>
+                            <IconButton size="small" onClick={()=>adjustNumber(variant.barcode,'defect',-1)}><ArrowDropDown fontSize="small" /></IconButton>
+                          </Box>
+                        )
+                      }}
                     />
                       <Typography variant="caption">불량수량</Typography>
                     </Box>

@@ -20,6 +20,7 @@ const labelRoutes       = require('./routes/labelRoutes');
 const adminRoutes       = require('./routes/adminRoutes');
 const defectRoutes      = require('./routes/defectRoutes');
 const settingsRoutes    = require('./routes/settingsRoutes');
+const reportRoutes      = require('./routes/reportRoutes');
 
 const app = express();
 
@@ -81,6 +82,7 @@ app.use('/api/labels',      labelRoutes);
 app.use('/api/admin',       adminRoutes);
 app.use('/api/defects',     defectRoutes);
 app.use('/api/settings',    settingsRoutes);
+app.use('/api/reports',     reportRoutes);
 
 /*────────── 헬스체크 루트 ──────────*/
 app.get('/', (_req, res) => res.json({ status: 'ok' }));

@@ -41,8 +41,13 @@ const WorkerWorkHistory = () => {
   const [saving,setSaving]=useState(false);
   const [companyFilter,setCompanyFilter] = useState('');
   const todayStr = new Date().toISOString().slice(0,10);
+<<<<<<< Updated upstream
   const [startDate,setStartDate] = useState(todayStr);
   const [endDate,setEndDate] = useState(todayStr);
+=======
+  const [startDate, setStartDate] = useState(todayStr);
+  const [endDate, setEndDate] = useState(todayStr);
+>>>>>>> Stashed changes
 
   useEffect(() => {
     load();
@@ -320,7 +325,7 @@ const WorkerWorkHistory = () => {
         </DialogActions>
       </Dialog>
 
-      <Snackbar open={!!error} autoHideDuration={4000} onClose={()=>setError('')}>
+      <Snackbar open={!!error} autoHideDuration={3000} onClose={()=>setError('')}>
         <Alert severity="error">{error}</Alert>
       </Snackbar>
     </Box>

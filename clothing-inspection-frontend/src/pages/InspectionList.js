@@ -27,6 +27,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Visibility, Search, Delete, Edit, SpeakerNotes } from '@mui/icons-material';
 import { fetchWithAuth } from '../utils/api';
 import { useSnackbar } from 'notistack';
+import path from 'path';
 
 const InspectionList = () => {
   const navigate = useNavigate();
@@ -36,14 +37,18 @@ const InspectionList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const todayStr = new Date().toISOString().slice(0,10);
+  const [startDate, setStartDate] = useState(todayStr);
+  const [endDate, setEndDate] = useState(todayStr);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const BASE = process.env.UPLOAD_BASE || path.join(__dirname, '..', '..', 'uploads');
+  const UPLOAD_DIR = path.join(BASE, 'settings');
 
   // 검수 목록 조회
   const fetchInspections = async () => {

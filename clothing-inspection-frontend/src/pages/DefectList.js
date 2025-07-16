@@ -6,9 +6,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import { TableContainer } from '@mui/material';
 
 const DefectList = () => {
-  const today = new Date().toISOString().substring(0,10);
-  const [start, setStart] = useState(today);
-  const [end, setEnd] = useState(today);
+  const todayStr = new Date().toISOString().slice(0,10);
+  const [start, setStart] = useState(todayStr);
+  const [end, setEnd] = useState(todayStr);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [companyFilter,setCompanyFilter]=useState('');

@@ -4,8 +4,9 @@ import dayjs from 'dayjs';
 import { fetchWithAuth } from '../utils/api';
 
 function Dashboard() {
-  const [start, setStart] = useState(dayjs().startOf('month').format('YYYY-MM-DD'));
-  const [end, setEnd] = useState(dayjs().format('YYYY-MM-DD'));
+  const todayStr = new Date().toISOString().slice(0,10);
+  const [start, setStart] = useState(todayStr);
+  const [end, setEnd] = useState(todayStr);
   const [data, setData] = useState({ wholesalerStats: [], operatorStats: [], summary:{} });
   const [logs, setLogs] = useState([]);
   const [wsOrderBy,setWsOrderBy] = useState('wholesaler');
