@@ -175,6 +175,7 @@ const ExcelUpload = ({ onSuccess }) => {
           <li>color (컬러, 쉼표로 구분) - 필수</li>
           <li>wholesaler (도매처명) - 필수</li>
           <li>wholesalerProductName (도매처제품명) - 필수</li>
+          <li>extraOption (추가옵션 구분) - 선택</li>
           <li>location (로케이션정보) - 선택</li>
           <li>barcode (바코드) - 선택</li>
         </ul>

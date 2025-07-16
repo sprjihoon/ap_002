@@ -31,6 +31,7 @@ router.get('/sample', auth, async (req, res) => {
       'size',
       'color',
       'barcode',
+      'extraOption',
       'wholesaler',
       'wholesalerProductName',
       'location'
@@ -86,6 +87,7 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
         const sizeRaw               = pick(row, 'size', '사이즈');
         const colorRaw              = pick(row, 'color', '컬러', '색상');
         const barcode               = pick(row, 'barcode', '바코드');
+        const extraOptionRaw        = pick(row, 'extraOption', '추가옵션');
         const wholesaler            = pick(row, 'wholesaler', '도매처');
         const wholesalerProductName = pick(row, 'wholesalerProductName', '도매처제품명', '도매처 상품명');
         const location              = pick(row, 'location', '로케이션');
@@ -122,6 +124,7 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
             productId: product.id,
             size: sizeRaw.split(',')[0].trim(),
             color: colorRaw.split(',')[0].trim(),
+            extraOption: extraOptionRaw ? extraOptionRaw.split(',')[0].trim() : null,
             barcode
           });
         }
@@ -159,7 +162,7 @@ router.get('/', auth, async (req, res) => {
       include: [{
         model: ProductVariant,
         as: 'ProductVariants',
-        attributes: ['id', 'size', 'color', 'barcode']
+        attributes: ['id', 'size', 'color', 'extraOption', 'barcode']
       }],
       order: [['createdAt', 'DESC']]
     });
@@ -214,7 +217,7 @@ router.get('/export', auth, async (req,res)=>{
     const include = [{
       model: ProductVariant,
       as: 'ProductVariants',
-      attributes: ['id','size','color','barcode']
+      attributes: ['id','size','color','extraOption','barcode']
     }];
 
     if(search){
@@ -328,6 +331,7 @@ router.post('/', auth, async (req, res) => {
         productId: product.id,
         size: v.size ? v.size.trim() : null,
         color: v.color ? v.color.trim() : null,
+        extraOption: v.extraOption ? v.extraOption.trim() : null,
         barcode
       });
     }
@@ -414,6 +418,7 @@ router.put('/:id', auth, async (req, res) => {
         productId: product.id,
         size: v.size ? v.size.trim() : null,
         color: v.color ? v.color.trim() : null,
+        extraOption: v.extraOption ? v.extraOption.trim() : null,
         barcode
       });
     }
@@ -431,7 +436,7 @@ router.put('/:id', auth, async (req, res) => {
       include: [{
         model: ProductVariant,
         as: 'ProductVariants',
-        attributes: ['id', 'size', 'color', 'barcode']
+        attributes: ['id', 'size', 'color', 'extraOption', 'barcode']
       }]
     });
 
