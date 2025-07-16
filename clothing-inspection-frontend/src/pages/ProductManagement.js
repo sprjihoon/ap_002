@@ -43,6 +43,7 @@ function ProductManagement() {
     productName: '',
     size: '',
     color: '',
+    extraOption: '',
     wholesaler: '',
     wholesalerProductName: '',
     location: '',
@@ -84,12 +85,14 @@ function ProductManagement() {
         productName: product.productName,
         size: product.size.join(','),
         color: product.color.join(','),
+        extraOption: product.extraOption.join(','),
         wholesaler: product.wholesaler,
         wholesalerProductName: product.wholesalerProductName,
         location: product.location,
         variants: product.ProductVariants.map(v => ({
           size: v.size,
           color: v.color,
+          extraOption: v.extraOption,
           barcode: v.barcode
         }))
       });
@@ -100,6 +103,7 @@ function ProductManagement() {
         productName: '',
         size: '',
         color: '',
+        extraOption: '',
         wholesaler: '',
         wholesalerProductName: '',
         location: '',
@@ -134,16 +138,20 @@ function ProductManagement() {
     }));
   };
 
-  const computeVariants = (sizeStr, colorStr, prevVariants=[]) => {
+  const computeVariants = (sizeStr, colorStr, optionStr, prevVariants=[]) => {
     const sizesArr = sizeStr.split(',').map(s=>s.trim()).filter(Boolean);
     const colorsArr = colorStr.split(',').map(c=>c.trim()).filter(Boolean);
-    const effectiveSizes = sizesArr.length?sizesArr:[null];
-    const effectiveColors = colorsArr.length?colorsArr:[null];
-    const combined=[];
-    for(const s of effectiveSizes){
-      for(const c of effectiveColors){
-        const existing=prevVariants.find(v=>v.size===s&&v.color===c);
-        combined.push({size:s,color:c,barcode:existing?existing.barcode:''});
+    const optsArr  = optionStr.split(',').map(o=>o.trim()).filter(Boolean);
+    const effSizes = sizesArr.length ? sizesArr : [null];
+    const effColors = colorsArr.length ? colorsArr : [null];
+    const effOpts = optsArr.length ? optsArr : [null];
+    const combined = [];
+    for(const s of effSizes){
+      for(const c of effColors){
+        for(const o of effOpts){
+          const existing = prevVariants.find(v=>v.size===s&&v.color===c&&v.extraOption===o);
+          combined.push({ size:s, color:c, extraOption:o, barcode: existing?existing.barcode:'' });
+        }
       }
     }
     return combined;
@@ -152,9 +160,9 @@ function ProductManagement() {
   useEffect(()=>{
     setFormData(prev=>({
       ...prev,
-      variants: computeVariants(prev.size, prev.color, prev.variants)
+      variants: computeVariants(prev.size, prev.color, prev.extraOption, prev.variants)
     }));
-  },[formData.size, formData.color]);
+  },[formData.size, formData.color, formData.extraOption]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -186,6 +194,7 @@ function ProductManagement() {
         productName: '',
         size: '',
         color: '',
+        extraOption: '',
         wholesaler: '',
         wholesalerProductName: '',
         location: '',
@@ -335,8 +344,8 @@ function ProductManagement() {
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>ID</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>업체명</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>제품명</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>사이즈</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>컬러</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>사이즈</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>컬러</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 180 }}>바코드</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>도매처명</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>도매처제품명</TableCell>
@@ -351,7 +360,10 @@ function ProductManagement() {
                 let barcodes = [];
                 group.forEach(product => {
                   if (product.ProductVariants && product.ProductVariants.length > 0) {
-                    barcodes.push(...product.ProductVariants.map(v => `${v.size}/${v.color}: ${v.barcode}`));
+                    barcodes.push(...product.ProductVariants.map(v => {
+                      const parts = [v.size, v.color, v.extraOption].filter(Boolean);
+                      return `${parts.join('/')}: ${v.barcode}`;
+                    }));
                   } else if (product.barcode) {
                     barcodes.push(...product.barcode.split(/[,;\n]+/).map(b => b.trim()).filter(Boolean));
                   }
@@ -361,8 +373,8 @@ function ProductManagement() {
                     <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>{first.id}</TableCell>
                     <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{first.company}</TableCell>
                     <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{first.productName}</TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{Array.isArray(first.size) ? first.size.join(', ') : first.size}</TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{Array.isArray(first.color) ? first.color.join(', ') : first.color}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>{Array.isArray(first.size) ? first.size.join(', ') : (first.size || '-')}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{Array.isArray(first.color) ? first.color.join(', ') : (first.color || '-')}</TableCell>
                     <TableCell sx={{ whiteSpace: 'nowrap', width: 180 }}>
                       {barcodes
                         .flatMap(b => b.split(/[,;\n]+/))
@@ -451,6 +463,16 @@ function ProductManagement() {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
+                  label="추가옵션 (쉼표로 구분)"
+                  name="extraOption"
+                  value={formData.extraOption}
+                  onChange={handleInputChange}
+                  helperText="예: 원단,소재 등 (비워두면 옵션 없음)"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
                   label="도매처명"
                   name="wholesaler"
                   value={formData.wholesaler}
@@ -485,7 +507,7 @@ function ProductManagement() {
                   {formData.variants.map((variant, index) => (
                     <Grid item xs={12} sm={6} md={4} key={index}>
                       <Typography variant="subtitle2" gutterBottom>
-                        {`${formData.productName || ''} ${variant.size} / ${variant.color}`}
+                        {`${formData.productName || ''} ${variant.size||''} / ${variant.color||''} / ${variant.extraOption||''}`}
                       </Typography>
                       <TextField
                         fullWidth
