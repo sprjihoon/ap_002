@@ -9,26 +9,33 @@
    'https://ap-002.onrender.com';
  export const API_URL = `${API_BASE}/api`;
 
- const getHeaders = () => {
+ const buildHeaders = (method, hasBody, extraHeaders = {}) => {
    const token = localStorage.getItem('token');
-   console.log('Current token:', token); // 토큰 확인용 로그
-   return {
-     'Content-Type': 'application/json',
+   const headers = {
      'Authorization': token ? `Bearer ${token}` : '',
+     ...extraHeaders,
    };
+
+   // JSON 바디가 있는 요청(POST/PUT/PATCH)만 Content-Type 설정
+   if (hasBody || ['POST', 'PUT', 'PATCH'].includes(method?.toUpperCase?.())) {
+     headers['Content-Type'] ||= 'application/json';
+   }
+
+   return headers;
  };
 
  export const fetchWithAuth = async (endpoint, options = {}) => {
    const url = endpoint.startsWith('/api')
      ? `${API_BASE}${endpoint}`
      : `${API_BASE}/api${endpoint}`;
+
+   const method = options.method || 'GET';
+   const hasBody = !!options.body;
+
    const response = await fetch(url, {
      credentials: 'include',
      ...options,
-     headers: {
-       ...getHeaders(),
-       ...options.headers,
-     },
+     headers: buildHeaders(method, hasBody, options.headers || {}),
    });
 
    if (response.status === 401) {

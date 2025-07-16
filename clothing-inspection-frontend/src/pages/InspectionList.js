@@ -204,8 +204,24 @@ const InspectionList = () => {
             <MenuItem value="error">오류</MenuItem>
           </Select>
         </FormControl>
-        <TextField type="date" size="small" label="시작일" InputLabelProps={{shrink:!!startDate}} value={startDate} onChange={e=>setStartDate(e.target.value)} />
-        <TextField type="date" size="small" label="종료일" InputLabelProps={{shrink:!!endDate}} value={endDate} onChange={e=>setEndDate(e.target.value)} />
+        <TextField
+          type="date"
+          size="small"
+          label="시작일"
+          InputLabelProps={{ shrink: true }}
+          value={startDate}
+          onChange={e => setStartDate(e.target.value)}
+          sx={{ minWidth: 140 }}
+        />
+        <TextField
+          type="date"
+          size="small"
+          label="종료일"
+          InputLabelProps={{ shrink: true }}
+          value={endDate}
+          onChange={e => setEndDate(e.target.value)}
+          sx={{ minWidth: 140 }}
+        />
       </Box>
 
       {/* 검수 목록 테이블 */}
