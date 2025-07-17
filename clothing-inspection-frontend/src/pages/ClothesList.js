@@ -267,7 +267,13 @@ function ClothesList() {
     const key = [product.company, product.productName, product.wholesaler, product.wholesalerProductName].join('|');
     if (!grouped[key]) grouped[key] = [];
     if (product.ProductVariants && product.ProductVariants.length > 0) {
-      grouped[key].push(...product.ProductVariants.map(v => `${v.size}/${v.color}: ${v.barcode}`));
+      grouped[key].push(...product.ProductVariants.map(v => {
+        const parts = [];
+        if (v.size) parts.push(v.size);
+        if (v.color) parts.push(v.color);
+        if (v.extraOption) parts.push(v.extraOption);
+        return `${parts.join('/')} : ${v.barcode}`;
+      }));
     } else if (product.barcode) {
       grouped[key].push(...product.barcode.split(/[,;\n]+/).map(b => b.trim()).filter(Boolean));
     }
@@ -387,6 +393,7 @@ function ClothesList() {
               <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>제품명</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>사이즈</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>컬러</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>추가옵션</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap', width: 180 }}>바코드</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>도매처명</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>도매처제품명</TableCell>
@@ -400,16 +407,20 @@ function ClothesList() {
               const prod = products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key);
               let sizeVal = '';
               let colorVal = '';
+              let extraVal = '';
               if (prod) {
                 if (prod.ProductVariants && prod.ProductVariants.length) {
                   const sizeSet = new Set();
                   const colorSet = new Set();
+                  const extraSet = new Set();
                   prod.ProductVariants.forEach(v => {
                     if (v.size) sizeSet.add(v.size);
                     if (v.color) colorSet.add(v.color);
+                    if (v.extraOption) extraSet.add(v.extraOption);
                   });
                   sizeVal = Array.from(sizeSet).join(',');
                   colorVal = Array.from(colorSet).join(',');
+                  extraVal = Array.from(extraSet).join(',');
                 }
                 if (!sizeVal) {
                   sizeVal = Array.isArray(prod.size) ? prod.size.join(',') : (prod.size || '');
@@ -425,6 +436,7 @@ function ClothesList() {
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{key.split('|')[1]}</TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{sizeVal}</TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{colorVal}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>{extraVal}</TableCell>
                 <TableCell sx={{ width: 200 }}>
                   {barcodes
                     .flatMap(b => b.split(/[,;\n]+/))
