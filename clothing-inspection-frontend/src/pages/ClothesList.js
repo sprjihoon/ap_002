@@ -398,8 +398,26 @@ function ClothesList() {
           <TableBody>
             {paginatedEntries.map(([key, barcodes], idx) => {
               const prod = products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key);
-              const sizeVal = prod ? (Array.isArray(prod.size) ? prod.size.join(',') : (prod.size || '')) : '';
-              const colorVal = prod ? (Array.isArray(prod.color) ? prod.color.join(',') : (prod.color || '')) : '';
+              let sizeVal = '';
+              let colorVal = '';
+              if (prod) {
+                if (prod.ProductVariants && prod.ProductVariants.length) {
+                  const sizeSet = new Set();
+                  const colorSet = new Set();
+                  prod.ProductVariants.forEach(v => {
+                    if (v.size) sizeSet.add(v.size);
+                    if (v.color) colorSet.add(v.color);
+                  });
+                  sizeVal = Array.from(sizeSet).join(',');
+                  colorVal = Array.from(colorSet).join(',');
+                }
+                if (!sizeVal) {
+                  sizeVal = Array.isArray(prod.size) ? prod.size.join(',') : (prod.size || '');
+                }
+                if (!colorVal) {
+                  colorVal = Array.isArray(prod.color) ? prod.color.join(',') : (prod.color || '');
+                }
+              }
               return (
                 <TableRow key={idx}>
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>{prod?.id}</TableCell>
