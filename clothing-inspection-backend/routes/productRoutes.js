@@ -105,9 +105,12 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
         const wholesalerProductName = pick(row, 'wholesalerProductName', '도매처제품명', '도매처 상품명');
         const location              = pick(row, 'location', '로케이션');
 
-        // 필수 필드 검증
-        if (!company || !productName || !sizeRaw || !colorRaw || !wholesaler || !wholesalerProductName) {
+        // 필수 필드 검증 – size/color/extraOption 중 최소 1개 필요
+        if (!company || !productName || !wholesaler || !wholesalerProductName) {
           throw new Error('필수 필드가 누락되었습니다.');
+        }
+        if (!sizeRaw && !colorRaw && !extraOptionRaw) {
+          throw new Error('size, color, extraOption 중 최소 1개는 입력해야 합니다.');
         }
 
         // 업체명+제품명으로 기존 Product 찾기
@@ -135,8 +138,8 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
         if (barcode) {
           await ProductVariant.create({
             productId: product.id,
-            size: sizeRaw.split(',')[0].trim(),
-            color: colorRaw.split(',')[0].trim(),
+            size: sizeRaw ? sizeRaw.split(',')[0].trim() : null,
+            color: colorRaw ? colorRaw.split(',')[0].trim() : null,
             extraOption: extraOptionRaw ? extraOptionRaw.split(',')[0].trim() : null,
             barcode
           });
