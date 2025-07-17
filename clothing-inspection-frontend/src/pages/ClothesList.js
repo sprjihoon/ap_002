@@ -396,13 +396,17 @@ function ClothesList() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedEntries.map(([key, barcodes], idx) => (
-              <TableRow key={idx}>
-                <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>{products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key)?.id}</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{key.split('|')[0]}</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{key.split('|')[1]}</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{key.split('|')[2]}</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{key.split('|')[3]}</TableCell>
+            {paginatedEntries.map(([key, barcodes], idx) => {
+              const prod = products.find(p => [p.company, p.productName, p.wholesaler, p.wholesalerProductName].join('|') === key);
+              const sizeVal = prod ? (Array.isArray(prod.size) ? prod.size.join(',') : (prod.size || '')) : '';
+              const colorVal = prod ? (Array.isArray(prod.color) ? prod.color.join(',') : (prod.color || '')) : '';
+              return (
+                <TableRow key={idx}>
+                  <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>{prod?.id}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{key.split('|')[0]}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{key.split('|')[1]}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{sizeVal}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{colorVal}</TableCell>
                 <TableCell sx={{ width: 200 }}>
                   {barcodes
                     .flatMap(b => b.split(/[,;\n]+/))
@@ -439,7 +443,8 @@ function ClothesList() {
                   )}
                 </TableCell>
               </TableRow>
-            ))}
+            );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
