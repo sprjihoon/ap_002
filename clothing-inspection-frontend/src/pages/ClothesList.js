@@ -44,6 +44,7 @@ function ClothesList() {
     productName: '',
     size: '',
     color: '',
+    extraOption: '',
     wholesaler: '',
     wholesalerProductName: '',
     location: '',
@@ -66,12 +67,18 @@ function ClothesList() {
     const required = [
       formData.company,
       formData.productName,
-      formData.size,
-      formData.color,
+      (formData.size || '').trim(),
+      (formData.color || '').trim(),
+      (formData.extraOption || '').trim(),
       formData.wholesaler,
       formData.wholesalerProductName
     ];
+    // 필수 기본 필드
     if(required.some(f=>!f || !f.toString().trim())) return false;
+
+    // 사이즈/컬러/추가옵션 중 하나는 입력되어야 함
+    if(!(formData.size || '').trim() && !(formData.color || '').trim() && !(formData.extraOption || '').trim()) return false;
+
     if(formData.variants.length===0) return false;
     if(formData.variants.some(v=>!v.barcode || !v.barcode.trim())) return false;
     return true;
@@ -132,6 +139,7 @@ function ClothesList() {
         productName: '',
         size: '',
         color: '',
+        extraOption: '',
         wholesaler: '',
         wholesalerProductName: '',
         location: '',
@@ -180,15 +188,16 @@ function ClothesList() {
         productName: fullProd.productName,
         size: Array.isArray(fullProd.size) ? fullProd.size.join(',') : (fullProd.size || ''),
         color: Array.isArray(fullProd.color) ? fullProd.color.join(',') : (fullProd.color || ''),
+        extraOption: '', // TODO: load from product level if available
         wholesaler: fullProd.wholesaler,
         wholesalerProductName: fullProd.wholesalerProductName,
         location: fullProd.location,
-        variants: fullProd.ProductVariants?fullProd.ProductVariants.map(v=>({size:v.size,color:v.color,barcode:v.barcode})):[]
+        variants: fullProd.ProductVariants?fullProd.ProductVariants.map(v=>({size:v.size,color:v.color,extraOption:v.extraOption,barcode:v.barcode})):[]
       });
     }else{
       setEditingProduct(null);
       setFormData({
-        company:'',productName:'',size:'',color:'',wholesaler:'',wholesalerProductName:'',location:'',variants:[]
+        company:'',productName:'',size:'',color:'',extraOption:'',wholesaler:'',wholesalerProductName:'',location:'',variants:[]
       });
     }
     setOpenDialog(true);
@@ -203,14 +212,23 @@ function ClothesList() {
     const {name,value}=e.target;
     setFormData(prev=>({...prev,[name]:value}));
 
-    if(name==='size'||name==='color'){
+    if(name==='size'||name==='color'||name==='extraOption'){
       const sizesArr=(name==='size'?value:formData.size).split(',').map(s=>s.trim()).filter(Boolean);
       const colorsArr=(name==='color'?value:formData.color).split(',').map(c=>c.trim()).filter(Boolean);
+      const extrasArr=(name==='extraOption'?value:formData.extraOption).split(',').map(x=>x.trim()).filter(Boolean);
+
+      const sList = sizesArr.length ? sizesArr : [''];
+      const cList = colorsArr.length ? colorsArr : [''];
+      const eList = extrasArr.length ? extrasArr : [''];
+
       const newVars=[];
-      for(const s of sizesArr){
-        for(const c of colorsArr){
-          const existing=formData.variants.find(v=>v.size===s&&v.color===c);
-          newVars.push({size:s,color:c,barcode:existing?existing.barcode:''});
+      for(const s of sList){
+        for(const c of cList){
+          for(const ex of eList){
+            if(!s && !c && !ex) continue; // skip all-empty variant
+            const existing=formData.variants.find(v=>v.size===s&&v.color===c&&v.extraOption===ex);
+            newVars.push({size:s,color:c,extraOption:ex,barcode:existing?existing.barcode:''});
+          }
         }
       }
       setFormData(prev=>({...prev,variants:newVars}));
@@ -498,11 +516,21 @@ function ClothesList() {
             helperText="예: 블랙,화이트"
             required
           />
+          <TextField
+            fullWidth
+            label="추가옵션 (쉼표로 구분)"
+            name="extraOption"
+            margin="normal"
+            value={formData.extraOption}
+            onChange={handleInputChange}
+            helperText="예: 기모,선염"
+            required
+          />
           <Typography variant="h6" gutterBottom>바코드 입력</Typography>
           <Grid container spacing={2}>
             {formData.variants.map((variant,index)=>(
               <Grid item xs={12} sm={6} md={4} key={index}>
-                <Typography variant="subtitle2" gutterBottom>{`${formData.productName || ''} ${variant.size} / ${variant.color}`}</Typography>
+                <Typography variant="subtitle2" gutterBottom>{`${formData.productName || ''} ${variant.size||''}${variant.color?` / ${variant.color}`:''}${variant.extraOption?` / ${variant.extraOption}`:''}`}</Typography>
                 <TextField fullWidth label="바코드" value={variant.barcode} onChange={e=>handleVariantBarcodeChange(index,e.target.value)} required/>
               </Grid>
             ))}
