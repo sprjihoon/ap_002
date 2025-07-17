@@ -437,16 +437,15 @@ function ClothesList() {
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{sizeVal}</TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{colorVal}</TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>{extraVal}</TableCell>
-                <TableCell sx={{ width: 200 }}>
-                  {barcodes
-                    .flatMap(b => b.split(/[,;\n]+/))
-                    .filter(Boolean)
-                    .map((b, i, arr) => (
-                      <React.Fragment key={i}>
-                        <Chip label={b} size="small" style={{ margin: '2px' }} clickable onClick={() => {}} />
-                        {((i % 5 === 4) && (i !== arr.length - 1)) && <br />}
-                      </React.Fragment>
-                    ))}
+                <TableCell sx={{ width: 220 }}>
+                  <Box sx={{ display:'flex', flexWrap:'wrap', gap:0.5, maxHeight:120, overflowY:'auto' }}>
+                    {barcodes
+                      .flatMap(b => b.split(/[,;\n]+/))
+                      .filter(Boolean)
+                      .map((b,i)=>(
+                        <Chip key={i} label={b} size="small" />
+                      ))}
+                  </Box>
                 </TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{key.split('|')[2]}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{key.split('|')[3]}</TableCell>
