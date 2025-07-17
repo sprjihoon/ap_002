@@ -391,9 +391,6 @@ function ClothesList() {
               <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>ID</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>업체명</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>제품명</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>사이즈</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>컬러</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>추가옵션</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap', width: 180 }}>바코드</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>도매처명</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>도매처제품명</TableCell>
@@ -434,27 +431,7 @@ function ClothesList() {
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>{prod?.id}</TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{key.split('|')[0]}</TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{key.split('|')[1]}</TableCell>
-                  <TableCell sx={{ width: 100 }}>
-                    <Box sx={{ display:'flex', flexWrap:'wrap', gap:0.5, maxHeight:120, overflowY:'auto' }}>
-                      {sizeVal.split(',').filter(Boolean).map((s,i)=>(
-                        <Chip key={i} label={s} size="small" />
-                      ))}
-                    </Box>
-                  </TableCell>
-                  <TableCell sx={{ width: 100 }}>
-                    <Box sx={{ display:'flex', flexWrap:'wrap', gap:0.5, maxHeight:120, overflowY:'auto' }}>
-                      {colorVal.split(',').filter(Boolean).map((c,i)=>(
-                        <Chip key={i} label={c} size="small" />
-                      ))}
-                    </Box>
-                  </TableCell>
-                  <TableCell sx={{ width: 100 }}>
-                    <Box sx={{ display:'flex', flexWrap:'wrap', gap:0.5, maxHeight:120, overflowY:'auto' }}>
-                      {extraVal.split(',').filter(Boolean).map((e,i)=>(
-                        <Chip key={i} label={e} size="small" />
-                      ))}
-                    </Box>
-                  </TableCell>
+                  {/* size/color/extraOption columns removed as per request */}
                 <TableCell sx={{ width: 220 }}>
                   <Box sx={{ display:'flex', flexWrap:'wrap', gap:0.5, maxHeight:120, overflowY:'auto' }}>
                     {barcodes
