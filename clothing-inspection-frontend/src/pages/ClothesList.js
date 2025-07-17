@@ -185,7 +185,13 @@ function ClothesList() {
         productName: fullProd.productName,
         size: Array.isArray(fullProd.size) ? fullProd.size.join(',') : (fullProd.size || ''),
         color: Array.isArray(fullProd.color) ? fullProd.color.join(',') : (fullProd.color || ''),
-        extraOption: '', // TODO: load from product level if available
+        // extraOption: 모든 variant의 extraOption 값을 중복 제거 후 쉼표로 결합
+        extraOption: (() => {
+          const extras = (fullProd.ProductVariants || [])
+            .map(v => v.extraOption)
+            .filter(Boolean);
+          return extras.length ? [...new Set(extras)].join(',') : '';
+        })(),
         wholesaler: fullProd.wholesaler,
         wholesalerProductName: fullProd.wholesalerProductName,
         location: fullProd.location,
