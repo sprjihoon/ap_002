@@ -403,11 +403,15 @@ function ClothesList() {
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{key.split('|')[1]}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{key.split('|')[2]}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{key.split('|')[3]}</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap', width: 180 }}>
+                <TableCell sx={{ width: 200 }}>
                   {barcodes
                     .flatMap(b => b.split(/[,;\n]+/))
-                    .map((b, i) => (
-                      <Chip key={i} label={b} size="small" style={{ margin: '2px' }} clickable onClick={()=>{}} />
+                    .filter(Boolean)
+                    .map((b, i, arr) => (
+                      <React.Fragment key={i}>
+                        <Chip label={b} size="small" style={{ margin: '2px' }} clickable onClick={() => {}} />
+                        {((i % 5 === 4) && (i !== arr.length - 1)) && <br />}
+                      </React.Fragment>
                     ))}
                 </TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{key.split('|')[2]}</TableCell>
