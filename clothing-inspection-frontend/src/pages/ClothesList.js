@@ -67,9 +67,6 @@ function ClothesList() {
     const required = [
       formData.company,
       formData.productName,
-      (formData.size || '').trim(),
-      (formData.color || '').trim(),
-      (formData.extraOption || '').trim(),
       formData.wholesaler,
       formData.wholesalerProductName
     ];
@@ -504,7 +501,6 @@ function ClothesList() {
             value={formData.size}
             onChange={handleInputChange}
             helperText="예: 1,2,3"
-            required
           />
           <TextField
             fullWidth
@@ -514,7 +510,6 @@ function ClothesList() {
             value={formData.color}
             onChange={handleInputChange}
             helperText="예: 블랙,화이트"
-            required
           />
           <TextField
             fullWidth
@@ -524,7 +519,6 @@ function ClothesList() {
             value={formData.extraOption}
             onChange={handleInputChange}
             helperText="예: 기모,선염"
-            required
           />
           <Typography variant="h6" gutterBottom>바코드 입력</Typography>
           <Grid container spacing={2}>
