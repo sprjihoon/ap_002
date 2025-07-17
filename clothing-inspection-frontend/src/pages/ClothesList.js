@@ -434,9 +434,27 @@ function ClothesList() {
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 50 }}>{prod?.id}</TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 120 }}>{key.split('|')[0]}</TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap', width: 150 }}>{key.split('|')[1]}</TableCell>
-                  <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{sizeVal}</TableCell>
-                  <TableCell sx={{ whiteSpace: 'nowrap', width: 80 }}>{colorVal}</TableCell>
-                  <TableCell sx={{ whiteSpace: 'nowrap', width: 100 }}>{extraVal}</TableCell>
+                  <TableCell sx={{ width: 100 }}>
+                    <Box sx={{ display:'flex', flexWrap:'wrap', gap:0.5, maxHeight:120, overflowY:'auto' }}>
+                      {sizeVal.split(',').filter(Boolean).map((s,i)=>(
+                        <Chip key={i} label={s} size="small" />
+                      ))}
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={{ width: 100 }}>
+                    <Box sx={{ display:'flex', flexWrap:'wrap', gap:0.5, maxHeight:120, overflowY:'auto' }}>
+                      {colorVal.split(',').filter(Boolean).map((c,i)=>(
+                        <Chip key={i} label={c} size="small" />
+                      ))}
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={{ width: 100 }}>
+                    <Box sx={{ display:'flex', flexWrap:'wrap', gap:0.5, maxHeight:120, overflowY:'auto' }}>
+                      {extraVal.split(',').filter(Boolean).map((e,i)=>(
+                        <Chip key={i} label={e} size="small" />
+                      ))}
+                    </Box>
+                  </TableCell>
                 <TableCell sx={{ width: 220 }}>
                   <Box sx={{ display:'flex', flexWrap:'wrap', gap:0.5, maxHeight:120, overflowY:'auto' }}>
                     {barcodes
