@@ -122,8 +122,26 @@ const TvDashboard = () => {
   const compList = compSlideNeeded ? [...remainingCompanies,...remainingCompanies] : remainingCompanies;
   const compDuration = (remainingCompanies.length||1)*3; // 3s per item
 
+  /*───────────────────────────────
+   *  현재 시각 표시 (분까지)
+   *──────────────────────────────*/
+  const formatTime = (d)=> d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const [now, setNow] = useState(formatTime(new Date()));
+  useEffect(()=>{
+    const tick = ()=>setNow(formatTime(new Date()));
+    const ms = 60000 - (Date.now() % 60000); // next minute boundary
+    const timeout = setTimeout(()=>{
+      tick();
+      const interval = setInterval(tick,60000);
+      return ()=>clearInterval(interval);
+    }, ms);
+    return ()=>clearTimeout(timeout);
+  },[]);
+
   return (
-    <Box sx={{ p:1, bgcolor:'#000', height:'100vh', color:'#fff', overflow:'hidden', display:'flex', flexDirection:'column' }}>
+    <Box sx={{ p:1, bgcolor:'#000', height:'100vh', color:'#fff', overflow:'hidden', display:'flex', flexDirection:'column', position:'relative' }}>
+      {/* 현재 시각 */}
+      <Typography variant="h5" sx={{ position:'absolute', top:8, right:16, color:'#fff' }}>{now}</Typography>
       <Box sx={{ display:'flex', alignItems:'center', position:'relative', mb:1 }}>
         {/* Remaining company list */}
         <Box sx={{ width:200, height:60, overflow:'hidden', bgcolor:'#222', borderRadius:1, p:1 }}>
