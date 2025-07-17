@@ -48,13 +48,18 @@ const ExcelUpload = ({ onSuccess }) => {
       setResult(response.data);
       setUploadResponse(response);
       if (onSuccess) onSuccess();
+      if (response.data.results?.failed > 0) {
+        enqueueSnackbar(`${response.data.results.failed}건 업로드 실패 (상세 목록 참조)`, { variant:'warning' });
+      }
       if (response.data.success) {
         enqueueSnackbar('검수가 성공적으로 등록되었습니다.', { variant: 'success' });
         navigate(`/inspections/${response.data.data.inspectionId}`);
       }
     } catch (err) {
-      setError(err.response?.data?.message || '파일 업로드 중 오류가 발생했습니다.');
-      console.error('Inspection POST error:', err);
+      const msg = err.response?.data?.message || '파일 업로드 중 오류가 발생했습니다.';
+      setError(msg);
+      enqueueSnackbar(msg, { variant:'error' });
+      console.error('Excel upload error:', err);
     } finally {
       setUploading(false);
     }
